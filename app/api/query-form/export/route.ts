@@ -116,11 +116,11 @@ export async function POST(req: NextRequest) {
 
   const buffer: Buffer = await Packer.toBuffer(doc);
 
-  // Next.js 16 stricter typing — Buffer isn't a valid BodyInit, but Uint8Array is.
-  // Buffer extends Uint8Array so this is a zero-copy view.
-  const body = new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-
-  return new NextResponse(body, {
+  // Next.js 16 + strict TS 5.6+ types don't recognize Buffer or
+  // Uint8Array<ArrayBufferLike> as BodyInit due to generic variance rules,
+  // even though at runtime both work perfectly as a Response body.
+  // Explicit cast is the accepted escape hatch here.
+  return new NextResponse(buffer as unknown as BodyInit, {
     status: 200,
     headers: {
       "Content-Type":
