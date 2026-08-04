@@ -67,19 +67,22 @@ export async function GET(
   // Split content into paragraphs on blank lines to preserve structure
   const rawLines = doc.content.split(/\r?\n/);
   const bodyParagraphs: unknown[] = [];
-  let buffer: string[] = [];
+  let lineBuffer: string[] = [];
 
   const flushBuffer = () => {
-    if (buffer.length === 0) return;
-    const text = buffer.join(" ").trim();
-    if (!text) return;
+    if (lineBuffer.length === 0) return;
+    const text = lineBuffer.join(" ").trim();
+    if (!text) {
+      lineBuffer = [];
+      return;
+    }
     bodyParagraphs.push(
       new Paragraph({
         children: [new TextRun({ text, font, size: 22, color: "111827" })],
         spacing: { after: 140 },
       })
     );
-    buffer = [];
+    lineBuffer = [];
   };
 
   for (const line of rawLines) {
@@ -87,7 +90,7 @@ export async function GET(
     if (trimmed === "") {
       flushBuffer();
     } else {
-      buffer.push(trimmed);
+      lineBuffer.push(trimmed);
     }
   }
   flushBuffer();
