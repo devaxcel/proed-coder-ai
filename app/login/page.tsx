@@ -44,7 +44,7 @@ export default function LoginPage() {
             P
           </div>
           <div>
-            <div className="font-semibold text-slate-900">ProEd Coder AI</div>
+            <div className="font-semibold text-slate-900">ProEdcd Coder AI</div>
             <div className="text-xs text-slate-500">Sign in with the team password</div>
           </div>
         </div>
