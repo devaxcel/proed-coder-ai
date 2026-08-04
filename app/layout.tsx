@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { auth, signOut } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "ProEd Coder AI",
+  title: "ProEdcs Coder AI",
   description: "AI-powered medical coding & policy assistant — by AXCEL",
 };
 
@@ -25,7 +25,7 @@ export default async function RootLayout({
                   <div className="h-8 w-8 rounded-md bg-brand-600 text-white grid place-items-center text-sm font-bold">
                     P
                   </div>
-                  <div className="font-semibold">ProEd Coder AI</div>
+                  <div className="font-semibold">ProEdcs Coder AI</div>
                 </div>
                 {session && (
                   <nav className="flex items-center gap-4 text-sm">
