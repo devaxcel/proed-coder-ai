@@ -54,7 +54,7 @@ export default async function RootLayout({
                 )}
               </div>
               <div className="flex items-center gap-4">
-                <div className="text-xs text-slate-500">Built by AXCEL</div>
+               
                 {session && (
                   <form
                     action={async () => {
