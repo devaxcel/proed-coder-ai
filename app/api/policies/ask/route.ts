@@ -17,6 +17,7 @@ const Body = z.object({
 type Citation = {
   n: number;
   chunkId: string;
+  policyDocId: string;
   source: string;
   docTitle: string;
   sourceUrl: string;
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
   const citations: Citation[] = policyChunks.map((c, i) => ({
     n: i + 1,
     chunkId: c.chunkId,
+    policyDocId: c.policyDocId,
     source: c.sourceName,
     docTitle: c.docTitle,
     sourceUrl: c.sourceUrl,

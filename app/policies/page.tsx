@@ -6,6 +6,7 @@ import Link from "next/link";
 type Citation = {
   n: number;
   chunkId: string;
+  policyDocId: string;
   source: string;
   docTitle: string;
   sourceUrl: string;
@@ -211,16 +212,24 @@ export default function PoliciesPage() {
                     <p className="mt-2 text-xs italic text-slate-700">
                       &ldquo;{c.excerpt}&rdquo;
                     </p>
-                    {c.sourceUrl && (
+                    <div className="mt-2 flex flex-wrap gap-3">
                       <a
-                        href={c.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="mt-2 inline-block text-xs text-indigo-600 hover:underline"
+                        href={`/api/policies/document/${c.policyDocId}`}
+                        className="inline-flex items-center gap-1 rounded border border-brand-200 bg-white px-2 py-1 text-xs font-medium text-brand-700 hover:bg-brand-50"
                       >
-                        Open source →
+                        ⬇ Download policy (DOCX)
                       </a>
-                    )}
+                      {c.sourceUrl && (
+                        <a
+                          href={c.sourceUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center text-xs text-indigo-600 hover:underline"
+                        >
+                          Open source →
+                        </a>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ol>
