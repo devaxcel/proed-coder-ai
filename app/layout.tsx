@@ -33,6 +33,12 @@ export default async function RootLayout({
                       Codes search
                     </Link>
                     <Link
+                      href="/policies"
+                      className="text-slate-700 hover:text-brand-600"
+                    >
+                      Policies
+                    </Link>
+                    <Link
                       href="/query-forms"
                       className="text-slate-700 hover:text-brand-600"
                     >
