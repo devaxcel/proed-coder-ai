@@ -44,7 +44,7 @@ export default function LoginPage() {
             P
           </div>
           <div>
-            <div className="font-semibold text-slate-900">ProEdcs Coder AI</div>
+            <div className="font-semibold text-slate-900">ProEdCS Coder AI</div>
             <div className="text-xs text-slate-500">Sign in with the team password</div>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function LoginPage() {
         </form>
 
         <p className="mt-6 text-xs text-slate-500">
-          Built by AXCEL · Ask your admin for the team password if you don't have it.
+          Built by AXCEL for ProEd Consulting &amp; Staffing · West Covina, CA
         </p>
       </div>
     </div>

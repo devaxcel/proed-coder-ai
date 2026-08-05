@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { generateFormADocx } from "@/lib/query-form-a-docx";
+import type { FormAOutput, QueryFormHeaderInputs } from "@/lib/query-form-prompts";
 
 export const runtime = "nodejs";
 
 const Body = z.object({
-  draft: z.string().min(1).max(20000),
-  format: z.enum(["docx"]).default("docx"),
+  form: z.any(),
+  header: z.any().optional(),
+  citationsUsed: z.number().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -13,119 +16,41 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { draft } = parsed.data;
 
-  // docx package is CommonJS; unwrap default under dynamic import
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mod: any = await import("docx").catch(() => null);
-  if (!mod) {
+  const form = parsed.data.form as FormAOutput;
+  const header = (parsed.data.header ?? {}) as QueryFormHeaderInputs;
+
+  if (!form || typeof form !== "object" || !("clarification_question" in form)) {
     return NextResponse.json(
-      { error: "docx package not installed. Run: npm install docx" },
-      { status: 500 }
+      { error: "Missing structured Form A data. Generate the query first." },
+      { status: 400 }
     );
   }
-  const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } = mod;
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  let buffer: Buffer;
+  try {
+    buffer = await generateFormADocx({
+      form,
+      header,
+      createdAt: new Date(),
+      citationsUsed: parsed.data.citationsUsed,
+    });
+  } catch (e) {
+    console.error("DOCX generation failed:", e);
+    return NextResponse.json({ error: "DOCX generation failed" }, { status: 500 });
+  }
 
-  // Split draft into paragraphs. Preserve blank lines as paragraph breaks.
-  const rawLines = draft.split(/\r?\n/);
-  const bodyParagraphs = rawLines.map(
-    (line) =>
-      new Paragraph({
-        children: [new TextRun({ text: line, font: "Calibri", size: 22 })],
-        spacing: { after: 100 },
-      })
-  );
+  const filenameSafe = (form.query_id_suggestion || `Query-${Date.now()}`)
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-");
+  const filename = `ProEdCS-FormA-${filenameSafe}.docx`;
 
-  const doc = new Document({
-    creator: "ProEd Coder AI",
-    title: "Physician Query",
-    styles: {},
-    sections: [
-      {
-        properties: {},
-        children: [
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "ProEd Consulting & Staffing",
-                bold: true,
-                font: "Calibri",
-                size: 32,
-                color: "1E40AF",
-              }),
-            ],
-            alignment: AlignmentType.LEFT,
-            spacing: { after: 60 },
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "Physician Query — Documentation Clarification Request",
-                font: "Calibri",
-                size: 22,
-                color: "374151",
-              }),
-            ],
-            spacing: { after: 40 },
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: `Generated: ${dateStr}`,
-                font: "Calibri",
-                size: 18,
-                color: "6B7280",
-              }),
-            ],
-            spacing: { after: 240 },
-          }),
-          ...bodyParagraphs,
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "",
-                font: "Calibri",
-                size: 18,
-              }),
-            ],
-            spacing: { before: 240 },
-          }),
-          new Paragraph({
-            children: [
-              new TextRun({
-                text: "This query was drafted using ProEd Coder AI, following AHIMA/ACDIS 2019 compliant query guidelines. Retain this document as part of the audit trail per your organization's retention policy.",
-                font: "Calibri",
-                size: 16,
-                italics: true,
-                color: "6B7280",
-              }),
-            ],
-            spacing: { before: 120 },
-          }),
-        ],
-      },
-    ],
-  });
-
-  const buffer: Buffer = await Packer.toBuffer(doc);
-
-  // Next.js 16 + strict TS 5.6+ types don't recognize Buffer or
-  // Uint8Array<ArrayBufferLike> as BodyInit due to generic variance rules,
-  // even though at runtime both work perfectly as a Response body.
-  // Explicit cast is the accepted escape hatch here.
   return new NextResponse(buffer as unknown as BodyInit, {
     status: 200,
     headers: {
       "Content-Type":
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      "Content-Disposition": `attachment; filename="physician-query-${Date.now()}.docx"`,
+      "Content-Disposition": `attachment; filename="${filename}"`,
       "Content-Length": String(buffer.length),
     },
   });

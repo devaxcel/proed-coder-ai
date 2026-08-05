@@ -6,9 +6,12 @@ import type { Prisma } from "@prisma/client";
 export const runtime = "nodejs";
 
 const SaveBody = z.object({
-  id: z.string().optional(), // if provided, PATCH; else CREATE
+  id: z.string().optional(),
   scenario: z.string().min(1).max(4000),
   draft: z.string().min(1).max(20000),
+  formType: z.string().optional(),
+  formPayload: z.unknown().optional(),
+  headerPayload: z.unknown().optional(),
   citations: z.array(z.unknown()).optional(),
   status: z.enum(["DRAFT", "APPROVED", "SENT", "ARCHIVED"]).optional(),
 });
@@ -21,6 +24,16 @@ export async function POST(req: NextRequest) {
   }
   const input = parsed.data;
 
+  // Merge structured form payload into the citations JSON blob so the existing
+  // schema doesn't need new columns (backward compatible). History page can
+  // read it back out if needed.
+  const citationsBlob = {
+    formType: input.formType ?? "A",
+    formPayload: input.formPayload ?? null,
+    headerPayload: input.headerPayload ?? null,
+    citations: input.citations ?? [],
+  };
+
   try {
     if (input.id) {
       const updated = await db.queryForm.update({
@@ -28,7 +41,7 @@ export async function POST(req: NextRequest) {
         data: {
           scenario: input.scenario,
           draft: input.draft,
-          citations: (input.citations ?? []) as Prisma.InputJsonValue,
+          citations: citationsBlob as Prisma.InputJsonValue,
           status: input.status ?? "DRAFT",
         },
       });
@@ -38,7 +51,7 @@ export async function POST(req: NextRequest) {
       data: {
         scenario: input.scenario,
         draft: input.draft,
-        citations: (input.citations ?? []) as Prisma.InputJsonValue,
+        citations: citationsBlob as Prisma.InputJsonValue,
         status: input.status ?? "DRAFT",
       },
     });

@@ -1,116 +1,152 @@
 /**
- * System prompt for the physician query form generator.
+ * ProEdCS Form A — General Clinical Documentation Query
  *
- * Grounded in AHIMA/ACDIS 2019 query practice guidelines, with an optional
- * REFERENCE MATERIALS block containing retrieved policy chunks (Phase 4.2).
+ * Structured extraction prompt. The LLM reads a scenario written by a coder/CDI
+ * specialist and produces a JSON object matching the fields of ProEd's
+ * Form A packet. The DOCX generator then renders those fields into the exact
+ * Form A layout with tables, checkboxes, and signature blocks.
+ *
+ * Ground rules: no leading language, cite only clinical indicators present in
+ * the scenario, always include "Other" and "Unable to determine" in options.
  */
 
-export const QUERY_FORM_SYSTEM_PROMPT = `You are a medical documentation query specialist trained on AHIMA and ACDIS compliance guidelines for physician queries. Your role is to draft compliant physician query forms based on documentation gaps described by a medical coder.
+export const FORM_A_SYSTEM_PROMPT = `You are a Clinical Documentation Integrity (CDI) specialist assistant working for ProEd Consulting & Staffing. Your job is to convert a coder's free-text scenario into a compliant Form A physician query — a General Clinical Documentation Query — that follows ACDIS/AHIMA 2026 guidelines and the ProEdCS Query Forms Packet standard.
 
-STRICT COMPLIANCE RULES — every query MUST follow these:
+STRICT COMPLIANCE RULES (every output must satisfy these):
 
-1. NON-LEADING — Never suggest a specific diagnosis, code, or answer. Present the clinical evidence and options; let the physician decide. WRONG: "Please confirm the diabetes is Type 2." RIGHT: "Please clarify the type of diabetes."
+1. NON-LEADING LANGUAGE. Never suggest the "right" diagnosis. Present clinical indicators from the scenario and ask the provider to clarify.
 
-2. MULTI-CHOICE FORMAT — For each clarification, provide 3–6 clinically reasonable options. ALWAYS include these two options at the end:
-   [ ] Other (please specify): __________________
-   [ ] Unable to determine from documentation
+2. USE ONLY INDICATORS PROVIDED. Cite only labs, medications, findings, and notes present in the scenario. NEVER invent clinical data.
 
-3. CITE CLINICAL INDICATORS — Reference specific labs, symptoms, medications, or findings mentioned by the coder. NEVER introduce clinical facts that weren't in the coder's description.
+3. MULTI-CHOICE FORMAT. Provide 3–4 clinically reasonable options plus:
+   - "Other (please specify)"
+   - "Unable to determine / Not clinically indicated"
+   - "The condition was ruled out"
 
-4. PROFESSIONAL TONE — Neutral, factual, no accusation. Assume the physician acted in good faith. You are asking for clarification, not correction.
+4. PROFESSIONAL, NON-ACCUSATORY TONE. This is a clarification request, not a challenge.
 
-5. STANDARD STRUCTURE — Every query must follow this format:
+5. IDENTIFY QUERY TYPE AND IMPACT DOMAIN based on the scenario:
+   Query types: diagnosis_specificity | conflict_resolution | procedure_operative | poa_indicator | em_level_mdm | modifier_support | hcc_risk_adjustment | quality_hedis | other
+   Impact domains: ip_coding_drg | op_professional_coding | medical_necessity | quality_measure | risk_adjustment_hcc | denial_audit_defense | patient_safety | compliance_review
 
-Dr. [Physician Name or "Attending Physician"]
-Re: Patient [MRN or "[MRN]"], DOS: [Date or "[Date of Service]"]
-
-The medical record documentation for this date reflects [what IS documented]. The following clinical indicators appear in the record:
-  • [Indicator 1]
-  • [Indicator 2]
-  • [Indicator 3 if applicable]
-
-To support accurate and complete coding, please clarify the following:
-
-[Question 1 — non-leading]:
-  [ ] Option A
-  [ ] Option B
-  [ ] Option C
-  [ ] Other (please specify): __________________
-  [ ] Unable to determine from documentation
-
-[Question 2 if needed, same format]
-
-Please respond via [eClinicalWorks / secure message / fax] at your earliest convenience.
-
-Thank you,
-[Coder Name, Credentials]
-ProEd Consulting & Staffing
+6. IF SCENARIO INDICATES INPATIENT AND A NEW DIAGNOSIS IS BEING CLARIFIED, include Present on Admission (POA) evaluation.
 
 ---
 
-REFERENCE MATERIALS — When reference materials are provided, use them to inform the query's compliance and cite them by number in your compliance_notes. Example: "As per [1], multi-choice format includes 'Unable to determine' option."
-
-OUTPUT FORMAT — Respond with a JSON object EXACTLY like this, no preamble, no markdown fences:
+OUTPUT FORMAT — Respond with a JSON object EXACTLY like this. No markdown fences, no preamble, no trailing text:
 
 {
-  "draft": "<the full query text with all placeholders and structure>",
-  "compliance_notes": [
-    "<one bullet describing which AHIMA principle each part follows, citing [1]/[2] where applicable>"
+  "query_id_suggestion": "<short suggested ID like 'QRY-2026-DM-001'>",
+  "priority": "concurrent" | "pre_bill" | "retro" | "audit",
+  "query_types": ["diagnosis_specificity", ...],
+  "impact_domains": ["ip_coding_drg", "risk_adjustment_hcc", ...],
+  "clinical_indicators": {
+    "source_document": "<e.g. 'Progress note dated 3/15/2024'>",
+    "indicators": [
+      "<indicator 1 — labs/vitals/meds/exam>",
+      "<indicator 2>",
+      "<indicator 3>"
+    ]
+  },
+  "clarification_question": "<one clear non-leading question, e.g. 'Based on the clinical indicators above, can you clarify the specific type and current control of the diabetes documented on this DOS?'>",
+  "clinically_reasonable_options": [
+    "<Option A — a clinically reasonable diagnosis with any relevant modifiers>",
+    "<Option B — an alternate reasonable diagnosis>",
+    "<Option C — an alternate reasonable diagnosis>",
+    "<Option D — an alternate reasonable diagnosis if applicable, else empty string>"
   ],
-  "clinical_indicators_used": ["<indicator from coder's description>", "..."],
-  "questions_asked": ["<one-line summary of each clarification asked>"],
-  "citations_used": [1, 2]
+  "poa_applicable": true | false,
+  "poa_context": "<one line about why POA matters here, or empty string>",
+  "reason_for_query": "<one line: why is this clarification needed?>",
+  "compliance_checklist": {
+    "cites_specific_indicators": true,
+    "offers_multiple_options": true,
+    "includes_other_and_unable_to_determine": true,
+    "non_leading": true,
+    "defines_reason_for_query": true
+  }
 }
 
-If reference materials do not apply to this scenario, leave citations_used as an empty array. If the coder's description is too vague, still produce a draft with placeholder brackets and flag this in compliance_notes.`;
+If you cannot produce a compliant query from the scenario (insufficient clinical indicators, unclear ask), respond with the same JSON structure but with clarification_question set to "INSUFFICIENT_INFORMATION" and clinical_indicators.indicators empty.`;
+
+export type FormAOutput = {
+  query_id_suggestion: string;
+  priority: "concurrent" | "pre_bill" | "retro" | "audit";
+  query_types: string[];
+  impact_domains: string[];
+  clinical_indicators: {
+    source_document: string;
+    indicators: string[];
+  };
+  clarification_question: string;
+  clinically_reasonable_options: string[];
+  poa_applicable: boolean;
+  poa_context: string;
+  reason_for_query: string;
+  compliance_checklist: {
+    cites_specific_indicators: boolean;
+    offers_multiple_options: boolean;
+    includes_other_and_unable_to_determine: boolean;
+    non_leading: boolean;
+    defines_reason_for_query: boolean;
+  };
+};
+
+export type QueryFormHeaderInputs = {
+  patientName?: string;
+  mrn?: string;
+  dob?: string;
+  dateOfService?: string;
+  setting?: string;
+  payerType?: string;
+  attendingProvider?: string;
+  providerNpi?: string;
+  providerSpecialty?: string;
+  queryAuthorName?: string;
+  queryAuthorRole?: string;
+  queryAuthorContact?: string;
+};
 
 /**
- * Build the user prompt for a specific coder scenario, optionally with
- * retrieved policy reference materials for grounding.
+ * Build the user prompt that combines the scenario with reference materials
+ * from RAG (AHIMA/ACDIS policy chunks) and the coder-supplied header info.
  */
-export function buildQueryFormUserPrompt(input: {
+export function buildFormAUserPrompt(input: {
   scenario: string;
-  chartSnippet?: string;
-  mrn?: string;
-  dos?: string;
-  physicianName?: string;
-  coderName?: string;
-  referenceMaterials?: Array<{ title: string; source: string; excerpt: string }>;
+  header: QueryFormHeaderInputs;
+  referenceMaterials: Array<{ title: string; source: string; excerpt: string }>;
 }): string {
   const parts: string[] = [];
 
-  if (input.referenceMaterials && input.referenceMaterials.length > 0) {
-    parts.push("REFERENCE MATERIALS (use to inform compliance and cite by number):");
+  if (input.referenceMaterials.length > 0) {
+    parts.push("COMPLIANCE REFERENCE MATERIALS (guide your language and structure):");
+    parts.push("");
     input.referenceMaterials.forEach((ref, i) => {
-      parts.push(`[${i + 1}] ${ref.source} · ${ref.title}`);
+      parts.push(`[${i + 1}] ${ref.source} — ${ref.title}`);
       parts.push(`    "${ref.excerpt}"`);
       parts.push("");
     });
   }
 
-  parts.push("Coder's description of the documentation gap:");
+  parts.push("SCENARIO FROM CODER (documentation gap description):");
   parts.push(input.scenario.trim());
-
-  if (input.chartSnippet?.trim()) {
-    parts.push("");
-    parts.push("Chart snippet:");
-    parts.push(input.chartSnippet.trim());
-  }
-
-  const meta: string[] = [];
-  if (input.mrn) meta.push(`MRN: ${input.mrn}`);
-  if (input.dos) meta.push(`Date of Service: ${input.dos}`);
-  if (input.physicianName) meta.push(`Physician: ${input.physicianName}`);
-  if (input.coderName) meta.push(`Coder: ${input.coderName}`);
-  if (meta.length) {
-    parts.push("");
-    parts.push("Metadata to use in the query header:");
-    parts.push(meta.join("\n"));
-  }
-
   parts.push("");
-  parts.push(
-    "Draft the physician query following ALL compliance rules. Return the JSON object described in the system prompt."
-  );
+
+  parts.push("HEADER CONTEXT (may be blank; use if provided):");
+  parts.push(`- Patient: ${input.header.patientName || "(not provided)"}`);
+  parts.push(`- MRN: ${input.header.mrn || "(not provided)"}`);
+  parts.push(`- DOB: ${input.header.dob || "(not provided)"}`);
+  parts.push(`- Date of service: ${input.header.dateOfService || "(not provided)"}`);
+  parts.push(`- Setting: ${input.header.setting || "(not provided)"}`);
+  parts.push(`- Payer: ${input.header.payerType || "(not provided)"}`);
+  parts.push(`- Attending / Rendering: ${input.header.attendingProvider || "(not provided)"}`);
+  parts.push(`- Provider NPI: ${input.header.providerNpi || "(not provided)"}`);
+  parts.push(`- Specialty: ${input.header.providerSpecialty || "(not provided)"}`);
+  parts.push(`- Query author: ${input.header.queryAuthorName || "(not provided)"}`);
+  parts.push(`- Author role: ${input.header.queryAuthorRole || "(not provided)"}`);
+  parts.push("");
+
+  parts.push("Now output the Form A JSON object exactly per the system prompt. Cite ONLY the indicators from the scenario. Return valid JSON with no other text.");
+
   return parts.join("\n");
 }
