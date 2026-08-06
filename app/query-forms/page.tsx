@@ -199,45 +199,44 @@ export default function QueryFormsPage() {
 
   return (
     <div className="space-y-8">
-      <section>
-        <div className="inline-flex items-center rounded-md bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">
-          Query Forms · Form A (General Clinical Documentation Query)
+      <section className="rounded-xl bg-navy px-6 py-12 md:px-12 md:py-16 text-center">
+        <div className="mx-auto max-w-2xl">
+          <div className="inline-flex items-center rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white/80 mb-4">
+            Query Forms · Form A (General Clinical Documentation Query)
+          </div>
+          <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
+            Draft a compliant physician query.
+          </h1>
+          <p className="mt-3 text-sm text-white/70">
+            Describe the documentation gap in your own words. The tool extracts structured Form A fields grounded in ACDIS/AHIMA 2026 guidelines, then generates a print-ready DOCX matching the ProEdCS Query Forms Packet.
+          </p>
+
+          <div className="mt-8 text-left">
+            <textarea
+              value={scenario}
+              onChange={(e) => setScenario(e.target.value)}
+              rows={5}
+              placeholder="e.g. Chart notes 'diabetes' for patient seen 3/15/2024. HbA1c 8.2%, glucose 240, on metformin. Missing: type, control, complications."
+              className="w-full rounded-md border-0 bg-white px-5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-yellow resize-none"
+            />
+            <div className="mt-2 flex flex-wrap justify-center gap-2 text-xs">
+              <span className="text-white/60">Try:</span>
+              {examples.map((ex, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setScenario(ex.scenario)}
+                  className="text-white/90 underline underline-offset-2 hover:text-accent-yellow"
+                >
+                  Example {i + 1}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">
-          Draft a compliant physician query.
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Describe the documentation gap in your own words. The tool extracts structured Form A fields grounded in ACDIS/AHIMA 2026 guidelines, then generates a print-ready DOCX matching the ProEdCS Query Forms Packet.
-        </p>
       </section>
 
       <form onSubmit={onGenerate} className="space-y-5">
-        <div>
-          <label className="mb-1 block text-sm font-medium text-slate-800">
-            Documentation gap description
-          </label>
-          <textarea
-            value={scenario}
-            onChange={(e) => setScenario(e.target.value)}
-            rows={5}
-            placeholder="e.g. Chart notes 'diabetes' for patient seen 3/15/2024. HbA1c 8.2%, glucose 240, on metformin. Missing: type, control, complications."
-            className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
-          <div className="mt-2 flex flex-wrap gap-2 text-xs">
-            <span className="text-slate-500">Try:</span>
-            {examples.map((ex, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => setScenario(ex.scenario)}
-                className="text-brand-600 hover:underline"
-              >
-                Example {i + 1}
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div>
           <button
             type="button"

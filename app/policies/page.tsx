@@ -102,50 +102,49 @@ export default function PoliciesPage() {
 
   return (
     <div className="space-y-8">
-      <section>
-        <div className="inline-flex items-center rounded-md bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
-          Policy Q&amp;A
-        </div>
-        <h1 className="mt-2 text-2xl font-semibold text-slate-900">
-          Ask a compliance question.
-        </h1>
-        <p className="mt-1 text-sm text-slate-600">
-          Grounded in AHIMA, ACDIS, CMS-HCC V28, NCQA HEDIS, and Medicare Advantage RADV audit standards. Answers cite the source paragraph — no hallucination.
-        </p>
-      </section>
-
-      <form onSubmit={onAsk} className="space-y-4">
-        <div>
-          <textarea
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-            rows={3}
-            placeholder="e.g. What does AHIMA say about non-leading physician queries?"
-            className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            <span className="text-xs text-slate-500">Try:</span>
-            {exampleQuestions.map((q, i) => (
-              <button
-                type="button"
-                key={i}
-                onClick={() => setQuestion(q)}
-                className="text-xs text-brand-600 hover:underline"
-              >
-                Example {i + 1}
-              </button>
-            ))}
+      <section className="rounded-xl bg-navy px-6 py-12 md:px-12 md:py-16 text-center">
+        <div className="mx-auto max-w-2xl">
+          <div className="inline-flex items-center rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white/80 mb-4">
+            Policy Q&amp;A
           </div>
-        </div>
+          <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
+            Ask a compliance question.
+          </h1>
+          <p className="mt-3 text-sm text-white/70">
+            Grounded in AHIMA, ACDIS, CMS-HCC V28, NCQA HEDIS, and Medicare Advantage RADV audit standards. Answers cite the source paragraph — no hallucination.
+          </p>
 
-        <button
-          type="submit"
-          disabled={loading || !question.trim()}
-          className="rounded-md bg-brand-600 px-5 py-3 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
-        >
-          {loading ? "Searching policies…" : "Ask"}
-        </button>
-      </form>
+          <form onSubmit={onAsk} className="mt-8 space-y-3">
+            <textarea
+              value={question}
+              onChange={(e) => setQuestion(e.target.value)}
+              rows={3}
+              placeholder="e.g. What does AHIMA say about non-leading physician queries?"
+              className="w-full rounded-md border-0 bg-white px-5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-yellow resize-none"
+            />
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <span className="text-xs text-white/60">Try:</span>
+              {exampleQuestions.map((q, i) => (
+                <button
+                  type="button"
+                  key={i}
+                  onClick={() => setQuestion(q)}
+                  className="text-xs text-white/90 underline underline-offset-2 hover:text-accent-yellow"
+                >
+                  Example {i + 1}
+                </button>
+              ))}
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !question.trim()}
+              className="rounded-md bg-accent-yellow px-6 py-3 text-sm font-semibold text-navy hover:bg-accent-yellowDark disabled:opacity-50 transition"
+            >
+              {loading ? "Searching policies…" : "Ask"}
+            </button>
+          </form>
+        </div>
+      </section>
 
       {err && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">

@@ -21,33 +21,6 @@ type SearchResponse = {
   latencyMs: number;
 };
 
-// RAF weights in practice cluster well under 3.0 — used as the meter's fixed scale
-// so bar width stays meaningfully comparable across different codes.
-const RAF_SCALE_MAX = 3.0;
-
-const SYSTEM_EDGE: Record<CodeCard["codeSystem"], string> = {
-  ICD10CM: "border-l-brand-600",
-  HCPCS: "border-l-amber-600",
-  CPT: "border-l-ink-soft",
-};
-
-function RafMeter({ weight }: { weight: number }) {
-  const pct = Math.min(100, Math.max(4, (weight / RAF_SCALE_MAX) * 100));
-  return (
-    <div className="flex items-center gap-2">
-      <div className="h-1.5 w-20 overflow-hidden rounded-full bg-amber-50">
-        <div
-          className="h-full rounded-full bg-amber-600"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-      <span className="font-mono text-[11px] text-amber-700">
-        RAF {weight.toFixed(3)}
-      </span>
-    </div>
-  );
-}
-
 export default function Page() {
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
@@ -77,107 +50,114 @@ export default function Page() {
   }
 
   return (
-    <div className="space-y-10">
-      <section>
-        <div className="label-eyebrow">Requisition · Code lookup</div>
-        <h1 className="mt-2 max-w-2xl text-2xl font-semibold leading-snug text-ink">
-          Ask anything about medical codes, HEDIS, HCC, or policy forms.
-        </h1>
-        <p className="mt-2 text-sm text-ink-soft">
-          Sources: CMS.gov · NCQA · HHS · Medicaid · ICD10Data · AAPC · AMA · eClinicalWorks
-        </p>
-
-        <form onSubmit={onSearch} className="mt-6">
-          <div className="flex gap-2">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="e.g. Type 2 diabetes with neuropathy"
-              className="field-input flex-1 font-mono"
-            />
-            <button type="submit" disabled={loading} className="btn-primary">
-              {loading ? "Searching…" : "Search"}
-            </button>
+    <div className="space-y-8">
+      <section className="rounded-xl bg-navy px-6 py-12 md:px-12 md:py-16 text-center">
+        <div className="mx-auto max-w-2xl">
+          <div className="inline-flex items-center rounded-md bg-white/10 px-3 py-1 text-xs font-medium text-white/80 mb-4">
+            Requisition · Code lookup
           </div>
-        </form>
+          <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
+            Ask anything about medical codes, HEDIS, HCC, or policy forms.
+          </h1>
+          <p className="mt-3 text-sm text-white/70">
+            Sources: CMS.gov · NCQA · HHS · Medicaid · ICD10Data · AAPC · AMA · eClinicalWorks
+          </p>
+
+          <form onSubmit={onSearch} className="mt-8">
+            <div className="flex flex-col sm:flex-row gap-3 mx-auto">
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="e.g. Type 2 diabetes with neuropathy"
+                className="flex-1 rounded-md border-0 bg-white px-5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-yellow"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className="rounded-md bg-accent-yellow px-6 py-3.5 text-sm font-semibold text-navy hover:bg-accent-yellowDark disabled:opacity-50 transition"
+              >
+                {loading ? "Searching…" : "Search"}
+              </button>
+            </div>
+          </form>
+        </div>
       </section>
 
       {err && (
-        <div className="rounded-md border border-brick-100 bg-brick-50 p-3 text-sm text-brick-700">
+        <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {err}
         </div>
       )}
 
       {data && (
         <section className="space-y-4">
-          <div className="flex items-center gap-2 border-b border-line pb-3">
-            <span className="label-eyebrow">Result set</span>
-            <span className="chip bg-line-soft text-ink-soft">{data.intent}</span>
-            <span className="font-mono text-[11px] text-ink-faint">{data.latencyMs}ms</span>
+          <div className="text-xs text-slate-500">
+            Intent: <span className="font-medium text-slate-700">{data.intent}</span> · {data.latencyMs}ms
           </div>
-
           {data.results.length === 0 && (
-            <div className="ledger-card p-6 text-center text-sm text-ink-faint">
-              No results yet — Phase 2 will seed ICD-10 data.
-            </div>
+            <div className="text-sm text-slate-500">No results yet — Phase 2 will seed ICD-10 data.</div>
           )}
-
           <div className="grid gap-4 md:grid-cols-2">
             {data.results.map((c) => (
-              <article
-                key={c.code}
-                className={`ledger-card border-l-4 p-4 ${SYSTEM_EDGE[c.codeSystem]}`}
-              >
-                <div className="flex items-start justify-between gap-3">
+              <article key={c.code} className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex items-start justify-between">
                   <div>
-                    <div className="font-mono text-lg font-semibold text-ink">{c.code}</div>
-                    <div className="label-eyebrow mt-0.5">{c.codeSystem}</div>
+                    <div className="text-lg font-semibold text-slate-900">{c.code}</div>
+                    <div className="text-xs uppercase tracking-wide text-slate-500">{c.codeSystem}</div>
                   </div>
-                  <span
-                    className={`chip ${
-                      c.isBillable
-                        ? "bg-brand-50 text-brand-700"
-                        : "bg-amber-50 text-amber-700"
-                    }`}
-                  >
-                    {c.isBillable ? "Billable" : "Header"}
-                  </span>
-                </div>
-
-                <p className="mt-3 text-sm text-ink-soft">{c.description}</p>
-
-                {c.hccCategory && (
-                  <div className="mt-3 rounded-md border border-line-soft bg-paper px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs text-ink">
+                  <div className="flex flex-col items-end gap-1">
+                    <span
+                      className={`rounded px-2 py-0.5 text-xs ${
+                        c.isBillable ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+                      }`}
+                    >
+                      {c.isBillable ? "Billable" : "Header"}
+                    </span>
+                    {c.hccCategory && (
+                      <span className="rounded bg-indigo-100 px-2 py-0.5 text-xs font-medium text-indigo-700">
                         {c.hccCategory.split("·")[0].trim()}
+                        {c.hccWeight != null && (
+                          <span className="ml-1 text-indigo-500">
+                            · RAF {c.hccWeight.toFixed(3)}
+                          </span>
+                        )}
                       </span>
-                      {c.hccWeight != null && <RafMeter weight={c.hccWeight} />}
-                    </div>
-                  </div>
-                )}
-
-                {c.hedisMeasure && (
-                  <div className="mt-2 flex items-center gap-2 text-xs text-brand-700">
-                    <span className="chip bg-brand-50 text-brand-700">HEDIS</span>
-                    <span>Impacts {c.hedisMeasure}</span>
-                  </div>
-                )}
-
-                {c.sourceName && (
-                  <div className="mt-3 flex items-center justify-between border-t border-line-soft pt-2 text-xs text-ink-faint">
-                    <span>{c.sourceName}</span>
-                    {c.sourceUrl && (
-                      <a
-                        href={c.sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="font-medium text-brand-600 hover:underline"
-                      >
-                        Open source →
-                      </a>
+                    )}
+                    {c.hedisMeasure && (
+                      <span className="rounded bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-700">
+                        HEDIS {c.hedisMeasure}
+                      </span>
                     )}
                   </div>
+                </div>
+                <p className="mt-2 text-sm text-slate-700">{c.description}</p>
+                {c.hccCategory && (
+                  <div className="mt-2 rounded-md bg-indigo-50 px-3 py-2 text-xs text-indigo-900">
+                    <span className="font-semibold">HCC:</span> {c.hccCategory}
+                  </div>
+                )}
+                {c.hedisMeasure && (
+                  <div className="mt-2 rounded-md bg-sky-50 px-3 py-2 text-xs text-sky-900">
+                    <span className="font-semibold">HEDIS:</span> Impacts {c.hedisMeasure}
+                  </div>
+                )}
+                <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
+                  {c.sourceName && (
+                    <>
+                      <dt>Source</dt>
+                      <dd className="text-slate-900">{c.sourceName}</dd>
+                    </>
+                  )}
+                </dl>
+                {c.sourceUrl && (
+                  <a
+                    href={c.sourceUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-3 inline-block text-xs font-medium text-brand-600 hover:underline"
+                  >
+                    Open source →
+                  </a>
                 )}
               </article>
             ))}
