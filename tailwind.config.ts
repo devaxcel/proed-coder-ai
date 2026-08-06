@@ -8,7 +8,8 @@ import type { Config } from "tailwindcss";
  *   Yellow (#EFC932):        client-buyer accent CTAs (reserved use)
  *   Light gray (#F5F7FB):    testimonial cards, subtle surfaces
  *
- * Font: Poppins (loaded via next/font/google in app/layout.tsx).
+ * Font: Quicksand (loaded via next/font/google in app/layout.tsx) — matches
+ * the rounded, friendly sans-serif used on proedcs.com.
  */
 
 const config: Config = {
@@ -44,9 +45,9 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Poppins is loaded via next/font/google, exposed as --font-poppins CSS var
+        // Quicksand is loaded via next/font/google, exposed as --font-quicksand CSS var
         sans: [
-          "var(--font-poppins)",
+          "var(--font-quicksand)",
           "ui-sans-serif",
           "system-ui",
           "-apple-system",
@@ -55,7 +56,7 @@ const config: Config = {
           "sans-serif",
         ],
         brand: [
-          "var(--font-poppins)",
+          "var(--font-quicksand)",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",

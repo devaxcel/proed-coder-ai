@@ -4,17 +4,17 @@
 
 :root {
   color-scheme: light;
-  --font-poppins-fallback: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+  --font-quicksand-fallback: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
     Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 html {
-  font-family: var(--font-poppins), var(--font-poppins-fallback);
+  font-family: var(--font-quicksand), var(--font-quicksand-fallback);
 }
 
 body {
   @apply bg-white text-slate-900 antialiased;
-  font-family: var(--font-poppins), var(--font-poppins-fallback);
+  font-family: var(--font-quicksand), var(--font-quicksand-fallback);
 }
 
 h1,

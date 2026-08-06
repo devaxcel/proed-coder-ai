@@ -1,13 +1,13 @@
 import "./globals.css";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Quicksand } from "next/font/google";
 import { auth, signOut } from "@/lib/auth";
 
-const poppins = Poppins({
+const quicksand = Quicksand({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
+  variable: "--font-quicksand",
   display: "swap",
 });
 
@@ -25,7 +25,7 @@ export default async function RootLayout({
   const session = await auth();
 
   return (
-    <html lang="en" className={poppins.variable}>
+    <html lang="en" className={quicksand.variable}>
       <body className="font-sans bg-white text-slate-900 antialiased">
         <div className="min-h-screen flex flex-col">
           {/* Top contact bar — matches ProEdCS site navy strip */}
