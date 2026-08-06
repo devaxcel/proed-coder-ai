@@ -1,52 +1,71 @@
 import type { Config } from "tailwindcss";
 
+/**
+ * ProEdCS visual identity — sampled from proedcs.com homepage:
+ *
+ *   Primary blue (#3B7DD8):  hero backgrounds, main CTAs, brand accents
+ *   Dark navy (#0A2F5C):     top bar, footer strip, high-contrast headers
+ *   Yellow (#EFC932):        client-buyer accent CTAs (reserved use)
+ *   Light gray (#F5F7FB):    testimonial cards, subtle surfaces
+ *
+ * Font: Poppins (loaded via next/font/google in app/layout.tsx).
+ */
+
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
       colors: {
-        paper: {
-          DEFAULT: "#F2F5F1",
-          panel: "#FBFCFA",
-        },
-        ink: {
-          DEFAULT: "#12211D",
-          soft: "#4A5750",
-          faint: "#7C8A82",
-        },
-        line: {
-          DEFAULT: "#D8DED5",
-          soft: "#E6EAE3",
-        },
         brand: {
-          50: "#E9F2F0",
-          100: "#D2E5E1",
-          200: "#9FC7BF",
-          500: "#12766C",
-          600: "#0E5C53",
-          700: "#0A423B",
+          50:  "#eef4fc",
+          100: "#dae7f8",
+          200: "#b5cff1",
+          300: "#8fb6e9",
+          400: "#5e97df",
+          500: "#3b7dd8", // ProEdCS primary
+          600: "#2e62b0",
+          700: "#245088",
+          800: "#1b3d68",
+          900: "#0a2f5c", // ProEdCS dark navy
         },
-        amber: {
-          50: "#FAF0E3",
-          100: "#F1DBB6",
-          500: "#C48534",
-          600: "#B8752E",
-          700: "#8F5A22",
+        navy: {
+          DEFAULT: "#0a2f5c",
+          light: "#1b3d68",
+          dark: "#031a36",
         },
-        brick: {
-          50: "#F6E9E6",
-          100: "#EBCCC5",
-          500: "#B34C3C",
-          600: "#9C3B2E",
-          700: "#752A20",
+        accent: {
+          yellow: "#efc932", // ProEdCS accent
+          yellowDark: "#c9a81f",
+        },
+        surface: {
+          DEFAULT: "#ffffff",
+          soft: "#f5f7fb",
+          softer: "#eef2f9",
         },
       },
       fontFamily: {
-        sans: ["var(--font-plex-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
-        mono: ["var(--font-plex-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
+        // Poppins is loaded via next/font/google, exposed as --font-poppins CSS var
+        sans: [
+          "var(--font-poppins)",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "Segoe UI",
+          "Roboto",
+          "sans-serif",
+        ],
+        brand: [
+          "var(--font-poppins)",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
       },
-      letterSpacing: {
-        label: "0.08em",
+      borderRadius: {
+        DEFAULT: "0.375rem",
+      },
+      boxShadow: {
+        card: "0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05)",
       },
     },
   },

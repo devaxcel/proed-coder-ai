@@ -49,8 +49,9 @@ export async function GET(
   } = docxLib;
 
   const font = "Calibri";
-  const BRAND_BLUE = "1E40AF";
-  const BRAND_GRAY = "374151";
+  const BRAND_BLUE = "3B7DD8";
+  const BRAND_NAVY = "0A2F5C";
+  const BRAND_GRAY = "4B5563";
   const LIGHT_GRAY = "6B7280";
 
   const downloadedAt = new Date().toLocaleDateString("en-US", {
@@ -117,15 +118,28 @@ export async function GET(
           },
         },
         children: [
+          // Header strip — navy background matches ProEdCS top bar
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "PCS-POLICY  |  Policy Reference Document  |  Confidential – Internal Use",
+                font,
+                size: 15,
+                color: "FFFFFF",
+              }),
+            ],
+            shading: { type: "clear", fill: BRAND_NAVY, color: "auto" },
+            spacing: { after: 160 },
+          }),
           // Letterhead
           new Paragraph({
             children: [
               new TextRun({
                 text: "ProEd Consulting & Staffing",
                 font,
-                size: 32,
+                size: 34,
                 bold: true,
-                color: BRAND_BLUE,
+                color: BRAND_NAVY,
               }),
             ],
             spacing: { after: 40 },
@@ -133,13 +147,14 @@ export async function GET(
           new Paragraph({
             children: [
               new TextRun({
-                text: "Policy Reference Document",
+                text: "Medical Coding · Auditing · Compliance",
                 font,
-                size: 20,
-                color: BRAND_GRAY,
+                size: 18,
+                bold: true,
+                color: BRAND_BLUE,
               }),
             ],
-            spacing: { after: 260 },
+            spacing: { after: 200 },
           }),
           // Horizontal rule
           new Paragraph({
@@ -223,9 +238,22 @@ export async function GET(
           new Paragraph({
             children: [
               new TextRun({
-                text: "Downloaded via ProEd Coder AI · Built by AXCEL · Retain per your organization's document retention policy.",
+                text: "ProEd Consulting & Staffing  ·  West Covina, California  ·  info@proedcs.com  ·  +1-626-771-3704",
                 font,
-                size: 16,
+                size: 14,
+                color: "FFFFFF",
+              }),
+            ],
+            shading: { type: "clear", fill: BRAND_NAVY, color: "auto" },
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 120, after: 40 },
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: "Downloaded via ProEdCS Coder AI · Built by AXCEL · Retain per your organization's document retention policy.",
+                font,
+                size: 13,
                 italics: true,
                 color: LIGHT_GRAY,
               }),

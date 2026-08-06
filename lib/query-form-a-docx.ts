@@ -20,12 +20,15 @@ async function loadDocx() {
 }
 
 const FONT = "Calibri";
-const BRAND_BLUE = "1E40AF";      // ProEdCS primary
-const BRAND_DARK = "0F172A";
-const BRAND_GRAY = "374151";
-const LIGHT_GRAY = "6B7280";
-const CARD_BG = "F1F5F9";
-const TABLE_HEADER_BG = "E5E7EB";
+// ProEdCS visual identity — sampled from proedcs.com
+const BRAND_BLUE = "3B7DD8";      // ProEdCS primary blue
+const BRAND_NAVY = "0A2F5C";      // ProEdCS dark navy (top bar / letterhead)
+const BRAND_DARK = "1F2937";      // body text
+const BRAND_GRAY = "4B5563";      // secondary text
+const LIGHT_GRAY = "6B7280";      // tertiary / caption
+const CARD_BG = "F5F7FB";         // subtle surface (matches ProEdCS testimonial cards)
+const TABLE_HEADER_BG = "EEF4FC"; // brand-50 tint
+const YELLOW_ACCENT = "EFC932";   // ProEdCS accent yellow
 
 // Unicode ballot symbols (matches ProEd's use of ☐ and ☑)
 const CHECKBOX_EMPTY = "☐";
@@ -290,39 +293,66 @@ export async function generateFormADocx(input: {
   // ---- Build children (linear flow) ----
   const children: any[] = [];
 
-  // === Letterhead ===
+  // === Letterhead — matches ProEdCS site: navy strip + primary title ===
   children.push(
     new Paragraph({
       children: [
-        textRun("PCS-DOC-001-Q  |  Form A — General Clinical Documentation Query  |  ", { size: 16, color: LIGHT_GRAY }),
-        textRun("Confidential – Internal Use", { size: 16, color: LIGHT_GRAY, italics: true }),
+        textRun("PCS-DOC-001-Q  |  Form A — General Clinical Documentation Query  |  ", {
+          size: 15,
+          color: "FFFFFF",
+        }),
+        textRun("Confidential – Internal Use", {
+          size: 15,
+          color: "FFFFFF",
+          italics: true,
+        }),
       ],
-      spacing: { after: 120 },
+      shading: { type: "clear" as any, fill: BRAND_NAVY, color: "auto" },
+      spacing: { before: 0, after: 160 },
     })
   );
 
   children.push(
     new Paragraph({
-      children: [textRun("ProEd Consulting & Staffing", { size: 32, bold: true, color: BRAND_BLUE })],
+      children: [
+        textRun("ProEd Consulting & Staffing", { size: 34, bold: true, color: BRAND_NAVY }),
+      ],
       spacing: { after: 40 },
     })
   );
   children.push(
     new Paragraph({
-      children: [textRun("Query Forms Packet — Form A", { size: 24, color: BRAND_GRAY })],
-      spacing: { after: 60 },
+      children: [
+        textRun("Medical Coding · Auditing · Compliance", {
+          size: 18,
+          color: BRAND_BLUE,
+          bold: true,
+        }),
+      ],
+      spacing: { after: 20 },
     })
   );
   children.push(
     new Paragraph({
       children: [
-        textRun("Aligned with ACDIS/AHIMA Guidelines for Achieving a Compliant Query Practice (2026 Update)", {
-          size: 16,
-          color: LIGHT_GRAY,
-          italics: true,
-        }),
+        textRun("Query Forms Packet — Form A", { size: 22, color: BRAND_GRAY }),
       ],
-      spacing: { after: 240 },
+      spacing: { after: 40 },
+    })
+  );
+  children.push(
+    new Paragraph({
+      children: [
+        textRun(
+          "Aligned with ACDIS/AHIMA Guidelines for Achieving a Compliant Query Practice (2026 Update)",
+          {
+            size: 15,
+            color: LIGHT_GRAY,
+            italics: true,
+          }
+        ),
+      ],
+      spacing: { after: 220 },
     })
   );
   children.push(hr());
@@ -330,9 +360,15 @@ export async function generateFormADocx(input: {
   // === Section title ===
   children.push(
     new Paragraph({
-      children: [textRun("CODER / CDI / AUDITOR → PROVIDER  ·  CLINICAL DOCUMENTATION QUERY (FORM A)", { size: 22, bold: true, color: BRAND_BLUE })],
-      shading: { type: "clear" as any, fill: TABLE_HEADER_BG, color: "auto" },
-      spacing: { before: 100, after: 120 },
+      children: [
+        textRun("CODER / CDI / AUDITOR → PROVIDER  ·  CLINICAL DOCUMENTATION QUERY (FORM A)", {
+          size: 20,
+          bold: true,
+          color: "FFFFFF",
+        }),
+      ],
+      shading: { type: "clear" as any, fill: BRAND_BLUE, color: "auto" },
+      spacing: { before: 100, after: 140 },
     })
   );
 
@@ -611,26 +647,27 @@ export async function generateFormADocx(input: {
   // === Compliance attestation footer ===
   children.push(hr());
   children.push(
-    new Paragraph({
-      children: [
-        textRun("Compliant query attestation: ", { bold: true, size: 18, color: BRAND_BLUE }),
-        textRun(
-          "This query presents clinical indicators from the record, offers multiple reasonable options including other/unable to determine, and does not lead the provider to a particular response. Retained with the permanent medical record or designated CDI/coding system per organizational retention policy.",
-          { size: 18, italics: true, color: BRAND_DARK }
-        ),
-      ],
-      spacing: { before: 100, after: 200 },
-    })
+      new Paragraph({
+        children: [
+          textRun("Compliant query attestation: ", { bold: true, size: 18, color: BRAND_BLUE }),
+          textRun(
+            "This query presents clinical indicators from the record, offers multiple reasonable options including other/unable to determine, and does not lead the provider to a particular response. Retained with the permanent medical record or designated CDI/coding system per organizational retention policy.",
+            { size: 18, italics: true, color: BRAND_DARK }
+          ),
+        ],
+        spacing: { before: 100, after: 200 },
+      })
   );
 
   children.push(
     new Paragraph({
       children: [
         textRun(
-          "ProEd Consulting & Staffing  ·  West Covina, CA  ·  info@proedcs.com  ·  +1-626-771-3704",
-          { size: 14, italics: true, color: LIGHT_GRAY }
+          "ProEd Consulting & Staffing  ·  West Covina, California  ·  info@proedcs.com  ·  +1-626-771-3704",
+          { size: 14, color: "FFFFFF" }
         ),
       ],
+      shading: { type: "clear" as any, fill: BRAND_NAVY, color: "auto" },
       alignment: AlignmentType.CENTER,
       spacing: { before: 120, after: 40 },
     })
@@ -639,8 +676,8 @@ export async function generateFormADocx(input: {
     new Paragraph({
       children: [
         textRun(
-          `Generated by ProEd Coder AI  ·  Built by AXCEL  ·  Version 1.0  ·  ${dateStr}`,
-          { size: 14, italics: true, color: LIGHT_GRAY }
+          `Generated by ProEdCS Coder AI  ·  Built by AXCEL  ·  Version 1.0  ·  ${dateStr}`,
+          { size: 13, italics: true, color: LIGHT_GRAY }
         ),
       ],
       alignment: AlignmentType.CENTER,
