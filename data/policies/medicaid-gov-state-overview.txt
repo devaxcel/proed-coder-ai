@@ -1,0 +1,31 @@
+Medicaid.gov State Program Overview for Multi-State Coding Compliance
+
+Source: Centers for Medicare & Medicaid Services, Medicaid.gov (medicaid.gov/state-overviews/state-profiles)
+
+Purpose
+
+Medicaid is a joint federal-state program, meaning each state administers its own Medicaid program within federal guardrails, resulting in meaningful variation in covered benefits, billing codes, prior authorization requirements, and documentation standards from state to state. Coders and auditors supporting clients across multiple states must confirm state-specific rules rather than assuming national uniformity.
+
+Federal Baseline vs. State Flexibility
+
+Federal Medicaid law (Title XIX of the Social Security Act, 42 CFR Part 430-456) sets minimum requirements — mandatory benefits, eligibility floors, and core billing standards (HIPAA-mandated code sets: ICD-10-CM, CPT, HCPCS). States have flexibility to offer optional benefits, apply for Section 1115 demonstration waivers, and set their own managed care, documentation, and prior authorization policies on top of the federal floor.
+
+State Profiles and What They Cover
+
+Medicaid.gov publishes a state-by-state profile for each state's Medicaid program covering: eligibility groups, benefit packages, managed care penetration, and links to the state's specific provider manual and billing guidance. Before applying a client's home-state documentation or coding rule to a Medicaid claim in another state, coders should verify against that state's specific Medicaid.gov profile and provider manual.
+
+Section 1115 Demonstration Waivers
+
+Many states operate Medicaid under Section 1115 waivers that authorize experimental, pilot, or demonstration projects not otherwise allowed under standard federal Medicaid rules — these often introduce state-specific billing codes or documentation requirements (California's CalAIM is one example). Coders should check whether a state's Medicaid program operates under an active 1115 waiver that affects the service being coded.
+
+Managed Care Organizations (MCOs)
+
+Most states now deliver Medicaid benefits primarily through managed care organizations under contract with the state Medicaid agency. MCO contracts can layer additional documentation, prior authorization, or coding requirements on top of the state Medicaid baseline — always the most specific applicable rule (MCO contract, then state Medicaid, then federal Medicaid) governs.
+
+Multi-State Coding Considerations for ProEd's Clients
+
+For IPAs or health plans operating across multiple states, coders and auditors should maintain a state-specific reference matrix noting: which states use standard vs. expanded benefit packages, which states have unique local codes, and where prior authorization or documentation thresholds differ from the federal Medicaid baseline. When policy language conflicts between a state Medicaid profile and federal Medicaid.gov guidance, the more specific and more recently updated source generally governs, but should be confirmed with the client's compliance team.
+
+HCC and Risk Adjustment in Medicaid
+
+Unlike Medicare Advantage's uniform CMS-HCC model, Medicaid risk-adjustment methodologies vary significantly by state — some states use CDPS (Chronic Illness and Disability Payment System), some use state-modified HCC models, and some use no formal risk adjustment. Coders should confirm which risk-adjustment model applies before assuming CMS-HCC V28 logic applies to a Medicaid managed care population.

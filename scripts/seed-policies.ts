@@ -48,6 +48,41 @@ const SOURCE_MAP: Record<string, { source: string; docType: string; url: string 
     docType: "policy",
     url: "https://www.cms.gov/medicare-advantage/risk-adjustment-data-validation",
   },
+  "oig-compliance": {
+    source: "OIG",
+    docType: "guideline",
+    url: "https://oig.hhs.gov/compliance/compliance-guidance/",
+  },
+  "hhs-hipaa": {
+    source: "HHS OCR",
+    docType: "policy",
+    url: "https://www.hhs.gov/hipaa/index.html",
+  },
+  "dhcs-medi-cal": {
+    source: "DHCS",
+    docType: "policy",
+    url: "https://www.dhcs.ca.gov/medi-cal/",
+  },
+  "medicaid-gov": {
+    source: "Medicaid.gov",
+    docType: "policy",
+    url: "https://www.medicaid.gov/state-overviews/state-profiles/",
+  },
+  "icd10-official": {
+    source: "CMS/NCHS",
+    docType: "guideline",
+    url: "https://www.cms.gov/",
+  },
+  "em-guidelines": {
+    source: "CMS",
+    docType: "guideline",
+    url: "https://www.cms.gov/",
+  },
+  "modifier-coding": {
+    source: "CMS/NCCI",
+    docType: "guideline",
+    url: "https://www.cms.gov/",
+  },
 };
 
 function detectSource(filename: string): { source: string; docType: string; url: string } {

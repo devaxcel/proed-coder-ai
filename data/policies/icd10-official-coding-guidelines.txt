@@ -1,0 +1,43 @@
+ICD-10-CM Official Guidelines for Coding and Reporting — Key Provisions
+
+Source: CMS / National Center for Health Statistics (cms.gov), published annually as a public-domain federal document
+
+Purpose
+
+The ICD-10-CM Official Guidelines for Coding and Reporting are approved by the four Cooperating Parties (CMS, NCHS, AHA, AHIMA) and provide the authoritative rules for correct diagnosis code selection and sequencing. These guidelines carry the force of coding standard under HIPAA and are used by CMS, other payers, and OIG auditors to evaluate coding accuracy.
+
+General Coding Guidelines
+
+Code selection must be based on the full medical record, not solely on the discharge summary or a single note. Codes should be assigned to the highest level of specificity documented — unspecified codes should be used only when the medical record does not provide enough detail to support a more specific code, not as a default convenience.
+
+Principal Diagnosis vs. First-Listed Diagnosis (Inpatient)
+
+The principal diagnosis is defined as "the condition established after study to be chiefly responsible for occasioning the admission of the patient to the hospital for care." This differs from the first-listed diagnosis used in outpatient settings, which reflects the reason for the encounter documented at that visit, not necessarily the most serious condition.
+
+Coding "Probable," "Suspected," "Rule Out" Conditions
+
+For inpatient coding, conditions documented as "probable," "suspected," "likely," "questionable," "possible," or "still to be ruled out" at the time of discharge should be coded as if they existed or were established, per Section II.H of the Guidelines. This inpatient-specific rule does NOT apply to outpatient coding — outpatient encounters should code only confirmed diagnoses, using signs/symptoms if a definitive diagnosis has not been established.
+
+Comorbidity and Complication Coding (CC/MCC)
+
+Additional diagnoses should be coded when they affect patient care in terms of requiring clinical evaluation, therapeutic treatment, diagnostic procedures, extended length of stay, or increased nursing care/monitoring. Conditions that are simply mentioned in history without affecting the current encounter generally should not be coded as additional diagnoses.
+
+Excludes1 and Excludes2 Notes
+
+Excludes1 means the excluded code and the code with the note can never be coded together — they represent mutually exclusive conditions. Excludes2 means "not included here" — the excluded condition is not part of the condition represented by the code, but a patient may have both conditions simultaneously, so both codes may be assigned together when clinically supported.
+
+Sequencing Rules
+
+When a patient has multiple conditions meeting the definition of principal or first-listed diagnosis, and the guidelines provide sequencing instructions (e.g., "code first," "use additional code," "code, if applicable, any causal condition first"), those instructions must be followed. Etiology/manifestation coding conventions (e.g., diabetes with manifestations) generally require the underlying etiology to be sequenced first.
+
+Present on Admission (POA) Indicator
+
+POA indicators are required for all inpatient claims to Medicare and identify whether a diagnosis was present at the time of the inpatient admission order. POA affects MS-DRG assignment and Hospital-Acquired Condition (HAC) determination — accurate POA assignment protects against inappropriate reimbursement reduction for conditions that developed during the stay versus conditions the patient already had.
+
+Chronic Conditions and Ongoing Management
+
+Chronic conditions such as diabetes, hypertension, and CKD should be coded as many times as the patient receives care for them and they meet the definition of a reportable diagnosis, using current, complete documentation from that specific encounter rather than carrying forward status from a prior visit's problem list without current-encounter clinical support (a common HCC/RAF audit finding).
+
+Combination Codes
+
+Where ICD-10-CM provides a combination code identifying two diagnoses, or a diagnosis with an associated complication or manifestation, the combination code should be used instead of assigning multiple, separate codes — unless the classification instructs otherwise or the combination code does not fully capture the specificity documented.

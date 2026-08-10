@@ -1,0 +1,35 @@
+DHCS Medi-Cal Program Overview for Medical Coding and Billing
+
+Source: California Department of Health Care Services (dhcs.ca.gov/medi-cal)
+
+Purpose
+
+Medi-Cal is California's Medicaid program, jointly funded by the state and federal government, serving low-income individuals, families, seniors, and people with disabilities. DHCS (Department of Health Care Services) administers Medi-Cal and publishes coding, billing, and documentation policy that differs in specific ways from federal Medicare and generic Medicaid guidance.
+
+Relationship to Federal Medicaid Rules
+
+Medi-Cal must comply with federal Medicaid requirements (42 CFR) but has state-specific coverage policies, prior authorization rules, and billing procedures published in the Medi-Cal Provider Manual. Coders working with California-based clients or IPAs should reference DHCS guidance in addition to (not instead of) federal CMS/Medicaid.gov guidance.
+
+Managed Care vs. Fee-for-Service
+
+The majority of Medi-Cal beneficiaries are enrolled in managed care plans (Medi-Cal Managed Care), administered through contracted health plans by county. Coding and billing rules can vary by managed care plan on top of the baseline DHCS fee-for-service rules — coders should confirm which plan-specific addenda apply for a given patient population.
+
+Documentation Standards
+
+DHCS requires documentation supporting medical necessity for all billed services, consistent with federal Medicaid standards but with California-specific covered benefit definitions (e.g., California's expanded benefits under CalAIM, the state's Medicaid transformation initiative). CalAIM has introduced new billing codes and documentation requirements for services like Enhanced Care Management (ECM) and Community Supports that do not have direct federal Medicare equivalents.
+
+Coding Systems Used
+
+Medi-Cal uses standard HIPAA-mandated code sets: ICD-10-CM for diagnoses, CPT/HCPCS for procedures and services, consistent with national standards. State-specific local codes may apply for select programs (e.g., County Medical Services Program, California Children's Services) and should be verified against the current Medi-Cal Provider Manual billing section relevant to the service type.
+
+HCC Risk Adjustment Applicability
+
+Medi-Cal Managed Care plans increasingly use risk-adjustment methodologies for capitation payment, though the specific model can differ from the federal CMS-HCC model used in Medicare Advantage. Coders supporting Medi-Cal managed care risk adjustment should confirm which model (CMS-HCC, state-specific, or a hybrid) applies to the health plan contract in question.
+
+Audits and Program Integrity
+
+DHCS conducts its own program integrity audits (Medi-Cal audits) separate from federal RADV or OIG audits, though findings can trigger federal referral in cases of suspected fraud. California also has its own False Claims Act with whistleblower provisions that apply to Medi-Cal billing.
+
+When to Use DHCS Guidance vs. Federal Guidance
+
+For ProEd clients with California-based patient populations or California-licensed health plans, DHCS Medi-Cal policy should be treated as the authoritative state-level supplement to federal CMS/Medicaid.gov guidance — not a replacement. Where DHCS is silent, federal Medicaid rules apply as the baseline.

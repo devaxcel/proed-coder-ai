@@ -1,0 +1,39 @@
+Modifier Coding Guidelines — Correct Use and Documentation Requirements
+
+Source: Centers for Medicare & Medicaid Services (cms.gov), National Correct Coding Initiative (NCCI) Policy Manual, and HCPCS Level II modifier definitions (public domain)
+
+Purpose
+
+Modifiers provide additional information about a performed service without changing its definition — indicating that a service was altered in some way (e.g., bilateral procedure, unusual circumstances, or performed by more than one provider) without changing the underlying code. Correct modifier use is one of the most frequent audit and denial risk areas in both professional and facility coding.
+
+Modifier Types
+
+HCPCS Level II modifiers (alphanumeric, e.g., -LT, -RT, -GA, -KX) are public domain and maintained by CMS. CPT modifiers (numeric, e.g., -25, -59, -76) are part of the AMA CPT Manual and subject to the same licensing terms as CPT codes themselves — this document covers the general policy and correct-use principles, which are public CMS guidance, without reproducing the AMA's copyrighted modifier code list itself.
+
+Modifier -25 — Significant, Separately Identifiable E/M Service
+
+Appended to an E/M code when a significant, separately identifiable E/M service is performed by the same physician on the same day as a procedure or other service. Documentation must clearly show the E/M work was above and beyond the usual pre/post-procedure work inherent to the procedure itself — this is one of the highest-scrutiny modifiers in payer audits, and vague or templated justification language is a common denial trigger.
+
+Modifier -59 — Distinct Procedural Service
+
+Indicates that a procedure or service was distinct or independent from other services performed on the same day — used to bypass National Correct Coding Initiative (NCCI) edits when clinically appropriate. CMS strongly discourages overuse of -59 as a default "unbundling" modifier; the more specific X{EPSU} modifiers (XE, XS, XP, XU) should be used instead where applicable to specify the exact reason two codes are separately billable (different encounter, different structure, unrelated to usual components of the primary procedure, or unusual non-overlapping service).
+
+Modifier -76 / -77 — Repeat Procedure
+
+-76 indicates a repeat procedure by the same physician; -77 indicates a repeat procedure by a different physician. Both require documentation clearly establishing that the repeat service was medically necessary and distinct from the original.
+
+Bilateral and Anatomic Modifiers
+
+-50 (bilateral procedure) and anatomic modifiers (-LT, -RT, -E1 through -E4 for eyelids, -FA/F1-F9 for fingers, -TA/T1-T9 for toes) specify laterality or anatomic site and must match the documented anatomic location precisely — mismatches between the modifier and the operative note location are a common clean-claim rejection cause.
+
+Modifier -KX — Requirements Met
+
+Indicates that documentation on file supports that all applicable coverage criteria specified in the relevant LCD (Local Coverage Determination) or NCD (National Coverage Determination) have been met — commonly used for DME (durable medical equipment) and therapy services subject to threshold requirements.
+
+NCCI Edits and Modifier Bypass
+
+The NCCI Policy Manual defines code pairs that generally should not be billed together (Column 1/Column 2 edits) and assigns a "modifier indicator" of 0 (edit cannot be bypassed by any modifier) or 1 (edit can be bypassed with an appropriate modifier when clinically supported). Coders and auditors should verify the modifier indicator before assuming a modifier can override an NCCI edit — a modifier does not override edits with indicator 0 regardless of documentation.
+
+General Modifier Documentation Standard
+
+Every modifier appended to a claim must be supported by specific documentation in the medical record explaining the clinical circumstance the modifier represents. Modifiers should never be applied based solely on payer reimbursement optimization without a documented clinical basis — this is a frequent target of OIG and payer post-payment audits and can trigger broader compliance review if patterns of modifier overuse are identified.

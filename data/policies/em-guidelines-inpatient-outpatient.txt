@@ -1,0 +1,45 @@
+Evaluation and Management (E/M) Coding Guidelines — Inpatient and Outpatient
+
+Source: Centers for Medicare & Medicaid Services (cms.gov), E/M Documentation Guidelines and 2021/2023 AMA CPT E/M Revisions
+
+Purpose
+
+E/M guidelines determine the correct code level for office visits, hospital visits, consultations, and other physician/qualified healthcare professional encounters, based on either Medical Decision Making (MDM) or, for some code families, total time spent on the date of the encounter. CMS adopted the AMA's revised E/M framework effective January 1, 2021 for office/outpatient E/M codes, and January 1, 2023 for most other E/M code families (hospital inpatient, observation, consultation, emergency department, nursing facility, home/residence services).
+
+Two Ways to Select E/M Level
+
+Under the current framework, code level may be selected using EITHER:
+1. Medical Decision Making (MDM) — based on problems addressed, data reviewed/analyzed, and risk of complications/morbidity/mortality, OR
+2. Total time — total time personally spent by the reporting provider on the date of the encounter, including both face-to-face and non-face-to-face work (e.g., chart review, documentation, care coordination) performed that day.
+
+History and exam are no longer used to determine code level (except for certain code families); however, a medically appropriate history and exam should still be documented as clinically indicated.
+
+Medical Decision Making — Three Elements
+
+MDM level is determined by the highest two of three elements:
+1. Number and complexity of problems addressed — ranges from minimal (1 self-limited problem) to high (1+ chronic illness with severe exacerbation, or an acute/chronic illness posing threat to life or bodily function).
+2. Amount and/or complexity of data reviewed and analyzed — includes review of external notes, independent interpretation of tests, and discussion of management with external physicians/other qualified healthcare professionals.
+3. Risk of complications, morbidity, or mortality of patient management — considers risk from the condition itself and from planned diagnostic/treatment decisions (e.g., prescription drug management, decisions regarding hospitalization, or major surgery risk).
+
+MDM Levels: Straightforward, Low, Moderate, High
+
+Each MDM level maps to a specific code within a code family. For inpatient/observation care, the level of MDM for the encounter (not the whole stay) governs that day's code selection. Documentation should explicitly support the specific MDM elements claimed — vague statements like "patient is complex" without supporting detail (problem count, data reviewed, risk factors) do not support a higher MDM level on audit.
+
+Inpatient-Specific Considerations
+
+Initial hospital/observation care codes require documentation supporting the level of MDM (or time) for that specific encounter date. Subsequent hospital/observation care codes are based on the MDM or time for that day's visit, not a running average across the stay. Discharge day management codes are based on time, not MDM, and require documentation of total time spent on discharge-day activities.
+
+Outpatient-Specific Considerations
+
+Office/outpatient E/M codes (99202-99215) were the first family revised in 2021 and distinguish new patient (99202-99205) from established patient (99211-99215) — a patient is "established" if they have received professional services from the same physician/group within the specialty in the past three years. Code 99211 does not require MDM or time documentation and is typically used for minimal, often nurse-only, visits.
+
+Time-Based Coding — What Counts
+
+When selecting the code by total time, only time personally spent by the billing provider counts — not time spent by clinical staff performing tasks that could be delegated (e.g., rooming, vitals). Countable time-based activities include: preparing to see the patient, obtaining/reviewing history, performing exam, counseling/educating, ordering tests/medications, documenting in the record, independently interpreting results, and care coordination — as long as performed on the date of the encounter.
+
+Common Audit Risk Areas
+
+- Documentation stating a high MDM level without a corresponding problem list, data review, or risk factor to support it.
+- Time-based billing without a specific total-time statement in the note (e.g., "45 minutes total time on date of encounter, more than half spent counseling").
+- Using an established-patient code for a patient who has not received a professional service from that provider/group/specialty in the prior three years.
+- Applying office/outpatient E/M MDM criteria to inpatient/hospital E/M codes, which use a related but not identical problem/data/risk table.

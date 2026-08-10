@@ -1,0 +1,42 @@
+HHS HIPAA Privacy and Security Rule Overview for Medical Coding and Documentation
+
+Source: U.S. Department of Health and Human Services, Office for Civil Rights (hhs.gov/hipaa)
+
+Purpose
+
+The Health Insurance Portability and Accountability Act (HIPAA) Privacy Rule and Security Rule govern how protected health information (PHI) is used, disclosed, and safeguarded. Medical coders, CDI specialists, and auditors routinely handle PHI and must understand the minimum-necessary standard, permitted uses, and safeguard requirements that apply to their work.
+
+Protected Health Information (PHI)
+
+PHI includes any individually identifiable health information transmitted or maintained in any form — electronic, paper, or oral — including name, dates, diagnosis codes, treatment notes, and billing records. De-identified data (stripped of the 18 HIPAA identifiers) is not PHI and may be used more freely for research or quality reporting.
+
+Minimum Necessary Standard
+
+Coders and auditors should access only the PHI reasonably necessary to complete a specific coding, auditing, or query task. Role-based access controls in coding and CDI software should limit exposure to only the records assigned to that user.
+
+Permitted Uses for Coding and Billing Operations
+
+HIPAA permits use and disclosure of PHI for treatment, payment, and healthcare operations (TPO) without separate patient authorization. Coding, billing, quality reporting (HEDIS), and internal auditing fall under "healthcare operations" and are generally permitted without additional consent, provided the covered entity's Notice of Privacy Practices covers these uses.
+
+Physician Queries and PHI
+
+Physician queries (Form A-H packets) contain PHI and must be transmitted, stored, and retained under the same safeguards as the medical record itself. Query documentation becomes part of the legal medical record once the provider responds and should follow the organization's retention schedule, typically 7-10 years depending on state and payer requirements.
+
+Security Rule — Administrative, Physical, and Technical Safeguards
+
+The Security Rule requires covered entities and business associates to implement:
+- Administrative safeguards — workforce training, access management, security officer designation
+- Physical safeguards — facility access controls, workstation security, device and media controls
+- Technical safeguards — access controls (unique user IDs), audit controls (logging), integrity controls, and transmission security (encryption in transit)
+
+Business Associate Agreements (BAAs)
+
+Any third-party vendor or tool that creates, receives, maintains, or transmits PHI on behalf of a covered entity (such as a coding platform, CDI software, or AI tool) must operate under a signed Business Associate Agreement. Organizations should confirm BAA coverage before using any AI-assisted coding or query tool on live PHI.
+
+Breach Notification
+
+Unauthorized access, use, or disclosure of unsecured PHI affecting 500 or more individuals must be reported to HHS OCR, affected individuals, and in some cases the media, within 60 days of discovery. Smaller breaches are reported annually. Organizations should have an incident response plan that includes coding/CDI system access logs as part of breach investigation.
+
+Enforcement
+
+HIPAA violations can result in civil monetary penalties ranging from $100 to $50,000+ per violation depending on culpability tier (unknowing, reasonable cause, willful neglect), with annual caps per violation category. Criminal penalties apply for knowing violations involving intent to sell, transfer, or use PHI for commercial advantage or malicious harm.
