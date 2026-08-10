@@ -1,0 +1,41 @@
+OIG Compliance Program Guidance for Third-Party Medical Billing Companies and Coding Compliance
+
+Source: U.S. Department of Health and Human Services, Office of Inspector General (oig.hhs.gov)
+
+Purpose
+
+The OIG issues compliance program guidance to help healthcare organizations, billing companies, and coding staff prevent fraud, waste, and abuse in federal healthcare programs (Medicare, Medicaid). This guidance is advisory, not binding regulation, but forms the basis for enforcement actions and is widely adopted as an industry standard for compliance programs.
+
+Seven Elements of an Effective Compliance Program
+
+OIG guidance identifies seven core elements every healthcare compliance program should include:
+
+1. Written policies and procedures — clear standards of conduct addressing coding, billing, and documentation integrity.
+2. Compliance leadership and oversight — a designated compliance officer and committee with authority independent of billing/coding operations.
+3. Effective training and education — regular training for coders, CDI staff, and billing personnel on current coding rules and fraud risk areas.
+4. Effective communication channels — mechanisms for staff to report concerns, including anonymous reporting options, without fear of retaliation.
+5. Internal monitoring and auditing — routine coding and billing audits to detect errors before claims submission and identify patterns requiring correction.
+6. Enforcement of standards through well-publicized disciplinary guidelines — consistent consequences for noncompliance.
+7. Prompt response to detected offenses and corrective action — timely investigation and repayment of identified overpayments.
+
+Coding and Billing Fraud Risk Areas
+
+OIG has repeatedly identified the following as high-risk areas for coding compliance:
+
+- Upcoding — billing for a higher level of service than documented or medically necessary.
+- Unbundling — separately billing for services that should be billed under a single comprehensive code.
+- Medically unnecessary services — coding and billing for services not supported by clinical documentation.
+- Documentation that does not support the code billed — a mismatch between the medical record and the submitted claim.
+- Duplicate billing — submitting claims for the same service more than once.
+
+Exclusion Lists
+
+Organizations must screen employees and contractors against the OIG List of Excluded Individuals/Entities (LEIE) before hiring and on an ongoing basis. Employing or contracting with an excluded individual, including coders and CDI staff, can result in civil monetary penalties even if the exclusion was inadvertent.
+
+Relationship to Physician Queries and CDI
+
+OIG guidance directly informs why physician queries must be non-leading and evidence-based: a query that leads a physician to document a higher-acuity diagnosis without clinical support can constitute upcoding, exposing the organization to False Claims Act liability. Coding compliance programs should include periodic audits of query practices to confirm queries cite objective clinical indicators and do not suggest a particular diagnosis or code.
+
+Self-Disclosure
+
+OIG maintains a Self-Disclosure Protocol allowing organizations that discover potential fraud to voluntarily report and resolve the matter, often resulting in reduced penalties compared to matters identified through external audit or investigation.
