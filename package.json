@@ -19,6 +19,7 @@
     "seed:hedis": "tsx scripts/seed-hedis.ts",
     "seed:policies": "tsx scripts/seed-policies.ts",
     "docker:up": "docker compose up -d",
+    "seed:icd10-mappings": "tsx scripts/seed-icd10-mappings-2026.ts",
     "docker:down": "docker compose down"
   },
   "dependencies": {

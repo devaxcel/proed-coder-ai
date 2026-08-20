@@ -74,6 +74,8 @@ export default async function RootLayout({
                     <NavLink href="/">Codes search</NavLink>
                     <NavLink href="/policies">Policies</NavLink>
                     <NavLink href="/query-forms">Query forms</NavLink>
+                    <NavLink href="/icd10-mappings">ICD-10 Mappings</NavLink>
+                    <NavLink href="/code-check">Code Check</NavLink>
                     <NavLink href="/annual-wellness">Annual Wellness</NavLink>
                     <NavLink href="/meat-hcc">MEAT HCC</NavLink>
                     <NavLink href="/query-forms/history">History</NavLink>
