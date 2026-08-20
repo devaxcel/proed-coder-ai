@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Quicksand } from "next/font/google";
 import { auth, signOut } from "@/lib/auth";
+import SiteNav from "./components/SiteNav";
 
 const quicksand = Quicksand({
   subsets: ["latin"],
@@ -24,19 +25,24 @@ export default async function RootLayout({
 }) {
   const session = await auth();
 
+  async function handleSignOut() {
+    "use server";
+    await signOut({ redirectTo: "/login" });
+  }
+
   return (
     <html lang="en" className={quicksand.variable}>
       <body className="font-sans bg-white text-slate-900 antialiased">
         <div className="min-h-screen flex flex-col">
           {/* Top contact bar */}
           <div className="bg-navy text-white text-xs">
-            <div className="mx-auto max-w-6xl px-6 py-2 flex items-center justify-between">
-              <div className="flex items-center gap-4">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
                 <span className="flex items-center gap-1.5">
                   <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
                     <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                   </svg>
-                  +1-626-771-3704
+                  <span className="hidden xs:inline">+1-626-771-3704</span>
                 </span>
                 <span className="hidden sm:flex items-center gap-1.5">
                   <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden>
@@ -52,61 +58,34 @@ export default async function RootLayout({
             </div>
           </div>
 
-          {/* Main header */}
-          <header className="border-b border-slate-200 bg-white">
-            <div className="mx-auto max-w-6xl px-6 py-4 flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-6">
-                <Link href="/" className="flex items-center gap-3 no-underline">
-                  <div className="h-10 w-10 rounded-md bg-brand-500 text-white grid place-items-center text-sm font-bold shadow-card">
-                    PCS
+          {/* Main header — relative positioning so mobile dropdown anchors correctly */}
+          <header className="border-b border-slate-200 bg-white relative">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+              <Link href="/" className="flex items-center gap-2 sm:gap-3 no-underline shrink-0">
+                <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-md bg-brand-500 text-white grid place-items-center text-xs sm:text-sm font-bold shadow-card">
+                  PCS
+                </div>
+                <div>
+                  <div className="font-brand font-semibold text-navy leading-tight text-sm sm:text-base">
+                    ProEdCS Coder AI
                   </div>
-                  <div>
-                    <div className="font-brand font-semibold text-navy leading-tight">
-                      ProEdCS Coder AI
-                    </div>
-                    <div className="text-[10px] uppercase tracking-wider text-slate-500">
-                      Medical coding · Auditing · Compliance
-                    </div>
+                  <div className="hidden sm:block text-[10px] uppercase tracking-wider text-slate-500">
+                    Medical coding · Auditing · Compliance
                   </div>
-                </Link>
-                {session && (
-                  <nav className="flex items-center gap-1 text-sm flex-wrap">
-                    <NavLink href="/">Codes search</NavLink>
-                    <NavLink href="/policies">Policies</NavLink>
-                    <NavLink href="/query-forms">Query forms</NavLink>
-                    <NavLink href="/icd10-mappings">ICD-10 Mappings</NavLink>
-                    <NavLink href="/code-check">Code Check</NavLink>
-                    <NavLink href="/annual-wellness">Annual Wellness</NavLink>
-                    <NavLink href="/meat-hcc">MEAT HCC</NavLink>
-                    <NavLink href="/query-forms/history">History</NavLink>
-                  </nav>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                {session && (
-                  <form
-                    action={async () => {
-                      "use server";
-                      await signOut({ redirectTo: "/login" });
-                    }}
-                  >
-                    <button
-                      type="submit"
-                      className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                    >
-                      Sign out
-                    </button>
-                  </form>
-                )}
-              </div>
+                </div>
+              </Link>
+
+              {session && <SiteNav onSignOut={handleSignOut} />}
             </div>
           </header>
 
-          <main className="mx-auto max-w-6xl px-6 py-8 flex-1 w-full">{children}</main>
+          <main className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 flex-1 w-full">
+            {children}
+          </main>
 
           {/* Footer strip */}
           <footer className="bg-navy text-white/80 mt-16">
-            <div className="mx-auto max-w-6xl px-6 py-6 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div>
                 <span className="font-semibold text-white">
                   ProEd Consulting &amp; Staffing
@@ -122,22 +101,5 @@ export default async function RootLayout({
         </div>
       </body>
     </html>
-  );
-}
-
-function NavLink({
-  href,
-  children,
-}: {
-  href: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className="rounded-md px-3 py-1.5 text-slate-700 hover:bg-brand-50 hover:text-brand-600 transition"
-    >
-      {children}
-    </Link>
   );
 }

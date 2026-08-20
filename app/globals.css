@@ -27,7 +27,17 @@ h6 {
   letter-spacing: -0.01em;
 }
 
-/* Slight underline reset for nav links */
 a {
   text-underline-offset: 3px;
+}
+
+/* Hides the scrollbar on the nav's horizontal-scroll fallback (used only
+   on in-between screen widths where the nav is tight but not yet hidden
+   behind the hamburger) while keeping it scrollable via touch/drag. */
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
 }
