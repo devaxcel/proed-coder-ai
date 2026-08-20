@@ -28,7 +28,7 @@ export default async function RootLayout({
     <html lang="en" className={quicksand.variable}>
       <body className="font-sans bg-white text-slate-900 antialiased">
         <div className="min-h-screen flex flex-col">
-          {/* Top contact bar — matches ProEdCS site navy strip */}
+          {/* Top contact bar */}
           <div className="bg-navy text-white text-xs">
             <div className="mx-auto max-w-6xl px-6 py-2 flex items-center justify-between">
               <div className="flex items-center gap-4">
@@ -70,10 +70,12 @@ export default async function RootLayout({
                   </div>
                 </Link>
                 {session && (
-                  <nav className="flex items-center gap-1 text-sm">
+                  <nav className="flex items-center gap-1 text-sm flex-wrap">
                     <NavLink href="/">Codes search</NavLink>
                     <NavLink href="/policies">Policies</NavLink>
                     <NavLink href="/query-forms">Query forms</NavLink>
+                    <NavLink href="/annual-wellness">Annual Wellness</NavLink>
+                    <NavLink href="/meat-hcc">MEAT HCC</NavLink>
                     <NavLink href="/query-forms/history">History</NavLink>
                   </nav>
                 )}
@@ -100,7 +102,7 @@ export default async function RootLayout({
 
           <main className="mx-auto max-w-6xl px-6 py-8 flex-1 w-full">{children}</main>
 
-          {/* Footer strip — matches ProEdCS navy footer */}
+          {/* Footer strip */}
           <footer className="bg-navy text-white/80 mt-16">
             <div className="mx-auto max-w-6xl px-6 py-6 flex flex-wrap items-center justify-between gap-3 text-xs">
               <div>
