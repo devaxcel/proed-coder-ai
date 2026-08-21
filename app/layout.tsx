@@ -75,7 +75,13 @@ export default async function RootLayout({
                 </div>
               </Link>
 
-              {session && <SiteNav onSignOut={handleSignOut} />}
+              {session && (
+                <SiteNav
+                  onSignOut={handleSignOut}
+                  userName={session.user?.name ?? session.user?.email ?? "Account"}
+                  userRole={(session.user as { role?: string } | undefined)?.role}
+                />
+              )}
             </div>
           </header>
 

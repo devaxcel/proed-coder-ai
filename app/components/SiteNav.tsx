@@ -16,8 +16,12 @@ const NAV_LINKS = [
 
 export default function SiteNav({
   onSignOut,
+  userName,
+  userRole,
 }: {
   onSignOut: () => Promise<void>;
+  userName?: string;
+  userRole?: string;
 }) {
   const [open, setOpen] = useState(false);
 
@@ -48,7 +52,13 @@ export default function SiteNav({
           </Link>
         ))}
       </nav>
-      <div className="hidden lg:block shrink-0">
+      <div className="hidden lg:flex items-center gap-2 shrink-0">
+        {userName && (
+          <div className="text-right leading-tight">
+            <div className="text-xs font-medium text-slate-700 truncate max-w-[140px]">{userName}</div>
+            {userRole && <div className="text-[10px] uppercase tracking-wide text-slate-400">{userRole}</div>}
+          </div>
+        )}
         <form action={onSignOut}>
           <button
             type="submit"
@@ -85,6 +95,12 @@ export default function SiteNav({
       {/* Polished dropdown panel */}
       {open && (
         <div className="lg:hidden absolute right-4 sm:right-6 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] bg-white rounded-lg border border-slate-200 shadow-xl z-50 overflow-hidden">
+          {userName && (
+            <div className="px-3 py-2.5 border-b border-slate-100 bg-slate-50">
+              <div className="text-sm font-medium text-slate-800 truncate">{userName}</div>
+              {userRole && <div className="text-[10px] uppercase tracking-wide text-slate-400">{userRole}</div>}
+            </div>
+          )}
           <nav className="flex flex-col p-2 max-h-[70vh] overflow-y-auto">
             {NAV_LINKS.map((link) => (
               <Link

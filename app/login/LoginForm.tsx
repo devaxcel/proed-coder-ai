@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -16,16 +17,17 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
     setErr(null);
     try {
       const result = await signIn("credentials", {
+        email,
         password,
         redirect: false,
       });
       if (result?.error) {
-        setErr("Invalid team password. Try again.");
+        setErr("Invalid email or password.");
       } else if (result?.ok) {
         router.push(callbackUrl);
         router.refresh();
       } else {
-        setErr("Login failed. Check your APP_PASSWORD env var.");
+        setErr("Login failed. Please try again.");
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Login failed");
@@ -43,21 +45,36 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
           </div>
           <div>
             <div className="font-semibold text-slate-900">ProEdCS Coder AI</div>
-            <div className="text-xs text-slate-500">Sign in with the team password</div>
+            <div className="text-xs text-slate-500">Sign in to your account</div>
           </div>
         </div>
 
         <form onSubmit={onSubmit} className="space-y-4">
           <div>
+            <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-800">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              autoFocus
+              autoComplete="email"
+              className="w-full rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            />
+          </div>
+
+          <div>
             <label htmlFor="password" className="mb-1 block text-sm font-medium text-slate-800">
-              Team password
+              Password
             </label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              autoFocus
+              autoComplete="current-password"
               className="w-full rounded-md border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </div>
@@ -70,7 +87,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
 
           <button
             type="submit"
-            disabled={loading || !password}
+            disabled={loading || !email || !password}
             className="w-full rounded-md bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
           >
             {loading ? "Signing in…" : "Sign in"}
@@ -78,7 +95,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         </form>
 
         <p className="mt-6 text-xs text-slate-500">
-          Built by AXCEL for ProEd Consulting &amp; Staffing · West Covina, CA
+          Don&apos;t have an account? Ask your ProEd administrator to create one for you.
         </p>
       </div>
     </div>
