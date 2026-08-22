@@ -6,6 +6,7 @@
  */
 
 import type { PolicyDocOutput } from "./policy-doc-prompts";
+import { getLogoImageRun } from "./proed-logo-docx";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let docxLib: any = null;
@@ -93,6 +94,7 @@ export async function generatePolicyDocDocx(input: {
 }): Promise<Buffer> {
   await loadDocx();
   const { Document, Packer, Paragraph, PageOrientation, AlignmentType, convertInchesToTwip } = docxLib;
+  const logoRun = await getLogoImageRun(docxLib);
 
   const { policy, references, createdAt } = input;
   const dateStr = createdAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -110,6 +112,7 @@ export async function generatePolicyDocDocx(input: {
       spacing: { after: 160 },
     })
   );
+  children.push(new Paragraph({ children: [logoRun], spacing: { after: 120 } }));
   children.push(para("ProEd Consulting & Staffing", { size: 34, bold: true, color: BRAND, after: 40 }));
   children.push(para("Medical Coding · Auditing · Compliance", { size: 18, bold: true, color: BRAND, after: 200 }));
   children.push(hr());

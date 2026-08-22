@@ -8,6 +8,7 @@
 
 import type { FormBHOutput } from "./query-form-bh-prompts";
 import type { QueryFormHeaderInputs } from "./query-form-prompts";
+import { getLogoImageRun } from "./proed-logo-docx";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let docxLib: any = null;
@@ -118,6 +119,7 @@ export async function generateFormBHDocx(input: {
 }): Promise<Buffer> {
   await loadDocx();
   const { Document, Packer, Paragraph, PageOrientation, AlignmentType, convertInchesToTwip } = docxLib;
+  const logoRun = await getLogoImageRun(docxLib);
 
   const { form, header, createdAt } = input;
   const dateStr = createdAt.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -135,6 +137,7 @@ export async function generateFormBHDocx(input: {
       spacing: { after: 160 },
     })
   );
+  children.push(new Paragraph({ children: [logoRun], spacing: { after: 120 } }));
   children.push(para("ProEd Consulting & Staffing", { size: 34, bold: true, color: BRAND, after: 40 }));
   children.push(para("Medical Coding · Auditing · Compliance", { size: 18, bold: true, color: BRAND, after: 20 }));
   children.push(para(`Query Forms Packet — Form ${form.form_letter}`, { size: 22, color: GRAY, after: 40 }));

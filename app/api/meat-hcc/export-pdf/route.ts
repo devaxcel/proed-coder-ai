@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { readFile } from "fs/promises";
+import path from "path";
 
 export const runtime = "nodejs";
 
@@ -84,6 +86,15 @@ export async function POST(req: NextRequest) {
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
   const fontItalic = await pdfDoc.embedFont(StandardFonts.HelveticaOblique);
 
+  // Embed the real ProEd logo (pdf-lib requires a white/opaque backing
+  // rectangle behind it since the header bar itself is dark blue and the
+  // logo's wordmark is black — same approach as the white badge on web).
+  const logoBytes = await readFile(path.join(process.cwd(), "public", "proed-logo.png"));
+  const logoImage = await pdfDoc.embedPng(logoBytes);
+  const LOGO_ASPECT = 2218 / 813;
+  const LOGO_H = 30;
+  const LOGO_W = LOGO_H * LOGO_ASPECT;
+
   const MARGIN = 36;
   const WIDTH = 612 - MARGIN * 2;
   let y = 792 - MARGIN;
@@ -112,7 +123,11 @@ export async function POST(req: NextRequest) {
   page.drawRectangle({ x: MARGIN, y: y - 46, width: WIDTH, height: 46, color: TEAL });
   text("MEAT Documentation Checklist", MARGIN + 12, y - 20, { size: 16, bold: true, color: WHITE });
   text("HCC Risk Adjustment Coding — Applicable to All Chronic Conditions", MARGIN + 12, y - 36, { size: 9, color: WHITE });
-  text("proed", MARGIN + WIDTH - 60, y - 22, { size: 14, italic: true, color: WHITE });
+  // White backing box behind the logo since the wordmark is black and the header bar is dark blue
+  const logoBoxX = MARGIN + WIDTH - LOGO_W - 20;
+  const logoBoxY = y - 38;
+  page.drawRectangle({ x: logoBoxX - 6, y: logoBoxY - 4, width: LOGO_W + 12, height: LOGO_H + 8, color: WHITE });
+  page.drawImage(logoImage, { x: logoBoxX, y: logoBoxY, width: LOGO_W, height: LOGO_H });
   y -= 58;
 
   text(

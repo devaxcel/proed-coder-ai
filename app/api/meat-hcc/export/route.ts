@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getLogoImageRun } from "@/lib/proed-logo-docx";
 
 export const runtime = "nodejs";
 
@@ -84,6 +85,8 @@ export async function POST(req: NextRequest) {
     convertInchesToTwip,
   } = docxLib;
 
+  const logoRun = await getLogoImageRun(docxLib);
+
   const tr = (text: string, o: Record<string, unknown> = {}) =>
     new TextRun({ text, font: FONT, size: (o.size as number) ?? 20, bold: o.bold as boolean, italics: o.italics as boolean, color: (o.color as string) ?? DARK });
   const p = (children: unknown, o: Record<string, unknown> = {}) =>
@@ -129,6 +132,7 @@ export async function POST(req: NextRequest) {
       spacing: { after: 160 },
     })
   );
+  children.push(new Paragraph({ children: [logoRun], spacing: { after: 120 } }));
   children.push(p(tr("ProEd Consulting & Staffing", { size: 32, bold: true, color: NAVY }), { after: 40 }));
   children.push(p(tr("MEAT Documentation Checklist", { size: 22, color: BLUE, bold: true }), { after: 20 }));
   children.push(p(tr("HCC Risk Adjustment Coding — Applicable to All Chronic Conditions", { size: 16, italics: true, color: LIGHT }), { after: 220 }));
