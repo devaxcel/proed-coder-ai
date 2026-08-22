@@ -34,6 +34,8 @@ export default function UserManagementClient({
 
   const [resetTargetId, setResetTargetId] = useState<string | null>(null);
   const [resetPasswordValue, setResetPasswordValue] = useState("");
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function refresh() {
     const r = await fetch("/api/admin/users");
@@ -83,6 +85,23 @@ export default function UserManagementClient({
     }
     await refresh();
     return true;
+  }
+
+  async function onDeleteUser(id: string) {
+    setErr(null);
+    setDeleting(true);
+    try {
+      const r = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+      const json = await r.json();
+      if (!r.ok) {
+        setErr(json.error ?? "Delete failed");
+      } else {
+        setDeleteTargetId(null);
+        await refresh();
+      }
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function onResetPassword(id: string) {
@@ -157,7 +176,8 @@ export default function UserManagementClient({
               <th className="px-3 py-2 text-left text-white font-medium">Email</th>
               <th className="px-3 py-2 text-left text-white font-medium">Role</th>
               <th className="px-3 py-2 text-left text-white font-medium">Status</th>
-              <th className="px-3 py-2 text-left text-white font-medium">Actions</th>
+              <th className="px-3 py-2 text-left text-white font-medium">Password</th>
+              <th className="px-3 py-2 text-left text-white font-medium">Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -204,6 +224,27 @@ export default function UserManagementClient({
                   ) : (
                     <button onClick={() => setResetTargetId(u.id)} className="text-xs font-medium" style={{ color: TEAL }}>
                       Reset password
+                    </button>
+                  )}
+                </td>
+                <td className="px-3 py-2">
+                  {u.id === currentUserId ? (
+                    <span className="text-xs text-slate-300">—</span>
+                  ) : deleteTargetId === u.id ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-red-700">Delete {u.email}?</span>
+                      <button
+                        onClick={() => onDeleteUser(u.id)}
+                        disabled={deleting}
+                        className="text-xs font-semibold text-red-600 hover:text-red-800 disabled:opacity-50"
+                      >
+                        {deleting ? "Deleting…" : "Confirm"}
+                      </button>
+                      <button onClick={() => setDeleteTargetId(null)} className="text-xs text-slate-400">Cancel</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => setDeleteTargetId(u.id)} className="text-xs font-medium text-red-600 hover:text-red-800">
+                      Delete
                     </button>
                   )}
                 </td>

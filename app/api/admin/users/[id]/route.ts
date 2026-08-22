@@ -63,3 +63,45 @@ export async function PATCH(
 
   return NextResponse.json({ user });
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await requireAdmin();
+  if (!session) {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+  const { id } = await params;
+
+  const currentUserId = (session.user as { id?: string } | undefined)?.id;
+  if (id === currentUserId) {
+    return NextResponse.json({ error: "You cannot delete your own account while signed in" }, { status: 400 });
+  }
+
+  const target = await db.user.findUnique({ where: { id }, select: { role: true, isActive: true } });
+  if (!target) {
+    return NextResponse.json({ error: "User not found" }, { status: 404 });
+  }
+
+  if (target.role === "ADMIN" && target.isActive) {
+    const activeAdminCount = await db.user.count({ where: { role: "ADMIN", isActive: true } });
+    if (activeAdminCount <= 1) {
+      return NextResponse.json(
+        { error: "Cannot delete the only remaining admin account" },
+        { status: 400 }
+      );
+    }
+  }
+
+  // Detach (don't delete) their history first — saved query forms and audit
+  // log entries stay in the system for record-keeping, just no longer
+  // attributed to a live account. Then remove the account itself.
+  await db.$transaction([
+    db.queryForm.updateMany({ where: { userId: id }, data: { userId: null } }),
+    db.auditLog.updateMany({ where: { userId: id }, data: { userId: null } }),
+    db.user.delete({ where: { id } }),
+  ]);
+
+  return NextResponse.json({ deleted: true });
+}
