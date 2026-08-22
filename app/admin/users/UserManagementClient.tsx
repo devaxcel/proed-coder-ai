@@ -12,7 +12,7 @@ type UserRow = {
   name: string | null;
   role: "ADMIN" | "CODER" | "AUDITOR";
   isActive: boolean;
-  createdAt: string;
+  createdAt: string | Date;
 };
 
 export default function UserManagementClient({
