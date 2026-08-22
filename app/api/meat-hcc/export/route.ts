@@ -13,12 +13,12 @@ const Body = z.object({
 });
 
 const FONT = "Calibri";
-const NAVY = "0F6E77";
-const BLUE = "0F6E77";
+const NAVY = "14457B";
+const BLUE = "14457B";
 const GRAY = "4B5563";
 const LIGHT = "6B7280";
 const DARK = "1F2937";
-const CARD = "E6F4F5";
+const CARD = "E7ECF4";
 
 const MONITORED = [
   { id: "m1", label: "Vital signs reviewed (BP, weight, O2 sat, HR)" },

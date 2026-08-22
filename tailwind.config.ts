@@ -1,15 +1,8 @@
 import type { Config } from "tailwindcss";
 
 /**
- * ProEdCS visual identity — unified teal branding, matching ProEd's actual
- * internal tool documents (MEAT HCC Checklist, AWV/HEDIS Tool) rather than
- * the marketing-site blue. This keeps every page — outer chrome and content
- * pages alike — visually consistent under one palette.
- *
- * Primary teal (#0F6E77):   headers, nav accents, primary buttons
- * Dark teal (#0A555C):      top bar, footer, high-contrast strips
- * Light teal (#E6F4F5):     card backgrounds, subtle surfaces
- * Yellow (#EFC932):         CTA accent (kept — strong contrast against teal)
+ * ProEdCS visual identity — confirmed brand color from proedcs.com:
+ * background #14457B, white text, Quicksand for headings.
  */
 
 const config: Config = {
@@ -18,21 +11,21 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50:  "#e6f4f5",
-          100: "#cce9eb",
-          200: "#99d3d7",
-          300: "#66bdc3",
-          400: "#3aa7ae",
-          500: "#0f6e77", // ProEdCS primary teal
-          600: "#0c5960",
-          700: "#0a555c", // ProEdCS dark teal
-          800: "#083f45",
-          900: "#052a2e",
+          50:  "#e7ecf4",
+          100: "#cfd9e9",
+          200: "#9fb3d3",
+          300: "#6f8dbd",
+          400: "#3f67a7",
+          500: "#14457b", // ProEdCS confirmed brand color
+          600: "#113a68",
+          700: "#0e2f55",
+          800: "#0a2442",
+          900: "#07192f",
         },
         navy: {
-          DEFAULT: "#0a555c", // repurposed as dark teal for continuity of class names
-          light: "#0f6e77",
-          dark: "#052a2e",
+          DEFAULT: "#14457b",
+          light: "#3f67a7",
+          dark: "#0a2442",
         },
         accent: {
           yellow: "#efc932",
@@ -40,8 +33,8 @@ const config: Config = {
         },
         surface: {
           DEFAULT: "#ffffff",
-          soft: "#e6f4f5",
-          softer: "#f0f9fa",
+          soft: "#e7ecf4",
+          softer: "#f2f5fa",
         },
       },
       fontFamily: {

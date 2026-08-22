@@ -4,9 +4,9 @@ import { useState } from "react";
 
 type ChecklistState = Record<string, boolean>;
 
-const TEAL = "#0F6E77";
-const TEAL_LIGHT = "#E6F4F5";
-const TEAL_DARK = "#0A555C";
+const TEAL = "#14457B";
+const TEAL_LIGHT = "#E7ECF4";
+const TEAL_DARK = "#14457B";
 
 const MONITORED = [
   { id: "m1", label: "Vital signs reviewed (BP, weight, O2 sat, HR)", ex: "e.g., BP 142/90 noted; weight stable" },

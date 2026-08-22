@@ -29,6 +29,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         const user = await db.user.findUnique({ where: { email } });
         if (!user || !user.passwordHash) return null;
+        if (user.isActive === false) return null;
 
         const valid = await verifyPassword(password, user.passwordHash);
         if (!valid) return null;

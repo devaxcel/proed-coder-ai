@@ -71,9 +71,9 @@ export async function POST(req: NextRequest) {
   }
   const { PDFDocument, StandardFonts, rgb } = pdfLib;
 
-  const TEAL = rgb(0.059, 0.431, 0.467); // #0F6E77
-  const TEAL_DARK = rgb(0.039, 0.333, 0.361); // #0A555C
-  const TEAL_LIGHT = rgb(0.902, 0.957, 0.961); // #E6F4F5
+  const TEAL = rgb(0.078, 0.271, 0.482); // #14457B (ProEdCS brand)
+  const TEAL_DARK = rgb(0.078, 0.271, 0.482); // #14457B
+  const TEAL_LIGHT = rgb(0.906, 0.925, 0.957); // #E7ECF4
   const WHITE = rgb(1, 1, 1);
   const DARK = rgb(0.122, 0.161, 0.216); // #1F2937
   const GRAY = rgb(0.42, 0.447, 0.502);
