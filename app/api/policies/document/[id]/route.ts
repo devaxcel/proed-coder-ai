@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { getLogoImageRun } from "@/lib/proed-logo-docx";
 
 export const runtime = "nodejs";
 
@@ -48,9 +49,12 @@ export async function GET(
     convertInchesToTwip,
   } = docxLib;
 
+  const logoRun = await getLogoImageRun(docxLib);
+
   const font = "Calibri";
-  const BRAND_BLUE = "3B7DD8";
-  const BRAND_NAVY = "0A2F5C";
+  // ProEdCS confirmed brand color — #14457B, white text, per proedcs.com
+  const BRAND_BLUE = "14457B";
+  const BRAND_NAVY = "14457B";
   const BRAND_GRAY = "4B5563";
   const LIGHT_GRAY = "6B7280";
 
@@ -118,7 +122,7 @@ export async function GET(
           },
         },
         children: [
-          // Header strip — navy background matches ProEdCS top bar
+          // Header strip — brand color matches ProEdCS top bar
           new Paragraph({
             children: [
               new TextRun({
@@ -130,6 +134,11 @@ export async function GET(
             ],
             shading: { type: "clear", fill: BRAND_NAVY, color: "auto" },
             spacing: { after: 160 },
+          }),
+          // Real logo
+          new Paragraph({
+            children: [logoRun],
+            spacing: { after: 120 },
           }),
           // Letterhead
           new Paragraph({

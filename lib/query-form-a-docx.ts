@@ -7,6 +7,7 @@
  */
 
 import type { FormAOutput, QueryFormHeaderInputs } from "./query-form-prompts";
+import { getLogoImageRun } from "./proed-logo-docx";
 
 // docx is CJS — unwrap default at call site
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,14 +21,14 @@ async function loadDocx() {
 }
 
 const FONT = "Calibri";
-// ProEdCS visual identity — sampled from proedcs.com
-const BRAND_BLUE = "3B7DD8";      // ProEdCS primary blue
-const BRAND_NAVY = "0A2F5C";      // ProEdCS dark navy (top bar / letterhead)
+// ProEdCS confirmed brand color — #14457B, white text, per proedcs.com
+const BRAND_BLUE = "14457B";      // ProEdCS primary
+const BRAND_NAVY = "14457B";      // same color used for letterhead/top bar
 const BRAND_DARK = "1F2937";      // body text
 const BRAND_GRAY = "4B5563";      // secondary text
 const LIGHT_GRAY = "6B7280";      // tertiary / caption
-const CARD_BG = "F5F7FB";         // subtle surface (matches ProEdCS testimonial cards)
-const TABLE_HEADER_BG = "EEF4FC"; // brand-50 tint
+const CARD_BG = "E7ECF4";         // subtle surface tint of brand color
+const TABLE_HEADER_BG = "E7ECF4"; // brand tint
 const YELLOW_ACCENT = "EFC932";   // ProEdCS accent yellow
 
 // Unicode ballot symbols (matches ProEd's use of ☐ and ☑)
@@ -262,6 +263,8 @@ export async function generateFormADocx(input: {
     convertInchesToTwip,
   } = docxLib;
 
+  const logoRun = await getLogoImageRun(docxLib);
+
   const dateStr = input.createdAt.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -293,7 +296,7 @@ export async function generateFormADocx(input: {
   // ---- Build children (linear flow) ----
   const children: any[] = [];
 
-  // === Letterhead — matches ProEdCS site: navy strip + primary title ===
+  // === Letterhead — navy strip + real logo + primary title ===
   children.push(
     new Paragraph({
       children: [
@@ -311,6 +314,8 @@ export async function generateFormADocx(input: {
       spacing: { before: 0, after: 160 },
     })
   );
+
+  children.push(new Paragraph({ children: [logoRun], spacing: { after: 120 } }));
 
   children.push(
     new Paragraph({
