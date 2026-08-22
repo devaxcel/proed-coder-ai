@@ -59,6 +59,9 @@ export default function Sidebar({
         <Link href="/policy-generator" onClick={onClose} className={linkClass("/policy-generator")}>
           Policy Generator
         </Link>
+        <Link href="/hedis-measures" onClick={onClose} className={linkClass("/hedis-measures")}>
+          HEDIS Measures
+        </Link>
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">
