@@ -137,13 +137,8 @@ export default function MeatHccPage() {
               HCC Risk Adjustment Coding — Applicable to All Chronic Conditions
             </p>
           </div>
-          <div className="rounded-md bg-white/95 px-4 py-2 text-center shadow-sm">
-            <div className="font-serif italic text-lg leading-none" style={{ color: TEAL_DARK }}>
-              proed
-            </div>
-            <div className="text-[9px] uppercase tracking-wide text-slate-500 mt-0.5">
-              Consulting · Staffing · Scanning
-            </div>
+          <div className="rounded-md bg-white/95 px-3 py-2 shadow-sm">
+            <img src="/proed-logo.png" alt="ProEd Consulting" className="h-8 w-auto" />
           </div>
         </div>
         <p className="text-xs text-slate-500 px-6 py-2 bg-slate-50 border-t border-slate-200">
@@ -153,7 +148,7 @@ export default function MeatHccPage() {
 
       {/* Header fields */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 rounded-lg border p-4" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
-        <Field label="Date of Service" value={dos} onChange={setDos} teal={TEAL} />
+        <Field label="Date of Service" value={dos} onChange={setDos} teal={TEAL} type="date" />
         <Field label="Provider NPI" value={npi} onChange={setNpi} teal={TEAL} />
         <Field label="ICD-10 Code(s)" value={icdCodes} onChange={setIcdCodes} placeholder="e.g., E11.40, N18.4" teal={TEAL} />
         <Field label="Condition/Diagnosis" value={condition} onChange={setCondition} placeholder="e.g., DM2 with CKD" teal={TEAL} />
@@ -251,17 +246,20 @@ function Field({
   onChange,
   placeholder,
   teal,
+  type = "text",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   teal: string;
+  type?: "text" | "date";
 }) {
   return (
     <div>
       <label className="mb-0.5 block text-xs font-medium" style={{ color: teal }}>{label}</label>
       <input
+        type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
