@@ -53,6 +53,9 @@ export default function Sidebar({
             {link.label}
           </Link>
         ))}
+        <Link href="/query-forms/more" onClick={onClose} className={linkClass("/query-forms/more")}>
+          Forms B–H
+        </Link>
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">
