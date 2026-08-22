@@ -69,7 +69,21 @@ export async function POST(req: NextRequest) {
     console.error("Policy retrieval failed:", e);
   }
 
-  const referenceMaterials = policyChunks.map((c) => ({
+  // Multiple retrieved chunks often come from the same source document.
+  // Deduplicate by policyDocId BEFORE numbering, so the citation numbers
+  // the LLM sees (and the references list we render) point to unique
+  // sources — not the same document listed 2-3 times under different
+  // numbers because 2-3 of its chunks happened to be retrieved.
+  const seenDocIds = new Set<string>();
+  const uniqueChunks: typeof policyChunks = [];
+  for (const chunk of policyChunks) {
+    if (!seenDocIds.has(chunk.policyDocId)) {
+      seenDocIds.add(chunk.policyDocId);
+      uniqueChunks.push(chunk);
+    }
+  }
+
+  const referenceMaterials = uniqueChunks.map((c) => ({
     title: c.docTitle,
     source: c.sourceName,
     excerpt: c.content.slice(0, 500),
@@ -92,7 +106,7 @@ export async function POST(req: NextRequest) {
   }
 
   const policy = safeParseLlmJson(raw);
-  const references = policyChunks.map((c, i) => ({
+  const references = uniqueChunks.map((c, i) => ({
     n: i + 1,
     source: c.sourceName,
     docTitle: c.docTitle,
