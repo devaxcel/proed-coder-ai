@@ -20,15 +20,16 @@ type CheckResult = {
 };
 
 export default function CodeCheckPage() {
-  const [codeSystem, setCodeSystem] = useState<"ICD-10" | "HCPCS">("ICD-10");
+  const [codeSystem, setCodeSystem] = useState<"ICD-10" | "HCPCS" | "CPT">("ICD-10");
   const [noteText, setNoteText] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<CheckResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
-  const examples: Record<"ICD-10" | "HCPCS", string> = {
+  const examples: Record<"ICD-10" | "HCPCS" | "CPT", string> = {
     "ICD-10": "Patient presents with right knee pain after fall 2 days ago. X-ray shows fracture. Patient placed in splint, follow up in 1 week. Also noted: patient has diabetes, on metformin.",
     HCPCS: "Patient needs a wheelchair for home use due to difficulty ambulating from CHF and COPD. Ordered oxygen concentrator for home use as well. Will follow up on delivery.",
+    CPT: "Established patient seen for follow-up of hypertension and diabetes. Reviewed labs, adjusted metformin dose, discussed diet. Spent 22 minutes total on date of encounter, more than half spent counseling.",
   };
 
   async function onAnalyze(e: React.FormEvent) {
@@ -77,9 +78,15 @@ export default function CodeCheckPage() {
         <b>This tool suggests candidates for your review — it never confirms a code is billable.</b> Final coding judgment is always yours.
       </div>
 
+      {codeSystem === "CPT" && (
+        <div className="rounded-md border border-amber-300 p-3 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
+          <b>⚠️ Placeholder mode — pending AMA CPT license.</b> This mode will never show a specific CPT code number, only plain-English service categories, until ProEd&apos;s AMA license is active and real code data is integrated.
+        </div>
+      )}
+
       <form onSubmit={onAnalyze} className="space-y-3">
         <div className="flex gap-2">
-          {(["ICD-10", "HCPCS"] as const).map((sys) => (
+          {(["ICD-10", "HCPCS", "CPT"] as const).map((sys) => (
             <button
               key={sys}
               type="button"

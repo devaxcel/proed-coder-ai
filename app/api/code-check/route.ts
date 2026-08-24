@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 
 const Body = z.object({
   noteText: z.string().min(10).max(6000),
-  codeSystem: z.enum(["ICD-10", "HCPCS"]),
+  codeSystem: z.enum(["ICD-10", "HCPCS", "CPT"]),
 });
 
 type CheckResult = {

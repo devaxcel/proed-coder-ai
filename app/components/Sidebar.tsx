@@ -62,6 +62,12 @@ export default function Sidebar({
         <Link href="/hedis-measures" onClick={onClose} className={linkClass("/hedis-measures")}>
           HEDIS Measures
         </Link>
+        <Link href="/em-tool" onClick={onClose} className={linkClass("/em-tool")}>
+          E/M Tool
+        </Link>
+        <Link href="/claim-validation" onClick={onClose} className={linkClass("/claim-validation")}>
+          Claim Validation
+        </Link>
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">
