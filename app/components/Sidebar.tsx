@@ -9,11 +9,12 @@ const NAV_LINKS = [
   { href: "/", label: "Codes Search" },
   { href: "/policies", label: "Policies Q&A" },
   { href: "/query-forms", label: "Query Forms" },
+  { href: "/query-forms/history", label: "History" },
   { href: "/annual-wellness", label: "Annual Wellness" },
   { href: "/meat-hcc", label: "MEAT HCC" },
   { href: "/icd10-mappings", label: "ICD-10 Mappings" },
   { href: "/code-check", label: "Code Check" },
-  { href: "/query-forms/history", label: "History" },
+  
 ];
 
 export default function Sidebar({
