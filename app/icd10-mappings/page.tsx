@@ -6,6 +6,13 @@ const TEAL = "#14457B";
 const TEAL_LIGHT = "#E7ECF4";
 const TEAL_DARK = "#14457B";
 
+type Year = "2024" | "2025" | "2026";
+
+// Different years have different underlying columns (2024 uniquely has
+// RxHCC V05, retired afterward; payment-year boolean field names also
+// differ per year — hccV28Payment2024 vs ...2025 vs ...2026). Rather than
+// one rigid type, treat rows loosely and look up the right payment flag
+// by year at render time.
 type Row = {
   id: string;
   icd10Code: string;
@@ -15,12 +22,28 @@ type Row = {
   hccV22: number | null;
   hccV24: number | null;
   hccV28: number | null;
+  rxhccV05?: number | null;
   rxhccV08: number | null;
-  hccV28Payment2026: boolean | null;
+  [key: string]: unknown; // payment-year boolean flags, name varies by year
 };
 
-function Badge({ label, value }: { label: string; value: number | null }) {
-  if (value === null) return null;
+const YEAR_META: Record<Year, { title: string; sourceLine: string }> = {
+  2024: {
+    title: "2024 ICD-10 HCC Mappings",
+    sourceLine: "Source: CMS.gov — FY23/FY24 ICD-10 Payment Codes crosswalk (Payment Year 2024). Includes retired RxHCC V05.",
+  },
+  2025: {
+    title: "2025 ICD-10 HCC Mappings",
+    sourceLine: "Source: CMS.gov — FY24/FY25 ICD-10 Payment Codes crosswalk (Payment Year 2025).",
+  },
+  2026: {
+    title: "2026 ICD-10 HCC Mappings",
+    sourceLine: "Source: CMS.gov — CY25/CY26 ICD-10 Payment Codes crosswalk (Payment Year 2026).",
+  },
+};
+
+function Badge({ label, value }: { label: string; value: number | null | undefined }) {
+  if (value === null || value === undefined) return null;
   return (
     <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium mr-1 mb-1" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
       {label} {value}
@@ -29,6 +52,7 @@ function Badge({ label, value }: { label: string; value: number | null }) {
 }
 
 export default function Icd10MappingsPage() {
+  const [year, setYear] = useState<Year>("2026");
   const [q, setQ] = useState("");
   const [results, setResults] = useState<Row[]>([]);
   const [total, setTotal] = useState(0);
@@ -36,7 +60,7 @@ export default function Icd10MappingsPage() {
   const [loading, setLoading] = useState(false);
   const pageSize = 25;
 
-  async function search(newPage = 1) {
+  async function search(newPage = 1, useYear: Year = year) {
     if (!q.trim()) {
       setResults([]);
       setTotal(0);
@@ -44,7 +68,7 @@ export default function Icd10MappingsPage() {
     }
     setLoading(true);
     try {
-      const r = await fetch(`/api/icd10-mappings/search?q=${encodeURIComponent(q)}&page=${newPage}`);
+      const r = await fetch(`/api/icd10-mappings/search?q=${encodeURIComponent(q)}&page=${newPage}&year=${useYear}`);
       const json = await r.json();
       setResults(json.results);
       setTotal(json.total);
@@ -54,16 +78,22 @@ export default function Icd10MappingsPage() {
     }
   }
 
+  function onYearChange(newYear: Year) {
+    setYear(newYear);
+    if (q.trim()) search(1, newYear);
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const paymentFlagKey = `hccV28Payment${year}`;
 
   return (
     <div className="space-y-6">
       <section className="rounded-lg overflow-hidden">
         <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: TEAL }}>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white leading-snug">2026 ICD-10 HCC Mappings</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white leading-snug">{YEAR_META[year].title}</h1>
             <p className="mt-1 text-sm text-white/85">
-              Full CMS crosswalk — ESRD, CMS-HCC, and RxHCC models · V21/V22/V24/V28 · 2026 Payment Year
+              Full CMS crosswalk — ESRD, CMS-HCC, and RxHCC models · Payment Year {year}
             </p>
           </div>
           <div className="rounded-md bg-white/95 px-4 py-2 text-center shadow-sm">
@@ -72,6 +102,24 @@ export default function Icd10MappingsPage() {
           </div>
         </div>
       </section>
+
+      {/* Year selector */}
+      <div className="flex gap-2">
+        {(["2024", "2025", "2026"] as Year[]).map((y) => (
+          <button
+            key={y}
+            onClick={() => onYearChange(y)}
+            className="rounded-md px-4 py-2 text-sm font-medium border"
+            style={{
+              borderColor: TEAL,
+              backgroundColor: year === y ? TEAL : "white",
+              color: year === y ? "white" : TEAL_DARK,
+            }}
+          >
+            Payment Year {y}
+          </button>
+        ))}
+      </div>
 
       <form onSubmit={(e) => { e.preventDefault(); search(1); }} className="flex gap-2">
         <input
@@ -104,17 +152,18 @@ export default function Icd10MappingsPage() {
               <Badge label="HCC V22" value={row.hccV22} />
               <Badge label="HCC V24" value={row.hccV24} />
               <Badge label="HCC V28" value={row.hccV28} />
+              {year === "2024" && <Badge label="RxHCC V05" value={row.rxhccV05} />}
               <Badge label="RxHCC V08" value={row.rxhccV08} />
             </div>
-            {row.hccV28Payment2026 !== null && (
+            {row[paymentFlagKey] !== null && row[paymentFlagKey] !== undefined && (
               <div className="mt-1 text-xs text-slate-500">
-                V28 applies for 2026 payment year: <b>{row.hccV28Payment2026 ? "Yes" : "No"}</b>
+                V28 applies for {year} payment year: <b>{row[paymentFlagKey] ? "Yes" : "No"}</b>
               </div>
             )}
           </div>
         ))}
         {q && !loading && results.length === 0 && (
-          <p className="text-sm text-slate-500">No codes match &ldquo;{q}&rdquo;.</p>
+          <p className="text-sm text-slate-500">No codes match &ldquo;{q}&rdquo; for Payment Year {year}.</p>
         )}
       </div>
 
@@ -131,7 +180,7 @@ export default function Icd10MappingsPage() {
       )}
 
       <p className="text-xs text-slate-500">
-        Source: CMS.gov — CY25/CY26 ICD-10 Payment Codes crosswalk. Public data, no license required.
+        {YEAR_META[year].sourceLine} Public data, no license required.
       </p>
     </div>
   );

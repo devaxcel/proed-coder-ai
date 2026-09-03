@@ -212,3 +212,71 @@ model IcdHccMapping2026 {
   @@index([icd10Code])
   @@index([hccV28])
 }
+
+model IcdHccMapping2025 {
+  id          String  @id @default(cuid())
+  icd10Code   String
+  description String
+
+  // CMS-HCC ESRD Model
+  esrdV21     Int?
+  esrdV24     Int?
+
+  // CMS-HCC Model (standard Medicare Advantage risk adjustment)
+  hccV22      Int?
+  hccV24      Int?
+  hccV28      Int?
+
+  // RxHCC (prescription drug risk adjustment) — V08 only; V05 was
+  // retired before the 2025 crosswalk (still present in 2024's file)
+  rxhccV08    Int?
+
+  // Whether each model applies for 2025 payment year specifically
+  esrdV21Payment2025 Boolean?
+  esrdV24Payment2025 Boolean?
+  hccV22Payment2025   Boolean?
+  hccV24Payment2025   Boolean?
+  hccV28Payment2025   Boolean?
+  rxhccV08Payment2025 Boolean?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([icd10Code])
+  @@index([hccV28])
+}
+
+model IcdHccMapping2024 {
+  id          String  @id @default(cuid())
+  icd10Code   String
+  description String
+
+  // CMS-HCC ESRD Model
+  esrdV21     Int?
+  esrdV24     Int?
+
+  // CMS-HCC Model (standard Medicare Advantage risk adjustment)
+  hccV22      Int?
+  hccV24      Int?
+  hccV28      Int?
+
+  // RxHCC (prescription drug risk adjustment) — 2024's crosswalk
+  // includes BOTH V05 (retired after this year) and V08
+  rxhccV05    Int?
+  rxhccV08    Int?
+
+  // Whether each model applies for 2024 payment year specifically
+  esrdV21Payment2024 Boolean?
+  esrdV24Payment2024 Boolean?
+  hccV22Payment2024   Boolean?
+  hccV24Payment2024   Boolean?
+  hccV28Payment2024   Boolean?
+  rxhccV05Payment2024 Boolean?
+  rxhccV08Payment2024 Boolean?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([icd10Code])
+  @@index([hccV28])
+}

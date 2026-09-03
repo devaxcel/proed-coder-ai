@@ -20,6 +20,8 @@
     "seed:policies": "tsx scripts/seed-policies.ts",
     "docker:up": "docker compose up -d",
     "seed:icd10-mappings": "tsx scripts/seed-icd10-mappings-2026.ts",
+    "seed:icd10-mappings-2025": "tsx scripts/seed-icd10-mappings-2025.ts",
+    "seed:icd10-mappings-2024": "tsx scripts/seed-icd10-mappings-2024.ts",
     "create-user": "tsx scripts/create-user.ts",
     "docker:down": "docker compose down"
   },
