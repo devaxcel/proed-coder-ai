@@ -1,0 +1,37 @@
+// =====================================================================
+// APPEND THIS MODEL TO THE BOTTOM OF YOUR EXISTING prisma/schema.prisma
+// Do NOT replace your existing file — just paste this block onto the end.
+// After adding, run: npm run db:push  (or: npx prisma db push)
+// =====================================================================
+
+model IcdHccMapping2026 {
+  id          String  @id @default(cuid())
+  icd10Code   String
+  description String
+
+  // CMS-HCC ESRD Model
+  esrdV21     Int?
+  esrdV24     Int?
+
+  // CMS-HCC Model (standard Medicare Advantage risk adjustment)
+  hccV22      Int?
+  hccV24      Int?
+  hccV28      Int?
+
+  // RxHCC (prescription drug risk adjustment)
+  rxhccV08    Int?
+
+  // Whether each model applies for 2026 payment year specifically
+  esrdV21Payment2026 Boolean?
+  esrdV24Payment2026 Boolean?
+  hccV22Payment2026   Boolean?
+  hccV24Payment2026   Boolean?
+  hccV28Payment2026   Boolean?
+  rxhccV08Payment2026 Boolean?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([icd10Code])
+  @@index([hccV28])
+}

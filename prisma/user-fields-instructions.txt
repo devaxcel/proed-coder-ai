@@ -1,0 +1,34 @@
+=====================================================================
+SCHEMA CHANGE — edit your EXISTING User model. Adds TWO fields total:
+passwordHash (from last session, skip if already added) and isActive
+(new — lets admins deactivate a user without deleting their history).
+=====================================================================
+
+Open prisma/schema.prisma. Your User model should end up looking like
+this exactly:
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(CODER)
+  passwordHash  String?
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  accounts  Account[]
+  sessions  Session[]
+  auditLogs AuditLog[]
+  queryForms QueryForm[]
+}
+
+If you already added `passwordHash` last session, just add the one new
+line: `isActive      Boolean   @default(true)` right after it.
+
+After saving, run:
+  npx prisma generate
+  npm run db:push
+
+=====================================================================
