@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
+const CARD = "#E7ECF4";
 const AMBER = "#B45309";
 const AMBER_LIGHT = "#FEF3C7";
 
@@ -13,7 +15,7 @@ const SEVERITY_STYLE: Record<string, { bg: string; text: string; label: string }
 };
 
 type Finding = { area: string; concern: string; citation: string; severity: string };
-type Result = {
+type ValidationResult = {
   summary: string;
   cpt_validation_note: string;
   findings: Finding[];
@@ -21,18 +23,208 @@ type Result = {
 };
 type Citation = { n: number; source: string; docTitle: string; sourceUrl: string };
 
+type ClaimRow = {
+  id: string;
+  dosFrom: string;
+  dosTo: string;
+  ageYears: string;
+  ageMonths: string;
+  ageDays: string;
+  gender: "M" | "F" | "U" | "";
+  procedureSupply: string;
+  units: string;
+  modifiers: string[]; // 4 slots
+  diagnosisCodes: string[]; // 8 slots
+};
+
+function newRow(): ClaimRow {
+  return {
+    id: Math.random().toString(36).slice(2),
+    dosFrom: "",
+    dosTo: "",
+    ageYears: "",
+    ageMonths: "",
+    ageDays: "",
+    gender: "",
+    procedureSupply: "",
+    units: "",
+    modifiers: ["", "", "", ""],
+    diagnosisCodes: ["", "", "", "", "", "", "", ""],
+  };
+}
+
+// Builds the natural-language claim description the existing, already-
+// tested /api/claim-validation endpoint expects — keeps the backend
+// contract unchanged while the frontend now collects structured fields.
+function composeClaimDescription(rows: ClaimRow[]): string {
+  const parts: string[] = [];
+  rows.forEach((row, i) => {
+    const bits: string[] = [];
+    if (row.dosFrom) bits.push(`DOS ${row.dosFrom}${row.dosTo && row.dosTo !== row.dosFrom ? ` to ${row.dosTo}` : ""}`);
+    const age = [row.ageYears && `${row.ageYears}y`, row.ageMonths && `${row.ageMonths}mo`, row.ageDays && `${row.ageDays}d`].filter(Boolean).join(" ");
+    if (age) bits.push(`patient age ${age}`);
+    if (row.gender) bits.push(`gender ${row.gender === "M" ? "male" : row.gender === "F" ? "female" : "unknown"}`);
+    if (row.procedureSupply) bits.push(`procedure/supply code ${row.procedureSupply}${row.units ? ` (${row.units} units)` : ""}`);
+    const mods = row.modifiers.filter(Boolean);
+    if (mods.length) bits.push(`modifiers ${mods.join(", ")}`);
+    const dx = row.diagnosisCodes.filter(Boolean);
+    if (dx.length) bits.push(`diagnosis codes ${dx.join(", ")}`);
+    if (bits.length) parts.push(`Line ${i + 1}: ${bits.join("; ")}.`);
+  });
+  return parts.join("\n");
+}
+
+function ClaimRowCard({
+  row,
+  index,
+  onChange,
+  onRemove,
+  canRemove,
+}: {
+  row: ClaimRow;
+  index: number;
+  onChange: (row: ClaimRow) => void;
+  onRemove: () => void;
+  canRemove: boolean;
+}) {
+  function set<K extends keyof ClaimRow>(key: K, value: ClaimRow[K]) {
+    onChange({ ...row, [key]: value });
+  }
+  function setModifier(i: number, value: string) {
+    const mods = [...row.modifiers];
+    mods[i] = value.toUpperCase().slice(0, 2);
+    set("modifiers", mods);
+  }
+  function setDiagnosis(i: number, value: string) {
+    const dx = [...row.diagnosisCodes];
+    dx[i] = value.toUpperCase();
+    set("diagnosisCodes", dx);
+  }
+
+  return (
+    <div className="rounded-lg border overflow-hidden" style={{ borderColor: BRAND }}>
+      <div className="flex items-center justify-between px-4 py-2 text-white text-sm font-semibold" style={{ backgroundColor: BRAND }}>
+        <span>Line {index + 1}</span>
+        {canRemove && (
+          <button type="button" onClick={onRemove} className="text-white/80 hover:text-white text-xs">
+            ✕ Remove
+          </button>
+        )}
+      </div>
+      <div className="p-4 space-y-4 bg-white">
+        {/* DOS */}
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="DOS From" value={row.dosFrom} onChange={(v) => set("dosFrom", v)} type="date" />
+          <Field label="DOS To" value={row.dosTo} onChange={(v) => set("dosTo", v)} type="date" />
+        </div>
+
+        {/* Age + Gender */}
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Patient Age</label>
+            <div className="grid grid-cols-3 gap-1">
+              <input value={row.ageYears} onChange={(e) => set("ageYears", e.target.value)} placeholder="Years" className="rounded border border-slate-300 px-2 py-1.5 text-xs" />
+              <input value={row.ageMonths} onChange={(e) => set("ageMonths", e.target.value)} placeholder="Months" className="rounded border border-slate-300 px-2 py-1.5 text-xs" />
+              <input value={row.ageDays} onChange={(e) => set("ageDays", e.target.value)} placeholder="Days" className="rounded border border-slate-300 px-2 py-1.5 text-xs" />
+            </div>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Patient Gender</label>
+            <div className="flex gap-3 pt-1.5">
+              {(["M", "F", "U"] as const).map((g) => (
+                <label key={g} className="flex items-center gap-1 text-xs text-slate-700">
+                  <input type="radio" checked={row.gender === g} onChange={() => set("gender", g)} style={{ accentColor: BRAND }} />
+                  {g === "M" ? "Male" : g === "F" ? "Female" : "Unknown"}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Procedure/Supply + Units */}
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">
+              Procedure/Supply Code
+              <span className="ml-1 font-normal text-slate-400">(HCPCS — CPT lookup pending AMA license)</span>
+            </label>
+            <input value={row.procedureSupply} onChange={(e) => set("procedureSupply", e.target.value.toUpperCase())} placeholder="e.g. E0143" className="w-full rounded border border-slate-300 px-3 py-2 text-sm" />
+          </div>
+          <Field label="Units" value={row.units} onChange={(v) => set("units", v)} type="number" />
+        </div>
+
+        {/* Modifiers */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Modifiers</label>
+          <div className="grid grid-cols-4 gap-2">
+            {row.modifiers.map((m, i) => (
+              <input key={i} value={m} onChange={(e) => setModifier(i, e.target.value)} maxLength={2} placeholder="—" className="rounded border border-slate-300 px-2 py-1.5 text-xs text-center" />
+            ))}
+          </div>
+        </div>
+
+        {/* Diagnosis Codes — 2 rows of 4, matching the mockup grid */}
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Diagnosis Codes (ICD-10)</label>
+          <div className="grid grid-cols-4 gap-2 mb-2">
+            {row.diagnosisCodes.slice(0, 4).map((d, i) => (
+              <input key={i} value={d} onChange={(e) => setDiagnosis(i, e.target.value)} placeholder="—" className="rounded border border-slate-300 px-2 py-1.5 text-xs" />
+            ))}
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {row.diagnosisCodes.slice(4, 8).map((d, i) => (
+              <input key={i + 4} value={d} onChange={(e) => setDiagnosis(i + 4, e.target.value)} placeholder="—" className="rounded border border-slate-300 px-2 py-1.5 text-xs" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, value, onChange, type = "text" }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs font-medium text-slate-600">{label}</label>
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className="w-full rounded border border-slate-300 px-3 py-2 text-sm" />
+    </div>
+  );
+}
+
 export default function ClaimValidationPage() {
-  const [claimDescription, setClaimDescription] = useState("");
+  const [rows, setRows] = useState<ClaimRow[]>([newRow()]);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<Result | null>(null);
+  const [result, setResult] = useState<ValidationResult | null>(null);
   const [citations, setCitations] = useState<Citation[]>([]);
   const [err, setErr] = useState<string | null>(null);
 
-  const example =
-    "Claim for outpatient E/M visit, established patient, hypertension follow-up. Diagnosis coded as unspecified essential hypertension. Modifier -25 appended for a separately billed injection administration on the same date. No documented total time or MDM detail in the note.";
+  function updateRow(i: number, updated: ClaimRow) {
+    const next = [...rows];
+    next[i] = updated;
+    setRows(next);
+  }
+  function addRow() {
+    setRows([...rows, newRow()]);
+  }
+  function removeRow(i: number) {
+    setRows(rows.filter((_, idx) => idx !== i));
+  }
+  function loadExample() {
+    const r = newRow();
+    r.dosFrom = "2026-08-15";
+    r.dosTo = "2026-08-15";
+    r.ageYears = "68";
+    r.gender = "F";
+    r.procedureSupply = "E0143";
+    r.units = "1";
+    r.modifiers = ["RT", "", "", ""];
+    r.diagnosisCodes = ["I10", "E119", "", "", "", "", "", ""];
+    setRows([r]);
+  }
 
   async function onValidate(e: React.FormEvent) {
     e.preventDefault();
+    const claimDescription = composeClaimDescription(rows);
     if (!claimDescription.trim()) return;
     setLoading(true);
     setErr(null);
@@ -63,30 +255,49 @@ export default function ClaimValidationPage() {
         <div className="px-6 py-5" style={{ backgroundColor: BRAND }}>
           <h1 className="text-xl font-bold text-white">Claim Validation</h1>
           <p className="mt-1 text-sm text-white/85">
-            Cross-references a claim description against ICD-10, HCPCS, modifier, and general Medicare coverage policy.
+            Enter claim lines below — DOS, patient demographics, procedure/supply, modifiers, and diagnosis codes.
           </p>
         </div>
       </section>
 
       <div className="rounded-md border border-amber-300 p-4 text-sm" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
-        <b>⚠️ Partial validation — CPT/modifier-pair checks unavailable pending AMA CPT license.</b> This tool validates ICD-10 coding conventions, HCPCS/modifier policy, and general Medicare medical necessity documentation. It never validates CPT code numbers or CPT-modifier combinations until ProEd's AMA license is active.
+        <b>⚠️ Partial validation — CPT/modifier-pair checks unavailable pending AMA CPT license.</b> This tool validates ICD-10 coding conventions, HCPCS/modifier policy, and general Medicare medical necessity documentation. It never validates CPT code numbers or CPT-modifier combinations until ProEd&apos;s AMA license is active. RVU/Amount and Conversion Factor calculations also require a separate CMS fee-schedule dataset not yet integrated.
       </div>
 
-      <form onSubmit={onValidate} className="space-y-3">
-        <textarea
-          value={claimDescription}
-          onChange={(e) => setClaimDescription(e.target.value)}
-          rows={5}
-          placeholder="Describe the claim/encounter — diagnosis codes, modifiers, documentation present…"
-          className="w-full rounded-md border border-slate-300 bg-white px-4 py-3 text-sm shadow-sm"
-        />
-        <button type="button" onClick={() => setClaimDescription(example)} className="text-xs" style={{ color: BRAND }}>
-          Try an example
+      <AIOutputDisclaimer />
+      <NoPHIWarning />
+
+      <form onSubmit={onValidate} className="space-y-4">
+        <div className="flex justify-end">
+          <button type="button" onClick={loadExample} className="text-xs" style={{ color: BRAND }}>
+            Load an example
+          </button>
+        </div>
+
+        {rows.map((row, i) => (
+          <ClaimRowCard
+            key={row.id}
+            row={row}
+            index={i}
+            onChange={(updated) => updateRow(i, updated)}
+            onRemove={() => removeRow(i)}
+            canRemove={rows.length > 1}
+          />
+        ))}
+
+        <button
+          type="button"
+          onClick={addRow}
+          className="rounded-md px-4 py-2 text-sm font-medium border"
+          style={{ borderColor: BRAND, color: BRAND }}
+        >
+          + Add Line
         </button>
+
         <div>
           <button
             type="submit"
-            disabled={loading || !claimDescription.trim()}
+            disabled={loading}
             className="rounded-md px-5 py-3 text-sm font-medium text-white disabled:opacity-50"
             style={{ backgroundColor: BRAND }}
           >
@@ -99,6 +310,41 @@ export default function ClaimValidationPage() {
 
       {result && (
         <section className="space-y-4">
+          {/* Scrub Results — echoes each line's entered data, matching the claim-scrubber layout */}
+          <div className="rounded-lg border overflow-hidden" style={{ borderColor: BRAND }}>
+            <div className="px-4 py-2 text-white text-sm font-semibold" style={{ backgroundColor: BRAND }}>
+              Scrub Results
+            </div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr style={{ backgroundColor: CARD }}>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Line</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">DOS</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Procedure/Supply</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Units</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Modifiers</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Diagnosis</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">RVU/Amount</th>
+                  <th className="px-3 py-2 text-left font-medium text-slate-600">Conversion Factor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={row.id} className={i % 2 === 0 ? "bg-white" : ""} style={i % 2 !== 0 ? { backgroundColor: "#F8FAFC" } : {}}>
+                    <td className="px-3 py-2 font-medium">{i + 1}</td>
+                    <td className="px-3 py-2">{row.dosFrom || "—"}</td>
+                    <td className="px-3 py-2">{row.procedureSupply || "—"}</td>
+                    <td className="px-3 py-2">{row.units || "—"}</td>
+                    <td className="px-3 py-2">{row.modifiers.filter(Boolean).join(", ") || "—"}</td>
+                    <td className="px-3 py-2">{row.diagnosisCodes.filter(Boolean).join(", ") || "—"}</td>
+                    <td className="px-3 py-2 text-slate-400 italic">Requires fee schedule data</td>
+                    <td className="px-3 py-2 text-slate-400 italic">Requires fee schedule data</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
           <div className="rounded-lg border p-5 bg-white" style={{ borderColor: BRAND }}>
             <p className="text-sm text-slate-700">{result.summary}</p>
           </div>

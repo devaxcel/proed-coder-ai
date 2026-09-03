@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AIOutputDisclaimer } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
 const CARD = "#E7ECF4";
@@ -98,6 +99,8 @@ export default function PolicyGeneratorPage() {
       <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
         This is the largest generation in the app — a complete 20-section document can take <b>20–40 seconds</b>. That's expected, not a bug.
       </div>
+
+      <AIOutputDisclaimer />
 
       <form onSubmit={onGenerate} className="space-y-3">
         <textarea

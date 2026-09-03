@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 type Citation = {
   n: number;
@@ -212,6 +213,9 @@ export default function QueryFormsPage() {
           </p>
 
           <div className="mt-8 text-left">
+            <div className="mb-2">
+              <NoPHIWarning dark />
+            </div>
             <textarea
               value={scenario}
               onChange={(e) => setScenario(e.target.value)}
@@ -235,6 +239,8 @@ export default function QueryFormsPage() {
           </div>
         </div>
       </section>
+
+      <AIOutputDisclaimer />
 
       <form onSubmit={onGenerate} className="space-y-5">
         <div>

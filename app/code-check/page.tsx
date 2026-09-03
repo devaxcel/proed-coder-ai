@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 const TEAL = "#14457B";
 const TEAL_LIGHT = "#E7ECF4";
@@ -78,6 +79,8 @@ export default function CodeCheckPage() {
         <b>This tool suggests candidates for your review — it never confirms a code is billable.</b> Final coding judgment is always yours.
       </div>
 
+      <AIOutputDisclaimer />
+
       {codeSystem === "CPT" && (
         <div className="rounded-md border border-amber-300 p-3 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
           <b>⚠️ Placeholder mode — pending AMA CPT license.</b> This mode will never show a specific CPT code number, only plain-English service categories, until ProEd&apos;s AMA license is active and real code data is integrated.
@@ -102,6 +105,8 @@ export default function CodeCheckPage() {
             </button>
           ))}
         </div>
+
+        <NoPHIWarning />
 
         <textarea
           value={noteText}

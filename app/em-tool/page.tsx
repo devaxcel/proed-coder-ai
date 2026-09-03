@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AIOutputDisclaimer } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
 const CARD = "#E7ECF4";
@@ -58,6 +59,8 @@ export default function EMToolPage() {
       <div className="rounded-md border border-amber-300 p-4 text-sm" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
         <b>⚠️ Placeholder mode — pending AMA CPT license.</b> This tool shows a general complexity level (Straightforward / Low / Moderate / High) but does <b>not</b> display specific CPT code numbers, since those require a license from the American Medical Association. Once ProEd secures that license, this will show the actual corresponding code.
       </div>
+
+      <AIOutputDisclaimer />
 
       {/* Step 1: New vs Established */}
       <div className="rounded-lg border p-5" style={{ borderColor: BRAND }}>

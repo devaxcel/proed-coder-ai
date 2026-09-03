@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
 
@@ -122,6 +123,8 @@ export default function QueryFormsBH() {
         </div>
       </section>
 
+      <AIOutputDisclaimer />
+
       {/* Form letter selector */}
       <div className="flex flex-wrap gap-2">
         {FORM_OPTIONS.map((opt) => (
@@ -147,6 +150,7 @@ export default function QueryFormsBH() {
       </p>
 
       <form onSubmit={onGenerate} className="space-y-4">
+        <NoPHIWarning />
         <textarea
           value={scenario}
           onChange={(e) => setScenario(e.target.value)}
