@@ -94,6 +94,28 @@ const MEDS: Record<string, string[]> = {
   "Anticonvulsants / Seizure": ["Brivaracetam (Briviact)", "Cannabidiol (Epidiolex)", "Carbamazepine (Epitol, Tegretol)", "Cenobarnate (Xcopri)", "Clobazam (Onfi)", "Clonazepam (Ceberclon, Klonopin)", "Eslicarbazepine (Aptiom)", "Ethosuximide (Zarontin)", "Felbamate (Felbatol)", "Fosphenytoin (Cerebyx)", "Gabapentin (Horizant, Gralise, Neurontin)", "Lacosamide (Vimpat)", "Levetiracetam (Keppra, Roweepra)", "Oxcarbazepine (Trileptal)", "Perampanel (Fycompa)", "Phenobarbital (Solfoton, Luminal)", "Pregabalin (Lyrica)", "Primidone (Mysoline)", "Rufinamide (Banzel)", "Stiripentol (Diacomit)", "Tiagabine (Gabitril)", "Topiramate (Topamax, Topiragen)", "Valproate sodium (Depacon)", "Divalproex sodium (Depakote)", "Valproic acid (Depakene, Stavzor)", "Vigabatrin (Sabril)", "Zonisamide (Zonegran)"],
   "Digoxin": ["Digoxin"],
   "Osteoporosis": ["Denosumab", "Ibandronate", "Teriparatide", "Risedronate", "Abaloparatide", "Alendronate (Fosamax)", "Zoledronate", "Romosozumab", "Bisphosphonate", "Calcitonin", "Parathyroid hormone", "Bazedoxifene", "Raloxifene", "Zoledronic acid", "Hormone replacement therapy", "Risedronate (Actonel, Atelvia)", "Miacalcin (calcitonin salmon)"],
+  "DMARD Therapy": ["Methotrexate", "Hydroxychloroquine (Plaquenil)", "Sulfasalazine", "Leflunomide (Arava)", "Adalimumab (Humira)", "Etanercept (Enbrel)", "Infliximab (Remicade)", "Golimumab (Simponi)", "Certolizumab pegol (Cimzia)", "Abatacept (Orencia)", "Tocilizumab (Actemra)", "Rituximab (Rituxan)", "Tofacitinib (Xeljanz)", "Baricitinib (Olumiant)", "Upadacitinib (Rinvoq)"],
+  "Antipsychotics": ["Risperidone (Risperdal)", "Olanzapine (Zyprexa)", "Quetiapine (Seroquel)", "Aripiprazole (Abilify)", "Ziprasidone (Geodon)", "Haloperidol (Haldol)", "Clozapine (Clozaril)", "Paliperidone (Invega)", "Lurasidone (Latuda)", "Chlorpromazine (Thorazine)", "Fluphenazine", "Perphenazine", "Brexpiprazole (Rexulti)", "Cariprazine (Vraylar)", "Asenapine (Saphris)"],
+};
+
+// HEDIS measure code(s) tied to a drug class — only populated for classes
+// where a real HEDIS "medication prescribed/currently taken" code exists.
+// Confirmed against the full 144-code HEDIS Measures dataset; classes not
+// listed here (COPD Meds, Opioids, Anticonvulsants, Digoxin) genuinely
+// have no matching code and are intentionally left without one.
+const MEDS_HEDIS_CODE: Record<string, { codes: string; label: string }> = {
+  "Beta Blockers": { codes: "4008F", label: "Beta Blocker Prescribed or Currently Being Taken" },
+  "Statin Therapy": { codes: "4013F", label: "Statin therapy prescribed or currently being taken" },
+  "Diuretics": { codes: "4190F, 4221F", label: "Diuretic Monitor Ordered / Therapy > 6 months" },
+  "ACE Inhibitors / ARBs": { codes: "4095F, 4010F, 4210F", label: "ACE/ARB Prescribed (1st time / currently taken / > 6 months)" },
+  "Antidepressants": { codes: "4063F, 4064F", label: "Antidepressant Pharmacotherapy NOT Prescribed / Prescribed" },
+  "Osteoporosis": { codes: "4005F", label: "Osteoporosis Pharmacologic Therapy" },
+  "Pain Medication": { codes: "4016F", label: "Anti-inflammatory/Analgesic Agent Prescribed (OA)" },
+  "Asthma": { codes: "4015F, 4140F, 4144F", label: "Long-Term Control Medication / Inhaled Corticosteroid" },
+  "Pharyngitis Meds": { codes: "4120F, 4124F", label: "Antibiotic Prescribed or Dispensed / Not Prescribed" },
+  "URI Meds": { codes: "4120F, 4124F", label: "Antibiotic Prescribed or Dispensed / Not Prescribed" },
+  "DMARD Therapy": { codes: "4187F", label: "DMARD Therapy Prescribed or Dispensed (RA)" },
+  "Antipsychotics": { codes: "4065F", label: "Antipsychotic Pharmacotherapy Prescribed" },
 };
 
 function Field({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options?: string[] }) {
@@ -299,18 +321,32 @@ export default function AnnualWellnessPage() {
           )}
 
           <div className="space-y-3 max-h-96 overflow-y-auto">
-            {Object.entries(filteredMeds).map(([cls, list]) => (
-              <div key={cls}>
-                <div className="text-xs font-semibold mb-1" style={{ color: TEAL_DARK }}>{cls}</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {list.map((m) => (
-                    <span key={m} className="rounded px-2 py-1 text-xs" style={{ backgroundColor: TEAL_LIGHT, color: "#1F2937" }}>
-                      {m}
-                    </span>
-                  ))}
+            {Object.entries(filteredMeds).map(([cls, list]) => {
+              const hedis = MEDS_HEDIS_CODE[cls];
+              return (
+                <div key={cls}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="text-xs font-semibold" style={{ color: TEAL_DARK }}>{cls}</div>
+                    {hedis && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ backgroundColor: TEAL, color: "white" }}
+                        title={hedis.label}
+                      >
+                        HEDIS: {hedis.codes}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {list.map((m) => (
+                      <span key={m} className="rounded px-2 py-1 text-xs" style={{ backgroundColor: TEAL_LIGHT, color: "#1F2937" }}>
+                        {m}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {Object.keys(filteredMeds).length === 0 && (
               <p className="text-sm text-slate-500">No medications match &ldquo;{medsQuery}&rdquo;.</p>
             )}
