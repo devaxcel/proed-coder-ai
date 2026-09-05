@@ -10,8 +10,27 @@ export const runtime = "nodejs";
 // document) — give it more headroom than the default route timeout.
 export const maxDuration = 60;
 
+const PolicyDocSectionSchema = z.object({
+  number: z.number(),
+  heading: z.string(),
+  body: z.string(),
+});
+const PriorDocumentSchema = z.object({
+  policy_title: z.string(),
+  policy_number_suggestion: z.string(),
+  regulatory_basis_summary: z.string(),
+  applies_to: z.string(),
+  confidentiality: z.enum(["Internal Use", "Confidential", "Restricted"]),
+  disclaimer: z.string(),
+  sections: z.array(PolicyDocSectionSchema),
+  citations_used: z.array(z.number()),
+});
+
 const Body = z.object({
   topic: z.string().min(5).max(500),
+  payerType: z.enum(["medicare", "commercial"]).nullable().optional(),
+  priorDocument: PriorDocumentSchema.nullable().optional(),
+  revisionInstruction: z.string().min(3).max(500).nullable().optional(),
 });
 
 function safeParseLlmJson(raw: string): PolicyDocOutput | null {
@@ -58,7 +77,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { topic } = parsed.data;
+  const { topic, payerType, priorDocument, revisionInstruction } = parsed.data;
 
   // Retrieve more chunks than the Q&A feature since this needs to cover
   // an entire document's worth of ground, not one focused answer.
@@ -90,7 +109,13 @@ export async function POST(req: NextRequest) {
     sourceUrl: c.sourceUrl,
   }));
 
-  const userPrompt = buildPolicyDocUserPrompt({ topic, referenceMaterials });
+  const userPrompt = buildPolicyDocUserPrompt({
+    topic,
+    payerType: payerType ?? null,
+    referenceMaterials,
+    priorDocument: priorDocument ?? null,
+    revisionInstruction: revisionInstruction ?? null,
+  });
 
   let raw: string;
   try {

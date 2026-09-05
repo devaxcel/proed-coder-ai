@@ -1,0 +1,25 @@
+Noridian Healthcare Solutions — Medicare Administrative Contractor (MAC) Overview
+
+Noridian Healthcare Solutions is a Medicare Administrative Contractor (MAC) under contract with the Centers for Medicare & Medicaid Services (CMS). MACs are private organizations awarded geographic jurisdictions to process Medicare Part A and Part B claims, issue local coverage guidance, and respond to provider inquiries on behalf of CMS.
+
+Jurisdiction Relevant to California Providers
+
+Noridian administers Jurisdiction E (JE), which covers Part A and Part B claims for providers in California, Hawaii, and Nevada, as well as Guam, American Samoa, and the Northern Mariana Islands. Noridian separately administers Durable Medical Equipment (DME) MAC jurisdictions A and D, covering different state groupings for DMEPOS claims specifically. A provider's applicable jurisdiction, and therefore which MAC's coverage policies apply, depends on both the state where services are rendered and whether the claim is a standard Part A/B claim versus a DMEPOS claim.
+
+Local Coverage Determinations (LCDs)
+
+A Local Coverage Determination (LCD) is a decision made by a MAC, within its own jurisdiction, about whether a particular item or service is considered reasonable and necessary for Medicare coverage. LCDs exist to fill gaps where CMS has not issued a national coverage determination (NCD) covering the same item or service. Because LCDs are developed independently by each MAC, coverage criteria for the same service can differ between jurisdictions — a service covered under Noridian's LCD may have different documentation requirements, frequency limits, or coverage criteria than the equivalent LCD issued by a different MAC elsewhere in the country.
+
+Legal and Regulatory Basis
+
+The reasonable-and-necessary standard underlying LCDs derives from Section 1862(a)(1)(A) of the Social Security Act. The process for developing, reviewing, and revising LCDs is governed by the CMS Internet-Only Manual, Publication 100-08 (Medicare Program Integrity Manual), Chapter 13. Each LCD typically specifies applicable HCPCS and/or CPT codes, along with the ICD-10 diagnosis codes considered medically necessary to support coverage for that service.
+
+Maintenance and Revision
+
+MACs are expected to review and, where necessary, revise an affected LCD within 90 days of CMS publishing a new or revised National Coverage Determination, a new or revised coverage provision in an interpretive manual, or a change to national payment policy. LCDs are also reviewed periodically to stay aligned with current national coding and payment policy, including annual HCPCS and ICD-10 code updates.
+
+Why This Matters for Coding and Compliance
+
+Because coverage requirements can vary meaningfully by MAC jurisdiction, medical necessity documentation that satisfies one region's LCD is not automatically sufficient elsewhere. Organizations billing across multiple states, or reviewing claims processed by different MACs, should confirm which jurisdiction's LCD applies before relying on a single set of documentation standards. Coding and compliance staff should treat jurisdiction-specific LCDs as a required layer of review in addition to, not a replacement for, national CMS and NCCI (National Correct Coding Initiative) guidance.
+
+Note: Noridian's published materials note that some content on their site, including specific CPT and CDT code text, is copyrighted by the American Medical Association and other bodies, and use of that specific code content requires the same underlying licenses discussed elsewhere in this system (e.g., the AMA CPT license). This summary describes the LCD process and jurisdictional structure generally, and does not reproduce any AMA-copyrighted code descriptors.

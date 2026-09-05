@@ -69,11 +69,21 @@ Provide all 20 sections in the array, each following the standard structure and 
 
 export function buildPolicyDocUserPrompt(input: {
   topic: string;
+  payerType?: "medicare" | "commercial" | null;
   referenceMaterials: Array<{ title: string; source: string; excerpt: string; sourceUrl: string }>;
+  priorDocument?: PolicyDocOutput | null;
+  revisionInstruction?: string | null;
 }): string {
   const parts: string[] = [];
 
   parts.push(`POLICY TOPIC REQUESTED: ${input.topic.trim()}`);
+
+  if (input.payerType) {
+    const label = input.payerType === "medicare" ? "Medicare / Medicare Advantage" : "Commercial insurance";
+    parts.push(
+      `PAYER CONTEXT: This policy applies specifically to ${label} claims. Tailor terminology and considerations accordingly where relevant (e.g., Medicare program requirements vs. commercial payer contract terms). Do not include specific procedure code numbers tied to this payer type — general guidance only.`
+    );
+  }
   parts.push("");
 
   if (input.referenceMaterials.length > 0) {
@@ -89,7 +99,21 @@ export function buildPolicyDocUserPrompt(input: {
     parts.push("");
   }
 
-  parts.push("Produce the full 20-section policy document JSON per the system prompt.");
+  if (input.priorDocument && input.revisionInstruction) {
+    parts.push("--- THIS IS A REVISION REQUEST, NOT A NEW DOCUMENT ---");
+    parts.push("");
+    parts.push("PREVIOUS VERSION (JSON):");
+    parts.push(JSON.stringify(input.priorDocument, null, 2));
+    parts.push("");
+    parts.push(`REQUESTED CHANGE: "${input.revisionInstruction.trim()}"`);
+    parts.push("");
+    parts.push(
+      "Produce a REVISED full 20-section document that applies this specific change. Keep everything else from the previous version consistent unless the requested change reasonably implies broader edits (e.g., \"make it shorter\" may mean trimming multiple sections). Still ground every claim in the reference materials above. Return the complete JSON object per the system prompt — not just the changed part."
+    );
+  } else {
+    parts.push("Produce the full 20-section policy document JSON per the system prompt.");
+  }
+
   return parts.join("\n");
 }
 

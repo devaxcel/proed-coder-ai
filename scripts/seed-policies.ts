@@ -83,6 +83,11 @@ const SOURCE_MAP: Record<string, { source: string; docType: string; url: string 
     docType: "guideline",
     url: "https://www.cms.gov/",
   },
+  "noridian-mac": {
+    source: "Noridian",
+    docType: "policy",
+    url: "https://med.noridianmedicare.com/web/jeb",
+  },
 };
 
 function detectSource(filename: string): { source: string; docType: string; url: string } {
