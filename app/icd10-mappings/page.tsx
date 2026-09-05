@@ -13,6 +13,23 @@ type Year = "2024" | "2025" | "2026";
 // differ per year — hccV28Payment2024 vs ...2025 vs ...2026). Rather than
 // one rigid type, treat rows loosely and look up the right payment flag
 // by year at render time.
+type RichDetail = {
+  includes: string[];
+  excludes1: string[];
+  excludes2: string[];
+  codeFirst: string[];
+  useAdditionalCode: string[];
+  codeAlso: string[];
+  parentNotes: {
+    code: string;
+    description: string;
+    includes: string[];
+    excludes1: string[];
+    excludes2: string[];
+    useAdditionalCode: string[];
+  } | null;
+} | null;
+
 type Row = {
   id: string;
   icd10Code: string;
@@ -24,6 +41,7 @@ type Row = {
   hccV28: number | null;
   rxhccV05?: number | null;
   rxhccV08: number | null;
+  richDetail?: RichDetail;
   [key: string]: unknown; // payment-year boolean flags, name varies by year
 };
 
@@ -48,6 +66,26 @@ function Badge({ label, value }: { label: string; value: number | null | undefin
     <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium mr-1 mb-1" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
       {label} {value}
     </span>
+  );
+}
+
+const NOTE_TONE_COLOR: Record<string, string> = {
+  neutral: "#334155",
+  warn: "#991B1B",
+  action: "#0A555C",
+};
+
+function NoteBlock({ label, items, tone }: { label: string; items: string[]; tone: "neutral" | "warn" | "action" }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mb-1.5">
+      <div className="font-semibold" style={{ color: NOTE_TONE_COLOR[tone] }}>{label}:</div>
+      <ul className="list-disc list-inside text-slate-600">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -167,6 +205,34 @@ export default function Icd10MappingsPage() {
               <div className="mt-1 text-xs text-slate-500">
                 V28 applies for {year} payment year: <b>{row[paymentFlagKey] ? "Yes" : "No"}</b>
               </div>
+            )}
+
+            {row.richDetail && (
+              <details className="mt-3 border-t border-slate-100 pt-2">
+                <summary className="cursor-pointer text-xs font-medium" style={{ color: TEAL }}>
+                  📋 View full coding notes (Includes, Excludes, Use Additional Code)
+                </summary>
+                <div className="mt-2 space-y-2 text-xs">
+                  <NoteBlock label="Includes" items={row.richDetail.includes} tone="neutral" />
+                  <NoteBlock label="Excludes1 — never code together" items={row.richDetail.excludes1} tone="warn" />
+                  <NoteBlock label="Excludes2 — may code together" items={row.richDetail.excludes2} tone="neutral" />
+                  <NoteBlock label="Use Additional Code" items={row.richDetail.useAdditionalCode} tone="action" />
+                  <NoteBlock label="Code First" items={row.richDetail.codeFirst} tone="action" />
+                  <NoteBlock label="Code Also" items={row.richDetail.codeAlso} tone="neutral" />
+
+                  {row.richDetail.parentNotes && (
+                    <div className="mt-2 rounded-md bg-slate-50 p-2 border border-slate-200">
+                      <div className="font-semibold text-slate-600 mb-1">
+                        Parent Code Notes: {row.richDetail.parentNotes.code} — {row.richDetail.parentNotes.description}
+                      </div>
+                      <NoteBlock label="Includes" items={row.richDetail.parentNotes.includes} tone="neutral" />
+                      <NoteBlock label="Excludes1" items={row.richDetail.parentNotes.excludes1} tone="warn" />
+                      <NoteBlock label="Excludes2" items={row.richDetail.parentNotes.excludes2} tone="neutral" />
+                      <NoteBlock label="Use Additional Code" items={row.richDetail.parentNotes.useAdditionalCode} tone="action" />
+                    </div>
+                  )}
+                </div>
+              </details>
             )}
           </div>
         ))}

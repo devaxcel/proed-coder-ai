@@ -41,7 +41,42 @@ export async function POST(req: NextRequest) {
   }
   // TODO Phase 4: intent === "query_form" and "policy" branches
 
-  // 3. Audit log (best-effort, don't block)
+  // 3. Enrich ICD-10CM results with rich detail notes (Includes/Excludes/
+  // Use Additional Code) where available. Normalize by stripping dots
+  // defensively — MedicalCode.code's dot convention isn't something this
+  // route previously needed to assume, so this works regardless of
+  // whether it stores "E11.22" or "E1122".
+  type CodeResult = { code: string; codeSystem: string; [key: string]: unknown };
+  const typedResults = results as CodeResult[];
+  const icdCodes = typedResults
+    .filter((r) => r.codeSystem === "ICD10CM")
+    .map((r) => r.code.replace(/\./g, ""));
+
+  if (icdCodes.length > 0) {
+    const richDetails = await db.icd10RichDetail.findMany({
+      where: { code: { in: icdCodes } },
+      select: { code: true, includes: true, excludes1: true, excludes2: true, codeFirst: true, useAdditionalCode: true, codeAlso: true },
+    });
+    const richByCode = new Map(richDetails.map((r) => [r.code, r]));
+    for (const r of typedResults) {
+      if (r.codeSystem === "ICD10CM") {
+        const normalized = r.code.replace(/\./g, "");
+        const rich = richByCode.get(normalized);
+        if (rich) {
+          r.richDetail = {
+            includes: rich.includes,
+            excludes1: rich.excludes1,
+            excludes2: rich.excludes2,
+            codeFirst: rich.codeFirst,
+            useAdditionalCode: rich.useAdditionalCode,
+            codeAlso: rich.codeAlso,
+          };
+        }
+      }
+    }
+  }
+
+  // 4. Audit log (best-effort, don't block)
   db.auditLog
     .create({ data: { action: "search", payload: { query, intent, resultCount: (results as unknown[]).length } } })
     .catch(() => {});

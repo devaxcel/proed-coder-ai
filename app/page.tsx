@@ -13,6 +13,14 @@ type CodeCard = {
   codingNotes?: string | null;
   sourceName?: string | null;
   sourceUrl?: string | null;
+  richDetail?: {
+    includes: string[];
+    excludes1: string[];
+    excludes2: string[];
+    codeFirst: string[];
+    useAdditionalCode: string[];
+    codeAlso: string[];
+  } | null;
 };
 
 type SearchResponse = {
@@ -141,6 +149,21 @@ export default function Page() {
                     <span className="font-semibold">HEDIS:</span> Impacts {c.hedisMeasure}
                   </div>
                 )}
+                {c.richDetail && (
+                  <details className="mt-2 border-t border-slate-100 pt-2">
+                    <summary className="cursor-pointer text-xs font-medium text-brand-600">
+                      📋 View full coding notes (Includes, Excludes, Use Additional Code)
+                    </summary>
+                    <div className="mt-2 space-y-1.5 text-xs">
+                      <NoteBlock label="Includes" items={c.richDetail.includes} />
+                      <NoteBlock label="Excludes1 — never code together" items={c.richDetail.excludes1} />
+                      <NoteBlock label="Excludes2 — may code together" items={c.richDetail.excludes2} />
+                      <NoteBlock label="Use Additional Code" items={c.richDetail.useAdditionalCode} />
+                      <NoteBlock label="Code First" items={c.richDetail.codeFirst} />
+                      <NoteBlock label="Code Also" items={c.richDetail.codeAlso} />
+                    </div>
+                  </details>
+                )}
                 <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-600">
                   {c.sourceName && (
                     <>
@@ -164,6 +187,20 @@ export default function Page() {
           </div>
         </section>
       )}
+    </div>
+  );
+}
+
+function NoteBlock({ label, items }: { label: string; items: string[] }) {
+  if (!items || items.length === 0) return null;
+  return (
+    <div className="mb-1">
+      <div className="font-semibold text-slate-600">{label}:</div>
+      <ul className="list-disc list-inside text-slate-600">
+        {items.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </ul>
     </div>
   );
 }

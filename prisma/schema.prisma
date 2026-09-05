@@ -280,3 +280,27 @@ model IcdHccMapping2024 {
   @@index([icd10Code])
   @@index([hccV28])
 }
+
+model Icd10RichDetail {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  parentCode  String?
+  description String
+
+  includes          String[]
+  excludes1         String[]
+  excludes2         String[]
+  codeFirst         String[]
+  useAdditionalCode String[]
+  codeAlso          String[]
+  inclusionTerms    String[]
+  sevenChrNote      String[]
+
+  isCategory  Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([parentCode])
+}

@@ -22,6 +22,7 @@
     "seed:icd10-mappings": "tsx scripts/seed-icd10-mappings-2026.ts",
     "seed:icd10-mappings-2025": "tsx scripts/seed-icd10-mappings-2025.ts",
     "seed:icd10-mappings-2024": "tsx scripts/seed-icd10-mappings-2024.ts",
+    "seed:icd10-rich-detail": "tsx scripts/seed-icd10-rich-detail.ts",
     "create-user": "tsx scripts/create-user.ts",
     "docker:down": "docker compose down"
   },
@@ -42,6 +43,7 @@
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "xlsx": "^0.18.5",
+    "fast-xml-parser": "^4.5.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
