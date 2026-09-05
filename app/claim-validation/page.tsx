@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
@@ -191,12 +191,65 @@ function Field({ label, value, onChange, type = "text" }: { label: string; value
   );
 }
 
+type FavoriteCode = { code: string; label: string };
+const FAVORITES_KEY = "proedcs-claim-validation-favorites";
+
+function loadFavorites(): FavoriteCode[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(FAVORITES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+function saveFavorites(favs: FavoriteCode[]) {
+  try {
+    localStorage.setItem(FAVORITES_KEY, JSON.stringify(favs));
+  } catch {
+    // localStorage unavailable — favorites just won't persist, non-fatal
+  }
+}
+
 export default function ClaimValidationPage() {
   const [rows, setRows] = useState<ClaimRow[]>([newRow()]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ValidationResult | null>(null);
   const [citations, setCitations] = useState<Citation[]>([]);
   const [err, setErr] = useState<string | null>(null);
+  const [favorites, setFavorites] = useState<FavoriteCode[]>([]);
+  const [newFavCode, setNewFavCode] = useState("");
+  const [newFavLabel, setNewFavLabel] = useState("");
+  const [showAddFavorite, setShowAddFavorite] = useState(false);
+
+  useEffect(() => {
+    setFavorites(loadFavorites());
+  }, []);
+
+  function addFavorite() {
+    const code = newFavCode.trim().toUpperCase();
+    if (!code) return;
+    const label = newFavLabel.trim();
+    const next = [...favorites.filter((f) => f.code !== code), { code, label }];
+    setFavorites(next);
+    saveFavorites(next);
+    setNewFavCode("");
+    setNewFavLabel("");
+    setShowAddFavorite(false);
+  }
+  function removeFavorite(code: string) {
+    const next = favorites.filter((f) => f.code !== code);
+    setFavorites(next);
+    saveFavorites(next);
+  }
+  function useFavorite(code: string) {
+    // Fills the most recently added row's Procedure/Supply field — the
+    // most predictable target without needing focus-tracking complexity.
+    if (rows.length === 0) return;
+    const lastIdx = rows.length - 1;
+    const updated = { ...rows[lastIdx], procedureSupply: code };
+    updateRow(lastIdx, updated);
+  }
 
   function updateRow(i: number, updated: ClaimRow) {
     const next = [...rows];
@@ -266,6 +319,62 @@ export default function ClaimValidationPage() {
 
       <AIOutputDisclaimer />
       <NoPHIWarning />
+
+      {/* Favorite Codes — click a chip to fill the most recent row's Procedure/Supply field */}
+      <div className="rounded-lg border p-3" style={{ borderColor: BRAND }}>
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-semibold" style={{ color: BRAND }}>⭐ Favorite Codes</span>
+          <button
+            type="button"
+            onClick={() => setShowAddFavorite((v) => !v)}
+            className="text-xs"
+            style={{ color: BRAND }}
+          >
+            {showAddFavorite ? "Cancel" : "+ Add favorite"}
+          </button>
+        </div>
+
+        {showAddFavorite && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            <input
+              value={newFavCode}
+              onChange={(e) => setNewFavCode(e.target.value)}
+              placeholder="Code, e.g. E0143"
+              className="rounded border border-slate-300 px-2 py-1 text-xs w-32"
+            />
+            <input
+              value={newFavLabel}
+              onChange={(e) => setNewFavLabel(e.target.value)}
+              placeholder="Label (optional), e.g. Walker"
+              className="rounded border border-slate-300 px-2 py-1 text-xs flex-1 min-w-[140px]"
+            />
+            <button type="button" onClick={addFavorite} className="rounded px-3 py-1 text-xs font-medium text-white" style={{ backgroundColor: BRAND }}>
+              Save
+            </button>
+          </div>
+        )}
+
+        {favorites.length === 0 ? (
+          <p className="text-xs text-slate-400 italic">No favorites saved yet. Add a code you use often for quick reuse.</p>
+        ) : (
+          <div className="flex flex-wrap gap-1.5">
+            {favorites.map((f) => (
+              <span
+                key={f.code}
+                className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs"
+                style={{ backgroundColor: CARD, color: BRAND }}
+              >
+                <button type="button" onClick={() => useFavorite(f.code)} className="font-medium hover:underline">
+                  {f.code}{f.label ? ` — ${f.label}` : ""}
+                </button>
+                <button type="button" onClick={() => removeFavorite(f.code)} className="text-slate-400 hover:text-red-600" aria-label={`Remove ${f.code}`}>
+                  ✕
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
 
       <form onSubmit={onValidate} className="space-y-4">
         <div className="flex justify-end">
