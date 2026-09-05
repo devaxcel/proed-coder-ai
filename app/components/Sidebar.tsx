@@ -9,12 +9,12 @@ const NAV_LINKS = [
   { href: "/", label: "Codes Search" },
   { href: "/policies", label: "Policies Q&A" },
   { href: "/query-forms", label: "Query Forms" },
+  { href: "/query-forms/more", label: "Forms B–H" },
   { href: "/query-forms/history", label: "History" },
   { href: "/annual-wellness", label: "Annual Wellness" },
   { href: "/meat-hcc", label: "MEAT HCC" },
   { href: "/icd10-mappings", label: "ICD-10 Mappings" },
   { href: "/code-check", label: "Code Check" },
-  
 ];
 
 export default function Sidebar({
@@ -54,9 +54,6 @@ export default function Sidebar({
             {link.label}
           </Link>
         ))}
-        <Link href="/query-forms/more" onClick={onClose} className={linkClass("/query-forms/more")}>
-          Forms B–H
-        </Link>
         <Link href="/policy-generator" onClick={onClose} className={linkClass("/policy-generator")}>
           Policy Generator
         </Link>

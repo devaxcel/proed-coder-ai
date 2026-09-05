@@ -66,9 +66,14 @@ export default function Icd10MappingsPage() {
       setTotal(0);
       return;
     }
+    // CMS stores codes without the decimal point (E1122, not E11.22).
+    // Strip any dots the user types so "E11.22" still matches — this is
+    // safe for description searches too, since real descriptions never
+    // contain a literal period in a way that would change the match.
+    const normalizedQ = q.replace(/\./g, "");
     setLoading(true);
     try {
-      const r = await fetch(`/api/icd10-mappings/search?q=${encodeURIComponent(q)}&page=${newPage}&year=${useYear}`);
+      const r = await fetch(`/api/icd10-mappings/search?q=${encodeURIComponent(normalizedQ)}&page=${newPage}&year=${useYear}`);
       const json = await r.json();
       setResults(json.results);
       setTotal(json.total);
@@ -132,6 +137,9 @@ export default function Icd10MappingsPage() {
           {loading ? "Searching…" : "Search"}
         </button>
       </form>
+      <p className="text-xs text-slate-500 -mt-4">
+        Enter codes without the decimal point — e.g. <b>E1122</b> instead of E11.22.
+      </p>
 
       {total > 0 && (
         <div className="text-sm text-slate-600">
