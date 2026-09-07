@@ -66,6 +66,15 @@ export default function Sidebar({
         <Link href="/claim-validation" onClick={onClose} className={linkClass("/claim-validation")}>
           Claim Validation
         </Link>
+        <Link href="/compliance" onClick={onClose} className={linkClass("/compliance")}>
+          Compliance
+        </Link>
+
+        <div className="pt-3 mt-3 border-t border-white/10">
+          <Link href="/legal" onClick={onClose} className={linkClass("/legal")}>
+            Legal &amp; Disclaimers
+          </Link>
+        </div>
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">

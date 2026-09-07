@@ -10,7 +10,7 @@ type UserRow = {
   id: string;
   email: string;
   name: string | null;
-  role: "ADMIN" | "CODER" | "AUDITOR";
+  role: "ADMIN" | "CODER" | "AUDITOR" | "CLIENT";
   isActive: boolean;
   createdAt: string | Date;
 };
@@ -30,7 +30,7 @@ export default function UserManagementClient({
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newRole, setNewRole] = useState<"ADMIN" | "CODER" | "AUDITOR">("CODER");
+  const [newRole, setNewRole] = useState<"ADMIN" | "CODER" | "AUDITOR" | "CLIENT">("CODER");
 
   const [resetTargetId, setResetTargetId] = useState<string | null>(null);
   const [resetPasswordValue, setResetPasswordValue] = useState("");
@@ -155,10 +155,11 @@ export default function UserManagementClient({
             </div>
             <div>
               <label className="mb-0.5 block text-xs font-medium" style={{ color: TEAL_DARK }}>Role</label>
-              <select value={newRole} onChange={(e) => setNewRole(e.target.value as "ADMIN" | "CODER" | "AUDITOR")} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+              <select value={newRole} onChange={(e) => setNewRole(e.target.value as "ADMIN" | "CODER" | "AUDITOR" | "CLIENT")} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
                 <option value="CODER">Coder</option>
                 <option value="AUDITOR">Auditor</option>
                 <option value="ADMIN">Admin</option>
+                <option value="CLIENT">Client (view-only, Compliance tab)</option>
               </select>
             </div>
           </div>
@@ -194,6 +195,7 @@ export default function UserManagementClient({
                     <option value="CODER">Coder</option>
                     <option value="AUDITOR">Auditor</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="CLIENT">Client</option>
                   </select>
                 </td>
                 <td className="px-3 py-2">

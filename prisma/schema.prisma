@@ -35,6 +35,7 @@ enum UserRole {
   ADMIN
   CODER
   AUDITOR
+  CLIENT
 }
 
 model Account {
@@ -280,27 +281,21 @@ model IcdHccMapping2024 {
   @@index([icd10Code])
   @@index([hccV28])
 }
+// ---------- COMPLIANCE TAB (ProEd-internal, staff-edit / client-view) ----------
 
-model Icd10RichDetail {
+model ComplianceDocument {
   id          String   @id @default(cuid())
-  code        String   @unique
-  parentCode  String?
-  description String
-
-  includes          String[]
-  excludes1         String[]
-  excludes2         String[]
-  codeFirst         String[]
-  useAdditionalCode String[]
-  codeAlso          String[]
-  inclusionTerms    String[]
-  sevenChrNote      String[]
-
-  isCategory  Boolean  @default(false)
-
+  title       String
+  content     String   @db.Text
+  visibility  ComplianceVisibility @default(INTERNAL)
+  createdBy   String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([code])
-  @@index([parentCode])
+  @@index([visibility])
+}
+
+enum ComplianceVisibility {
+  INTERNAL       // ProEd staff only — never shown to CLIENT role
+  CLIENT_VISIBLE // ProEd staff AND client-role users can view
 }
