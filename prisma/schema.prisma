@@ -323,3 +323,24 @@ model Icd10RichDetail {
   @@index([code])
   @@index([parentCode])
 }
+
+// ---------- LEGAL & DISCLAIMERS (admin-editable, always shown) ----------
+
+model LegalSection {
+  id          String   @id @default(cuid())
+  sectionKey  String   @unique
+  title       String
+  content     String   @db.Text
+  status      LegalSectionStatus @default(ACTIVE)
+  sortOrder   Int      @default(0)
+  updatedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sortOrder])
+}
+
+enum LegalSectionStatus {
+  ACTIVE           // shown as currently in effect
+  PENDING_LICENSE  // shown as ready but inactive pending AMA CPT license
+}
