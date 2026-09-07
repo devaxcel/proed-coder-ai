@@ -6,11 +6,13 @@ import UserManagementClient from "./UserManagementClient";
 export default async function AdminUsersPage() {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
+  const allowedCapabilities = (session?.user as { allowedCapabilities?: string[] } | undefined)?.allowedCapabilities ?? [];
+  const hasAccess = role === "ADMIN" || allowedCapabilities.includes("user-management");
 
   if (!session) {
     redirect("/login?callbackUrl=/admin/users");
   }
-  if (role !== "ADMIN") {
+  if (!hasAccess) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-sm text-red-700">
         <b>Access denied.</b> User management is restricted to Admin accounts.

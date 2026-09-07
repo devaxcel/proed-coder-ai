@@ -6,10 +6,12 @@ import { hashPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
 
-async function requireAdmin() {
+async function requireUserManagementAccess() {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "ADMIN") return null;
+  const allowedCapabilities = (session?.user as { allowedCapabilities?: string[] } | undefined)?.allowedCapabilities ?? [];
+  const hasAccess = role === "ADMIN" || allowedCapabilities.includes("user-management");
+  if (!session || !hasAccess) return null;
   return session;
 }
 
@@ -24,7 +26,7 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAdmin();
+  const session = await requireUserManagementAccess();
   if (!session) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
@@ -68,7 +70,7 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireAdmin();
+  const session = await requireUserManagementAccess();
   if (!session) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }

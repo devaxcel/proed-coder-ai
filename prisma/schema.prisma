@@ -386,3 +386,16 @@ model DmeposFeeSchedule {
   @@index([code])
   @@index([quarter])
 }
+
+// ---------- CONFIGURABLE ROLE PERMISSIONS (Admin-managed tab access) ----------
+
+model RolePermission {
+  id            String   @id @default(cuid())
+  role          UserRole
+  capabilityKey String
+  allowed       Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
+
+  @@unique([role, capabilityKey])
+  @@index([role])
+}

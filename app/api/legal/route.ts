@@ -10,10 +10,12 @@ export async function GET() {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
   const role = (session.user as { role?: string } | undefined)?.role;
+  const allowedCapabilities = (session.user as { allowedCapabilities?: string[] } | undefined)?.allowedCapabilities ?? [];
+  const canEdit = role === "ADMIN" || allowedCapabilities.includes("edit-legal");
 
   const sections = await db.legalSection.findMany({
     orderBy: { sortOrder: "asc" },
   });
 
-  return NextResponse.json({ sections, canEdit: role === "ADMIN" });
+  return NextResponse.json({ sections, canEdit });
 }

@@ -6,17 +6,19 @@ import { hashPassword } from "@/lib/password";
 
 export const runtime = "nodejs";
 
-async function requireAdmin() {
+async function requireUserManagementAccess() {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "ADMIN") {
+  const allowedCapabilities = (session?.user as { allowedCapabilities?: string[] } | undefined)?.allowedCapabilities ?? [];
+  const hasAccess = role === "ADMIN" || allowedCapabilities.includes("user-management");
+  if (!session || !hasAccess) {
     return null;
   }
   return session;
 }
 
 export async function GET() {
-  const session = await requireAdmin();
+  const session = await requireUserManagementAccess();
   if (!session) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
@@ -44,7 +46,7 @@ const CreateBody = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const session = await requireAdmin();
+  const session = await requireUserManagementAccess();
   if (!session) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }

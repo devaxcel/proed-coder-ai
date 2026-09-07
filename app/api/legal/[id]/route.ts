@@ -7,8 +7,10 @@ export const runtime = "nodejs";
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!session || role !== "ADMIN") {
-    return NextResponse.json({ error: "Only Admin can edit Legal & Disclaimers content" }, { status: 403 });
+  const allowedCapabilities = (session?.user as { allowedCapabilities?: string[] } | undefined)?.allowedCapabilities ?? [];
+  const canEdit = role === "ADMIN" || allowedCapabilities.includes("edit-legal");
+  if (!session || !canEdit) {
+    return NextResponse.json({ error: "You do not have permission to edit Legal & Disclaimers content" }, { status: 403 });
   }
 
   const { id } = await params;

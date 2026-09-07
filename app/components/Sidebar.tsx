@@ -2,19 +2,25 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const BRAND = "#14457B";
 
 const NAV_LINKS = [
-  { href: "/", label: "Codes Search" },
-  { href: "/policies", label: "Policies Q&A" },
-  { href: "/query-forms", label: "Query Forms" },
-  { href: "/query-forms/more", label: "Forms B–H" },
-  { href: "/query-forms/history", label: "History" },
-  { href: "/annual-wellness", label: "Annual Wellness" },
-  { href: "/meat-hcc", label: "MEAT HCC" },
-  { href: "/icd10-mappings", label: "ICD-10 Mappings" },
-  { href: "/code-check", label: "Code Check" },
+  { href: "/", label: "Codes Search", key: "codes-search" },
+  { href: "/policies", label: "Policies Q&A", key: "policies-qa" },
+  { href: "/query-forms", label: "Query Forms", key: "query-forms" },
+  { href: "/query-forms/more", label: "Forms B–H", key: "forms-bh" },
+  { href: "/query-forms/history", label: "History", key: "history" },
+  { href: "/annual-wellness", label: "Annual Wellness", key: "annual-wellness" },
+  { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
+  { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
+  { href: "/code-check", label: "Code Check", key: "code-check" },
+  { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },
+  { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
+  { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
+  { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
+  { href: "/compliance", label: "Compliance", key: "compliance" },
 ];
 
 export default function Sidebar({
@@ -28,6 +34,20 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
   const isAdmin = userRole === "ADMIN";
+  // Admin always sees everything — no need to fetch. Everyone else's
+  // sidebar reflects whatever Admin has configured in Role Permissions.
+  const [allowed, setAllowed] = useState<string[] | null>(isAdmin ? null : []);
+
+  useEffect(() => {
+    if (isAdmin) return; // Admin bypasses entirely, nothing to fetch
+    fetch("/api/my-permissions")
+      .then((r) => r.json())
+      .then((json) => setAllowed(json.allowedCapabilities ?? []))
+      .catch(() => setAllowed([]));
+  }, [isAdmin]);
+
+  const canSee = (key: string) => isAdmin || (allowed?.includes(key) ?? false);
+  const visibleLinks = NAV_LINKS.filter((link) => canSee(link.key));
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -49,38 +69,28 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 overflow-y-auto scrollbar-none px-3 py-4 space-y-0.5">
-        {NAV_LINKS.map((link) => (
+        {visibleLinks.map((link) => (
           <Link key={link.href} href={link.href} onClick={onClose} className={linkClass(link.href)}>
             {link.label}
           </Link>
         ))}
-        <Link href="/policy-generator" onClick={onClose} className={linkClass("/policy-generator")}>
-          Policy Generator
-        </Link>
-        <Link href="/hedis-measures" onClick={onClose} className={linkClass("/hedis-measures")}>
-          HEDIS Measures
-        </Link>
-        <Link href="/em-tool" onClick={onClose} className={linkClass("/em-tool")}>
-          E/M Tool
-        </Link>
-        <Link href="/claim-validation" onClick={onClose} className={linkClass("/claim-validation")}>
-          Claim Validation
-        </Link>
-        <Link href="/compliance" onClick={onClose} className={linkClass("/compliance")}>
-          Compliance
-        </Link>
 
-        <div className="pt-3 mt-3 border-t border-white/10">
-          <Link href="/legal" onClick={onClose} className={linkClass("/legal")}>
-            Legal &amp; Disclaimers
-          </Link>
-        </div>
+        {canSee("legal") && (
+          <div className="pt-3 mt-3 border-t border-white/10">
+            <Link href="/legal" onClick={onClose} className={linkClass("/legal")}>
+              Legal &amp; Disclaimers
+            </Link>
+          </div>
+        )}
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">
             <div className="px-3 pb-1 text-[10px] uppercase tracking-wider text-white/40">Admin</div>
             <Link href="/admin/users" onClick={onClose} className={linkClass("/admin/users")}>
               User Management
+            </Link>
+            <Link href="/admin/permissions" onClick={onClose} className={linkClass("/admin/permissions")}>
+              Role Permissions
             </Link>
           </div>
         )}

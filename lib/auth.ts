@@ -13,6 +13,21 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
 import { verifyPassword } from "./password";
+import { ALL_CAPABILITY_KEYS } from "./permissions";
+
+async function getAllowedCapabilities(role: string): Promise<string[]> {
+  // Admin always has full access, hardcoded — never governed by the
+  // configurable table, so an Admin can never accidentally lock
+  // themselves out by misconfiguring permissions.
+  if (role === "ADMIN") return ALL_CAPABILITY_KEYS;
+
+  const rows = await db.rolePermission.findMany({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    where: { role: role as any, allowed: true },
+    select: { capabilityKey: true },
+  });
+  return rows.map((r) => r.capabilityKey);
+}
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
@@ -48,10 +63,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   callbacks: {
     async jwt({ token, user }) {
-      // On sign-in, `user` is populated — carry role/id onto the token.
+      // On sign-in, `user` is populated — carry role/id onto the token,
+      // and resolve+embed their allowed capabilities at this point.
+      // NOTE: if Admin changes a role's permissions later, users of that
+      // role who are already signed in will see the change take effect
+      // the next time they sign in (JWTs aren't re-resolved mid-session).
       if (user) {
-        token.role = (user as { role?: string }).role;
+        const role = (user as { role?: string }).role;
+        token.role = role;
         token.uid = user.id;
+        token.allowedCapabilities = role ? await getAllowedCapabilities(role) : [];
       }
       return token;
     },
@@ -59,6 +80,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         (session.user as { role?: string }).role = token.role as string | undefined;
         (session.user as { id?: string }).id = token.uid as string | undefined;
+        (session.user as { allowedCapabilities?: string[] }).allowedCapabilities = (token.allowedCapabilities as string[] | undefined) ?? [];
       }
       return session;
     },
