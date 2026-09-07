@@ -26,6 +26,12 @@ export default function CompliancePage() {
   const [content, setContent] = useState("");
   const [visibility, setVisibility] = useState<"INTERNAL" | "CLIENT_VISIBLE">("INTERNAL");
 
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [editVisibility, setEditVisibility] = useState<"INTERNAL" | "CLIENT_VISIBLE">("INTERNAL");
+  const [editSaving, setEditSaving] = useState(false);
+
   async function load() {
     setLoading(true);
     try {
@@ -68,6 +74,36 @@ export default function CompliancePage() {
     if (!confirm("Delete this compliance document?")) return;
     const r = await fetch(`/api/compliance/${id}`, { method: "DELETE" });
     if (r.ok) load();
+  }
+
+  function startEdit(doc: Doc) {
+    setEditingId(doc.id);
+    setEditTitle(doc.title);
+    setEditContent(doc.content);
+    setEditVisibility(doc.visibility);
+    setExpandedId(doc.id); // show the edit form where the content view would be
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+  }
+
+  async function saveEdit(id: string) {
+    if (!editTitle.trim() || !editContent.trim()) return;
+    setEditSaving(true);
+    try {
+      const r = await fetch(`/api/compliance/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: editTitle, content: editContent, visibility: editVisibility }),
+      });
+      if (r.ok) {
+        setEditingId(null);
+        load();
+      }
+    } finally {
+      setEditSaving(false);
+    }
   }
 
   return (
@@ -158,9 +194,10 @@ export default function CompliancePage() {
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => setExpandedId(expandedId === d.id ? null : d.id)}
-                  className="text-left font-semibold text-sm"
+                  className="text-left font-semibold text-sm flex items-center gap-1.5"
                   style={{ color: BRAND }}
                 >
+                  <span className="text-xs">{expandedId === d.id ? "▼" : "▶"}</span>
                   {d.title}
                 </button>
                 <div className="flex items-center gap-2">
@@ -173,16 +210,72 @@ export default function CompliancePage() {
                   >
                     {d.visibility === "CLIENT_VISIBLE" ? "Client Visible" : "Internal"}
                   </span>
-                  {canEdit && (
-                    <button onClick={() => onDelete(d.id)} className="text-xs text-red-500 hover:text-red-700">
-                      Delete
-                    </button>
+                  {canEdit && editingId !== d.id && (
+                    <>
+                      <button onClick={() => startEdit(d)} className="text-xs" style={{ color: BRAND }}>
+                        Edit
+                      </button>
+                      <button onClick={() => onDelete(d.id)} className="text-xs text-red-500 hover:text-red-700">
+                        Delete
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
-              {expandedId === d.id && (
+
+              {expandedId === d.id && editingId !== d.id && (
                 <p className="mt-2 text-sm text-slate-700 whitespace-pre-wrap">{d.content}</p>
               )}
+
+              {editingId === d.id && (
+                <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                  <input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  />
+                  <textarea
+                    value={editContent}
+                    onChange={(e) => setEditContent(e.target.value)}
+                    rows={6}
+                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 text-xs text-slate-600">
+                      <input
+                        type="radio"
+                        checked={editVisibility === "INTERNAL"}
+                        onChange={() => setEditVisibility("INTERNAL")}
+                        style={{ accentColor: BRAND }}
+                      />
+                      Internal only
+                    </label>
+                    <label className="flex items-center gap-2 text-xs text-slate-600">
+                      <input
+                        type="radio"
+                        checked={editVisibility === "CLIENT_VISIBLE"}
+                        onChange={() => setEditVisibility("CLIENT_VISIBLE")}
+                        style={{ accentColor: BRAND }}
+                      />
+                      Client Visible
+                    </label>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => saveEdit(d.id)}
+                      disabled={editSaving || !editTitle.trim() || !editContent.trim()}
+                      className="rounded-md px-4 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                      style={{ backgroundColor: BRAND }}
+                    >
+                      {editSaving ? "Saving…" : "Save Changes"}
+                    </button>
+                    <button onClick={cancelEdit} className="rounded-md px-4 py-1.5 text-xs font-medium border" style={{ borderColor: BRAND, color: BRAND }}>
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <p className="mt-1 text-[11px] text-slate-400">
                 {d.createdBy ? `Added by ${d.createdBy} · ` : ""}
                 {new Date(d.updatedAt).toLocaleDateString()}
