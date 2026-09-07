@@ -11,12 +11,13 @@ async function requireStaff() {
   return session;
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireStaff();
   if (!session) {
     return NextResponse.json({ error: "Only ProEd staff can edit Compliance documents" }, { status: 403 });
   }
 
+  const { id } = await params;
   const body = await req.json();
   const title = String(body.title ?? "").trim();
   const content = String(body.content ?? "").trim();
@@ -27,19 +28,20 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const doc = await db.complianceDocument.update({
-    where: { id: params.id },
+    where: { id },
     data: { title, content, visibility },
   });
 
   return NextResponse.json({ doc });
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await requireStaff();
   if (!session) {
     return NextResponse.json({ error: "Only ProEd staff can delete Compliance documents" }, { status: 403 });
   }
 
-  await db.complianceDocument.delete({ where: { id: params.id } });
+  const { id } = await params;
+  await db.complianceDocument.delete({ where: { id } });
   return NextResponse.json({ ok: true });
 }

@@ -4,13 +4,14 @@ import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
   const role = (session?.user as { role?: string } | undefined)?.role;
   if (!session || role !== "ADMIN") {
     return NextResponse.json({ error: "Only Admin can edit Legal & Disclaimers content" }, { status: 403 });
   }
 
+  const { id } = await params;
   const body = await req.json();
   const title = String(body.title ?? "").trim();
   const content = String(body.content ?? "").trim();
@@ -21,7 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
 
   const section = await db.legalSection.update({
-    where: { id: params.id },
+    where: { id },
     data: {
       title,
       content,
