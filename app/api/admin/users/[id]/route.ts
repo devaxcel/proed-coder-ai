@@ -14,7 +14,7 @@ async function requireAdmin() {
 }
 
 const UpdateBody = z.object({
-  role: z.enum(["ADMIN", "CODER", "AUDITOR"]).optional(),
+  role: z.enum(["ADMIN", "CODER", "AUDITOR", "CLIENT"]).optional(),
   isActive: z.boolean().optional(),
   newPassword: z.string().min(8).optional(),
   name: z.string().optional(),

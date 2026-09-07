@@ -40,7 +40,7 @@ const CreateBody = z.object({
   email: z.string().email(),
   password: z.string().min(8, "Password must be at least 8 characters"),
   name: z.string().optional(),
-  role: z.enum(["ADMIN", "CODER", "AUDITOR"]),
+  role: z.enum(["ADMIN", "CODER", "AUDITOR", "CLIENT"]),
 });
 
 export async function POST(req: NextRequest) {
