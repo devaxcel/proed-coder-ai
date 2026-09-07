@@ -215,6 +215,10 @@ export default function ClaimValidationPage() {
   const [rows, setRows] = useState<ClaimRow[]>([newRow()]);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ValidationResult | null>(null);
+  const [hcpcsLookup, setHcpcsLookup] = useState<Record<string, {
+    pricing: { caNonRural: number | null; caRural: number | null; description: string; category: string } | null;
+    discontinued: { termDate: string | null; quarter: string } | null;
+  }>>({});
   const [citations, setCitations] = useState<Citation[]>([]);
   const [err, setErr] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<FavoriteCode[]>([]);
@@ -283,17 +287,35 @@ export default function ClaimValidationPage() {
     setErr(null);
     setResult(null);
     try {
-      const r = await fetch("/api/claim-validation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ claimDescription }),
-      });
-      const json = await r.json();
-      if (!r.ok || json.error) {
-        setErr(json.error ?? `HTTP ${r.status}`);
+      const codes = rows.map((r) => r.procedureSupply.trim()).filter(Boolean);
+      const [validationRes, lookupRes] = await Promise.all([
+        fetch("/api/claim-validation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ claimDescription }),
+        }),
+        codes.length > 0
+          ? fetch("/api/hcpcs-lookup", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ codes }),
+            })
+          : Promise.resolve(null),
+      ]);
+
+      const json = await validationRes.json();
+      if (!validationRes.ok || json.error) {
+        setErr(json.error ?? `HTTP ${validationRes.status}`);
       } else {
         setResult(json.result);
         setCitations(json.citations ?? []);
+      }
+
+      if (lookupRes) {
+        const lookupJson = await lookupRes.json();
+        setHcpcsLookup(lookupJson.results ?? {});
+      } else {
+        setHcpcsLookup({});
       }
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Validation failed");
@@ -314,7 +336,7 @@ export default function ClaimValidationPage() {
       </section>
 
       <div className="rounded-md border border-amber-300 p-4 text-sm" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
-        <b>⚠️ Partial validation — CPT/modifier-pair checks unavailable pending AMA CPT license.</b> This tool validates ICD-10 coding conventions, HCPCS/modifier policy, and general Medicare medical necessity documentation. It never validates CPT code numbers or CPT-modifier combinations until ProEd&apos;s AMA license is active. RVU/Amount and Conversion Factor calculations also require a separate CMS fee-schedule dataset not yet integrated.
+        <b>⚠️ Partial validation — CPT/modifier-pair checks unavailable pending AMA CPT license.</b> This tool validates ICD-10 coding conventions, HCPCS/modifier policy, and general Medicare medical necessity documentation. It never validates CPT code numbers or CPT-modifier combinations until ProEd&apos;s AMA license is active. Real California DMEPOS pricing and discontinued-code warnings are shown for HCPCS supply/equipment codes; CPT procedure pricing still requires a separate AMA-licensed dataset.
       </div>
 
       <AIOutputDisclaimer />
@@ -438,21 +460,45 @@ export default function ClaimValidationPage() {
                 </tr>
               </thead>
               <tbody>
-                {rows.map((row, i) => (
-                  <tr key={row.id} className={i % 2 === 0 ? "bg-white" : ""} style={i % 2 !== 0 ? { backgroundColor: "#F8FAFC" } : {}}>
-                    <td className="px-3 py-2 font-medium">{i + 1}</td>
-                    <td className="px-3 py-2">{row.dosFrom || "—"}</td>
-                    <td className="px-3 py-2">{row.procedureSupply || "—"}</td>
-                    <td className="px-3 py-2">{row.units || "—"}</td>
-                    <td className="px-3 py-2">{row.modifiers.filter(Boolean).join(", ") || "—"}</td>
-                    <td className="px-3 py-2">{row.diagnosisCodes.filter(Boolean).join(", ") || "—"}</td>
-                    <td className="px-3 py-2 text-slate-400 italic">Requires fee schedule data</td>
-                    <td className="px-3 py-2 text-slate-400 italic">Requires fee schedule data</td>
-                  </tr>
-                ))}
+                {rows.map((row, i) => {
+                  const lookup = hcpcsLookup[row.procedureSupply.trim()];
+                  return (
+                    <tr key={row.id} className={i % 2 === 0 ? "bg-white" : ""} style={i % 2 !== 0 ? { backgroundColor: "#F8FAFC" } : {}}>
+                      <td className="px-3 py-2 font-medium">{i + 1}</td>
+                      <td className="px-3 py-2">{row.dosFrom || "—"}</td>
+                      <td className="px-3 py-2">
+                        {row.procedureSupply || "—"}
+                        {lookup?.discontinued && (
+                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold bg-red-100 text-red-700" title={`Discontinued effective ${lookup.discontinued.termDate} (${lookup.discontinued.quarter} update)`}>
+                            ⚠ Discontinued
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2">{row.units || "—"}</td>
+                      <td className="px-3 py-2">{row.modifiers.filter(Boolean).join(", ") || "—"}</td>
+                      <td className="px-3 py-2">{row.diagnosisCodes.filter(Boolean).join(", ") || "—"}</td>
+                      <td className="px-3 py-2">
+                        {lookup?.pricing ? (
+                          <span title={lookup.pricing.description}>
+                            ${lookup.pricing.caNonRural?.toFixed(2) ?? "—"} <span className="text-slate-400">(CA, non-rural)</span>
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 italic">{row.procedureSupply ? "No CA fee schedule match" : "—"}</span>
+                        )}
+                      </td>
+                      <td className="px-3 py-2 text-slate-400 italic">Requires CPT-specific fee data</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
+
+          {Object.values(hcpcsLookup).some((l) => l.discontinued) && (
+            <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+              ⚠ One or more procedure/supply codes entered above were discontinued in a recent CMS quarterly update. Verify the code is still valid for this date of service before submitting.
+            </div>
+          )}
 
           <div className="rounded-lg border p-5 bg-white" style={{ borderColor: BRAND }}>
             <p className="text-sm text-slate-700">{result.summary}</p>

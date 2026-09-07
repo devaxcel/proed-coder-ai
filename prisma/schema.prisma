@@ -344,3 +344,45 @@ enum LegalSectionStatus {
   ACTIVE           // shown as currently in effect
   PENDING_LICENSE  // shown as ready but inactive pending AMA CPT license
 }
+
+// ---------- HCPCS QUARTERLY UPDATES (deleted/retired codes) ----------
+
+model HcpcsCodeUpdate {
+  id            String   @id @default(cuid())
+  code          String
+  longDesc      String
+  shortDesc     String?
+  actionCode    String   // A/B/C/D/F/N/P/R/S/T per CMS HCPCS Action Code
+  addDate       String?
+  effectiveDate String?
+  termDate      String?
+  quarter       String   // e.g. "2026-OCT"
+
+  createdAt DateTime @default(now())
+
+  @@unique([code, quarter])
+  @@index([code])
+  @@index([actionCode])
+}
+
+// ---------- DMEPOS FEE SCHEDULE (California pricing) ----------
+
+model DmeposFeeSchedule {
+  id             String   @id @default(cuid())
+  code           String
+  modifier1      String?
+  modifier2      String?
+  jurisdiction   String   // D/L/J per CMS DMEMAC jurisdiction codes
+  category       String   // IN/FS/CR/OS/SU/etc per CMS DMEPOS category codes
+  description    String
+  ceiling        Float?
+  floor          Float?
+  caNonRural     Float?
+  caRural        Float?
+  quarter        String   // e.g. "2026-JUL"
+
+  createdAt DateTime @default(now())
+
+  @@index([code])
+  @@index([quarter])
+}
