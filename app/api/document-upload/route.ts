@@ -41,9 +41,9 @@ function safeParseLlmJson(raw: string): CheckResult | null {
   }
 }
 
-// Strips pdf-parse's page-separator markers ("-- 1 of 1 --") which are
-// formatting noise, not document content, and would otherwise confuse
-// the LLM by looking like part of the note.
+// Strips leftover page-separator artifacts some PDF extractors emit,
+// which are formatting noise, not document content, and would otherwise
+// confuse the LLM by looking like part of the note.
 function cleanExtractedText(text: string): string {
   return text.replace(/--\s*\d+\s*of\s*\d+\s*--/g, "").trim();
 }
@@ -65,10 +65,10 @@ export async function POST(req: NextRequest) {
 
   try {
     if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-      const { PDFParse } = await import("pdf-parse");
-      const parser = new PDFParse({ data: buffer });
-      const result = await parser.getText();
-      extractedText = cleanExtractedText(result.text);
+      const { extractText, getDocumentProxy } = await import("unpdf");
+      const pdf = await getDocumentProxy(new Uint8Array(buffer));
+      const { text } = await extractText(pdf, { mergePages: true });
+      extractedText = cleanExtractedText(text);
     } else {
       // Treat anything else as plain text
       extractedText = buffer.toString("utf-8");
