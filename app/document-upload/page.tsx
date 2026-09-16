@@ -59,7 +59,7 @@ export default function DocumentUploadPage() {
       const r = await fetch("/api/document-upload", { method: "POST", body: formData });
       const json = await r.json();
       if (!r.ok) {
-        setErr(json.error ?? `HTTP ${r.status}`);
+        setErr(json.raw ? `${json.error} (partial AI output: "${json.raw}")` : (json.error ?? `HTTP ${r.status}`));
       } else {
         setResult(json);
       }

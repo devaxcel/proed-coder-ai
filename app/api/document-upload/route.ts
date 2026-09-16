@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     raw = await chat({
       system: CODE_CHECK_SYSTEM_PROMPT(codeSystem),
       user: buildCodeCheckUserPrompt(extractedText),
-      maxTokens: 1500,
+      maxTokens: 3000,
       temperature: 0.15,
     });
   } catch (e) {
@@ -103,6 +103,8 @@ export async function POST(req: NextRequest) {
 
   const result = safeParseLlmJson(raw);
   if (!result) {
+    console.error("Could not parse LLM response as JSON. Raw output was:\n", raw);
+    console.error("Raw output length:", raw.length, "characters");
     return NextResponse.json({ error: "Could not parse analysis. Try again.", raw: raw.slice(0, 300) }, { status: 500 });
   }
 
