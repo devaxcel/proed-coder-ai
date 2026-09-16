@@ -21,6 +21,7 @@ export const CAPABILITIES = [
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
   { key: "icd10-mappings", label: "ICD-10 Mappings" },
   { key: "code-check", label: "Code Documentation Check" },
+  { key: "document-upload", label: "Document Upload" },
   { key: "policy-generator", label: "Policy Generator" },
   { key: "hedis-measures", label: "HEDIS Measures" },
   { key: "em-tool", label: "E/M Tool" },
@@ -78,6 +79,9 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/api/code-check", key: "code-check" },
   { prefix: "/code-check", key: "code-check" },
+
+  { prefix: "/api/document-upload", key: "document-upload" },
+  { prefix: "/document-upload", key: "document-upload" },
 
   { prefix: "/api/policy-doc", key: "policy-generator" },
   { prefix: "/policy-generator", key: "policy-generator" },

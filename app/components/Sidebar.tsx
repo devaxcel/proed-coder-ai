@@ -16,6 +16,7 @@ const NAV_LINKS = [
   { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
   { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
   { href: "/code-check", label: "Code Check", key: "code-check" },
+  { href: "/document-upload", label: "Document Upload", key: "document-upload" },
   { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },
   { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
   { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
