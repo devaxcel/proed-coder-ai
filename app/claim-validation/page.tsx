@@ -218,6 +218,7 @@ export default function ClaimValidationPage() {
   const [hcpcsLookup, setHcpcsLookup] = useState<Record<string, {
     pricing: { caNonRural: number | null; caRural: number | null; description: string; category: string } | null;
     discontinued: { termDate: string | null; quarter: string } | null;
+    mue: { mueValue: number; exceeded: boolean } | null;
   }>>({});
   const [citations, setCitations] = useState<Citation[]>([]);
   const [err, setErr] = useState<string | null>(null);
@@ -288,6 +289,10 @@ export default function ClaimValidationPage() {
     setResult(null);
     try {
       const codes = rows.map((r) => r.procedureSupply.trim()).filter(Boolean);
+      const unitsByCode: Record<string, number> = {};
+      for (const r of rows) {
+        if (r.procedureSupply.trim()) unitsByCode[r.procedureSupply.trim()] = parseInt(r.units, 10) || 0;
+      }
       const [validationRes, lookupRes] = await Promise.all([
         fetch("/api/claim-validation", {
           method: "POST",
@@ -298,7 +303,7 @@ export default function ClaimValidationPage() {
           ? fetch("/api/hcpcs-lookup", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ codes }),
+              body: JSON.stringify({ codes, unitsByCode }),
             })
           : Promise.resolve(null),
       ]);
@@ -474,7 +479,14 @@ export default function ClaimValidationPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2">{row.units || "—"}</td>
+                      <td className="px-3 py-2">
+                        {row.units || "—"}
+                        {lookup?.mue?.exceeded && (
+                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold bg-amber-100 text-amber-800" title={`DME Supplier MUE limit for this code is ${lookup.mue.mueValue} unit(s) per date of service`}>
+                            ⚠ Exceeds MUE ({lookup.mue.mueValue})
+                          </span>
+                        )}
+                      </td>
                       <td className="px-3 py-2">{row.modifiers.filter(Boolean).join(", ") || "—"}</td>
                       <td className="px-3 py-2">{row.diagnosisCodes.filter(Boolean).join(", ") || "—"}</td>
                       <td className="px-3 py-2">
@@ -497,6 +509,12 @@ export default function ClaimValidationPage() {
           {Object.values(hcpcsLookup).some((l) => l.discontinued) && (
             <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">
               ⚠ One or more procedure/supply codes entered above were discontinued in a recent CMS quarterly update. Verify the code is still valid for this date of service before submitting.
+            </div>
+          )}
+
+          {Object.values(hcpcsLookup).some((l) => l.mue?.exceeded) && (
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              ⚠ One or more lines exceed the DME Supplier Medically Unlikely Edit (MUE) limit for that code — the units entered are unlikely to be reported for a single date of service. Review before submitting; this may trigger a coding denial.
             </div>
           )}
 

@@ -452,3 +452,18 @@ model CovidVaccineCode {
 
   @@index([cvxCode])
 }
+
+// ---------- DME SUPPLIER MUE (Medically Unlikely Edits) ----------
+
+model DmeMueLimit {
+  id            String @id @default(cuid())
+  code          String @unique
+  mueValue      Int
+  adjudicationIndicator String
+  rationale     String
+
+  quarter       String // e.g. "2026-OCT"
+  createdAt DateTime @default(now())
+
+  @@index([code])
+}
