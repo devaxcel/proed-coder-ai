@@ -2,30 +2,54 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 const BRAND = "#14457B";
 
-const NAV_LINKS = [
-  { href: "/", label: "Codes Search", key: "codes-search" },
-  { href: "/policies", label: "Policies Q&A", key: "policies-qa" },
-  { href: "/query-forms", label: "Query Forms", key: "query-forms" },
-  { href: "/query-forms/more", label: "Forms B–H", key: "forms-bh" },
-  { href: "/query-forms/history", label: "History", key: "history" },
-  { href: "/annual-wellness", label: "Annual Wellness", key: "annual-wellness" },
-  { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
-  { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
-  { href: "/icd10-index", label: "ICD-10-CM Index", key: "icd10-index" },
-  { href: "/hcpcs-updates", label: "HCPCS Updates", key: "hcpcs-updates" },
-  { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
-  { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
-  { href: "/code-check", label: "Code Check", key: "code-check" },
-  { href: "/document-upload", label: "Document Upload", key: "document-upload" },
-  { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },
-  { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
-  { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
-  { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
-  { href: "/compliance", label: "Compliance", key: "compliance" },
+type NavLink = { href: string; label: string; key: string };
+type NavGroup = { label: string; links: NavLink[] };
+
+const NAV_GROUPS: NavGroup[] = [
+  {
+    label: "Code Lookup & Reference",
+    links: [
+      { href: "/", label: "Codes Search", key: "codes-search" },
+      { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
+      { href: "/icd10-index", label: "ICD-10-CM Index", key: "icd10-index" },
+      { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
+      { href: "/hcpcs-updates", label: "HCPCS Updates", key: "hcpcs-updates" },
+      { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
+      { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
+    ],
+  },
+  {
+    label: "Documentation & Validation Tools",
+    links: [
+      { href: "/code-check", label: "Code Check", key: "code-check" },
+      { href: "/document-upload", label: "Document Upload", key: "document-upload" },
+      { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
+      { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
+      { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
+      { href: "/annual-wellness", label: "Annual Wellness", key: "annual-wellness" },
+    ],
+  },
+  {
+    label: "Query Forms",
+    links: [
+      { href: "/query-forms", label: "Query Forms", key: "query-forms" },
+      { href: "/query-forms/more", label: "Forms B–H", key: "forms-bh" },
+      { href: "/query-forms/history", label: "History", key: "history" },
+    ],
+  },
+  {
+    label: "Policies & Compliance",
+    links: [
+      { href: "/policies", label: "Policies Q&A", key: "policies-qa" },
+      { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },
+      { href: "/compliance", label: "Compliance", key: "compliance" },
+      { href: "/legal", label: "Legal & Disclaimers", key: "legal" },
+    ],
+  },
 ];
 
 export default function Sidebar({
@@ -52,7 +76,32 @@ export default function Sidebar({
   }, [isAdmin]);
 
   const canSee = (key: string) => isAdmin || (allowed?.includes(key) ?? false);
-  const visibleLinks = NAV_LINKS.filter((link) => canSee(link.key));
+
+  // Which group contains the currently active page — used to auto-open
+  // that group by default, so landing on a page never hides its own nav.
+  const activeGroupLabel = useMemo(() => {
+    for (const group of NAV_GROUPS) {
+      const match = group.links.find((l) => (l.href === "/" ? pathname === "/" : pathname.startsWith(l.href)));
+      if (match) return group.label;
+    }
+    return null;
+  }, [pathname]);
+
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (activeGroupLabel) {
+      setOpenGroups((prev) => new Set(prev).add(activeGroupLabel));
+    }
+  }, [activeGroupLabel]);
+
+  function toggleGroup(label: string) {
+    setOpenGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  }
 
   const linkClass = (href: string) => {
     const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -73,20 +122,32 @@ export default function Sidebar({
         </Link>
       </div>
 
-      <nav className="flex-1 overflow-y-auto scrollbar-none px-3 py-4 space-y-0.5">
-        {visibleLinks.map((link) => (
-          <Link key={link.href} href={link.href} onClick={onClose} className={linkClass(link.href)}>
-            {link.label}
-          </Link>
-        ))}
-
-        {canSee("legal") && (
-          <div className="pt-3 mt-3 border-t border-white/10">
-            <Link href="/legal" onClick={onClose} className={linkClass("/legal")}>
-              Legal &amp; Disclaimers
-            </Link>
-          </div>
-        )}
+      <nav className="flex-1 overflow-y-auto scrollbar-none px-3 py-4 space-y-1">
+        {NAV_GROUPS.map((group) => {
+          const visibleLinks = group.links.filter((l) => canSee(l.key));
+          if (visibleLinks.length === 0) return null; // hide empty groups entirely
+          const isOpen = openGroups.has(group.label);
+          return (
+            <div key={group.label}>
+              <button
+                onClick={() => toggleGroup(group.label)}
+                className="w-full flex items-center justify-between rounded-md px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-white/50 hover:text-white/80 transition"
+              >
+                <span>{group.label}</span>
+                <span className={`transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
+              </button>
+              {isOpen && (
+                <div className="space-y-0.5 pb-1">
+                  {visibleLinks.map((link) => (
+                    <Link key={link.href} href={link.href} onClick={onClose} className={linkClass(link.href)}>
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t border-white/10">
