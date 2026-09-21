@@ -17,6 +17,8 @@ const NAV_LINKS = [
   { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
   { href: "/icd10-index", label: "ICD-10-CM Index", key: "icd10-index" },
   { href: "/hcpcs-updates", label: "HCPCS Updates", key: "hcpcs-updates" },
+  { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
+  { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
   { href: "/code-check", label: "Code Check", key: "code-check" },
   { href: "/document-upload", label: "Document Upload", key: "document-upload" },
   { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },

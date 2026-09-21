@@ -88,6 +88,11 @@ const SOURCE_MAP: Record<string, { source: string; docType: string; url: string 
     docType: "policy",
     url: "https://med.noridianmedicare.com/web/jeb",
   },
+  "ncci-policy-manual": {
+    source: "CMS/NCCI",
+    docType: "guideline",
+    url: "https://www.cms.gov/files/document/2026-ncci-medicare-policy-manual-all-chapters.pdf",
+  },
 };
 
 function detectSource(filename: string): { source: string; docType: string; url: string } {

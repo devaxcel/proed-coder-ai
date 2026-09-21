@@ -1,0 +1,31 @@
+Medicare National Correct Coding Initiative (NCCI) — Program Overview
+
+The Centers for Medicare & Medicaid Services (CMS) developed the National Correct Coding Initiative (NCCI) to promote consistent, correct coding practices nationwide and to prevent inappropriate payment on Medicare Part B claims. NCCI coding policies are grounded in several sources together: standard coding conventions, national and local Medicare coverage and payment policies, coding guidance published by national medical societies, and generally accepted medical and surgical practice.
+
+The Three Edit Types
+
+The NCCI program consists of three distinct categories of edits:
+
+Procedure-to-Procedure (PTP) edits identify pairs of services that generally should not both be billed for the same patient on the same date of service by the same provider. Each PTP edit designates a "Column One" and "Column Two" code; when both are reported together without an appropriate exception, the Column One code is payable while the Column Two code is denied, unless a clinically justified modifier applies.
+
+Medically Unlikely Edits (MUEs) set a maximum number of units of service that would reasonably be reported for a given code, for a single patient, by a single provider, on a single date of service. MUEs exist to catch clerical errors and implausible billing volumes rather than to serve as a hard clinical limit — legitimate exceptions can occur and may be appealed with supporting documentation.
+
+Add-on Code (AOC) edits identify codes that describe services almost always performed alongside a separate primary procedure. An add-on code is generally not payable as a standalone service if its associated primary procedure was not also reported.
+
+Where These Edits Apply
+
+NCCI PTP edits and MUEs apply broadly — to practitioner claims, outpatient hospital claims, outpatient therapy claims, and Ambulatory Surgical Center claims, among others. Since 2007, a separate MUE table has existed specifically for Durable Medical Equipment (DME) suppliers, covering the equipment and supply codes billed through DME Medicare Administrative Contractors. These edits generally do not apply to facility claims for inpatient services, which are governed by separate payment methodologies.
+
+How the Program Evolves
+
+NCCI edits are reviewed and updated on a quarterly basis, incorporating feedback from CMS, national medical and surgical societies, Medicare contractor medical directors, and other stakeholders. Before implementing most new edits, CMS provides an opportunity for review and comment from potentially affected organizations, though CMS may occasionally implement edits before that process concludes when it determines doing so is necessary.
+
+Individual states are also required to apply NCCI-based methodologies within their own Medicaid programs, a requirement that took effect October 1, 2010 under the Patient Protection and Affordable Care Act. CMS publishes separate edit files and guidance specifically for the Medicaid NCCI program, distinct from the Medicare files.
+
+Relationship to Other CMS Policy
+
+NCCI edits reflect CMS's national coding policy but do not override other CMS national coverage, coding, or payment determinations that may also apply to a given claim. A denial resulting from an NCCI edit is treated as a coding-based denial rather than a medical-necessity denial — meaning a provider cannot shift financial liability to a Medicare beneficiary for a service denied on this basis using an Advance Beneficiary Notice of Noncoverage (ABN), since that mechanism is intended for medical-necessity determinations, not coding errors.
+
+Why This Matters for Coding and Compliance Staff
+
+Because PTP and MUE edits are applied automatically during claims processing, understanding the underlying logic — rather than only reacting to individual denials — helps coding and compliance staff anticipate which code combinations or reported quantities are likely to trigger a hold or denial before a claim is even submitted. Reviewing documentation against these principles proactively, particularly for DME billing where a dedicated supplier-specific MUE table exists, can reduce avoidable denials and rework.

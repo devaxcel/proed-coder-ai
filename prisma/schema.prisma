@@ -418,3 +418,37 @@ model IcdAlphabeticIndexEntry {
   @@index([letter])
   @@index([code])
 }
+
+// ---------- ICD-9-CM LEGACY CODES (retired 2015, historical reference) ----------
+
+model Icd9Code {
+  id             String @id @default(cuid())
+  code           String @unique
+  longDesc       String
+  shortDesc      String
+  codeType       String // "DX" (diagnosis) or "SG" (surgery/procedure)
+
+  createdAt DateTime @default(now())
+
+  @@index([code])
+  @@index([codeType])
+}
+
+// ---------- COVID VACCINE CODES (CVX/NDC only, CPT column excluded) ----------
+
+model CovidVaccineCode {
+  id            String @id @default(cuid())
+  manufacturer  String
+  productLabel  String
+  cvxCode       String
+  cvxTermDesc   String @db.Text
+  cvxShortDesc  String
+  virusStrain   String?
+  ndcCodes      String? @db.Text
+  packaging     String?
+  ageCohort     String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([cvxCode])
+}

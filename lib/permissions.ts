@@ -22,6 +22,8 @@ export const CAPABILITIES = [
   { key: "icd10-mappings", label: "ICD-10 Mappings" },
   { key: "icd10-index", label: "ICD-10-CM Alphabetic Index" },
   { key: "hcpcs-updates", label: "Upcoming & Recent HCPCS Changes" },
+  { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
+  { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
   { key: "code-check", label: "Code Documentation Check" },
   { key: "document-upload", label: "Document Upload" },
   { key: "policy-generator", label: "Policy Generator" },
@@ -84,6 +86,12 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/api/hcpcs-updates", key: "hcpcs-updates" },
   { prefix: "/hcpcs-updates", key: "hcpcs-updates" },
+
+  { prefix: "/api/icd9-lookup", key: "icd9-lookup" },
+  { prefix: "/icd9-lookup", key: "icd9-lookup" },
+
+  { prefix: "/api/covid-vaccine", key: "covid-vaccine" },
+  { prefix: "/covid-vaccine", key: "covid-vaccine" },
 
   { prefix: "/api/code-check", key: "code-check" },
   { prefix: "/code-check", key: "code-check" },

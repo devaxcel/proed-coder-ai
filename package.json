@@ -28,6 +28,8 @@
     "seed:dmepos": "tsx scripts/seed-dmepos.ts",
     "seed:permissions": "tsx scripts/seed-permissions.ts",
     "seed:icd10-index": "tsx scripts/seed-icd10-index.ts",
+    "seed:icd9": "tsx scripts/seed-icd9.ts",
+    "seed:covid-vaccine": "tsx scripts/seed-covid-vaccine.ts",
     "create-user": "tsx scripts/create-user.ts",
     "docker:down": "docker compose down"
   },
