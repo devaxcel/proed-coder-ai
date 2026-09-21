@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 const Body = z.object({
   patientName: z.string().optional().default(""),
+  accountNumber: z.string().optional().default(""),
   icdCodes: z.string().optional().default(""),
   condition: z.string().optional().default(""),
   dos: z.string().optional().default(""),
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { patientName, icdCodes, condition, dos, npi, notes, checked } = parsed.data;
+  const { patientName, accountNumber, icdCodes, condition, dos, npi, notes, checked } = parsed.data;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pdfLib: any;
@@ -143,6 +144,8 @@ export async function POST(req: NextRequest) {
   page.drawRectangle({ x: MARGIN, y: y - 48, width: WIDTH, height: 48, color: TEAL_LIGHT });
   text("Patient Name:", MARGIN + 8, y - 12, { size: 8, bold: true, color: TEAL_DARK });
   text(patientName || "____________", MARGIN + 90, y - 12, { size: 8, color: DARK });
+  text("Account Number:", MARGIN + 220, y - 12, { size: 8, bold: true, color: TEAL_DARK });
+  text(accountNumber || "____________", MARGIN + 290, y - 12, { size: 8, color: DARK });
   text("Date of Service:", MARGIN + 8, y - 26, { size: 8, bold: true, color: TEAL_DARK });
   text(dos || "____________", MARGIN + 90, y - 26, { size: 8, color: DARK });
   text("Provider NPI:", MARGIN + 220, y - 26, { size: 8, bold: true, color: TEAL_DARK });

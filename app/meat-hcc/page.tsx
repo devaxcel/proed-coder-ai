@@ -91,6 +91,7 @@ function Section({
 
 export default function MeatHccPage() {
   const [patientName, setPatientName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
   const [icdCodes, setIcdCodes] = useState("");
   const [condition, setCondition] = useState("");
   const [dos, setDos] = useState("");
@@ -124,7 +125,7 @@ export default function MeatHccPage() {
       const r = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ patientName, icdCodes, condition, dos, npi, notes, checked }),
+        body: JSON.stringify({ patientName, accountNumber, icdCodes, condition, dos, npi, notes, checked }),
       });
       if (!r.ok) throw new Error(`Export failed: ${r.status}`);
       const blob = await r.blob();
@@ -166,6 +167,7 @@ export default function MeatHccPage() {
       {/* Header fields */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 rounded-lg border p-4" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
         <Field label="Patient Name" value={patientName} onChange={setPatientName} placeholder="Last, First" teal={TEAL} />
+        <Field label="Account Number" value={accountNumber} onChange={setAccountNumber} placeholder="MRN / Account #" teal={TEAL} />
         <Field label="Date of Service" value={dos} onChange={setDos} teal={TEAL} type="date" />
         <Field label="Provider NPI" value={npi} onChange={setNpi} teal={TEAL} />
         <Field label="ICD-10 Code(s)" value={icdCodes} onChange={setIcdCodes} placeholder="e.g., E11.40, N18.4" teal={TEAL} />
