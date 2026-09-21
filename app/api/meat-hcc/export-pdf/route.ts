@@ -6,6 +6,7 @@ import path from "path";
 export const runtime = "nodejs";
 
 const Body = z.object({
+  patientName: z.string().optional().default(""),
   icdCodes: z.string().optional().default(""),
   condition: z.string().optional().default(""),
   dos: z.string().optional().default(""),
@@ -59,7 +60,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { icdCodes, condition, dos, npi, notes, checked } = parsed.data;
+  const { patientName, icdCodes, condition, dos, npi, notes, checked } = parsed.data;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let pdfLib: any;
@@ -139,16 +140,18 @@ export async function POST(req: NextRequest) {
   y -= 18;
 
   // ---- Header fields ----
-  page.drawRectangle({ x: MARGIN, y: y - 34, width: WIDTH, height: 34, color: TEAL_LIGHT });
-  text("Date of Service:", MARGIN + 8, y - 12, { size: 8, bold: true, color: TEAL_DARK });
-  text(dos || "____________", MARGIN + 90, y - 12, { size: 8, color: DARK });
-  text("Provider NPI:", MARGIN + 220, y - 12, { size: 8, bold: true, color: TEAL_DARK });
-  text(npi || "____________", MARGIN + 290, y - 12, { size: 8, color: DARK });
-  text("ICD-10 Code(s):", MARGIN + 8, y - 26, { size: 8, bold: true, color: TEAL_DARK });
-  text(icdCodes || "____________", MARGIN + 90, y - 26, { size: 8, color: DARK });
-  text("Condition/Dx:", MARGIN + 220, y - 26, { size: 8, bold: true, color: TEAL_DARK });
-  text(condition || "____________", MARGIN + 290, y - 26, { size: 8, color: DARK });
-  y -= 46;
+  page.drawRectangle({ x: MARGIN, y: y - 48, width: WIDTH, height: 48, color: TEAL_LIGHT });
+  text("Patient Name:", MARGIN + 8, y - 12, { size: 8, bold: true, color: TEAL_DARK });
+  text(patientName || "____________", MARGIN + 90, y - 12, { size: 8, color: DARK });
+  text("Date of Service:", MARGIN + 8, y - 26, { size: 8, bold: true, color: TEAL_DARK });
+  text(dos || "____________", MARGIN + 90, y - 26, { size: 8, color: DARK });
+  text("Provider NPI:", MARGIN + 220, y - 26, { size: 8, bold: true, color: TEAL_DARK });
+  text(npi || "____________", MARGIN + 290, y - 26, { size: 8, color: DARK });
+  text("ICD-10 Code(s):", MARGIN + 8, y - 40, { size: 8, bold: true, color: TEAL_DARK });
+  text(icdCodes || "____________", MARGIN + 90, y - 40, { size: 8, color: DARK });
+  text("Condition/Dx:", MARGIN + 220, y - 40, { size: 8, bold: true, color: TEAL_DARK });
+  text(condition || "____________", MARGIN + 290, y - 40, { size: 8, color: DARK });
+  y -= 60;
 
   // ---- MEAT 2x2 grid ----
   const colW = (WIDTH - 10) / 2;

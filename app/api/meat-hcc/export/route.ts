@@ -5,6 +5,7 @@ import { getLogoImageRun } from "@/lib/proed-logo-docx";
 export const runtime = "nodejs";
 
 const Body = z.object({
+  patientName: z.string().optional().default(""),
   icdCodes: z.string().optional().default(""),
   condition: z.string().optional().default(""),
   dos: z.string().optional().default(""),
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { icdCodes, condition, dos, npi, notes, checked } = parsed.data;
+  const { patientName, icdCodes, condition, dos, npi, notes, checked } = parsed.data;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mod: any = await import("docx");
@@ -142,6 +143,15 @@ export async function POST(req: NextRequest) {
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              columnSpan: 2,
+              shading: { type: ShadingType.CLEAR, fill: CARD, color: "auto" },
+              children: [p([tr("Patient Name: ", { bold: true, size: 18, color: GRAY }), tr(patientName || "____________", { size: 18 })])],
+            }),
+          ],
+        }),
         new TableRow({
           children: [
             new TableCell({ shading: { type: ShadingType.CLEAR, fill: CARD, color: "auto" }, children: [p([tr("Date of Service: ", { bold: true, size: 18, color: GRAY }), tr(dos || "____________", { size: 18 })])] }),
