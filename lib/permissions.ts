@@ -25,7 +25,6 @@ export const CAPABILITIES = [
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
   { key: "code-check", label: "Code Documentation Check" },
-  { key: "document-upload", label: "Document Upload" },
   { key: "policy-generator", label: "Policy Generator" },
   { key: "hedis-measures", label: "HEDIS Measures" },
   { key: "em-tool", label: "E/M Tool" },
@@ -96,8 +95,9 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/api/code-check", key: "code-check" },
   { prefix: "/code-check", key: "code-check" },
 
-  { prefix: "/api/document-upload", key: "document-upload" },
-  { prefix: "/document-upload", key: "document-upload" },
+  // Document upload is now a section INSIDE Claim Validation, not its own
+  // tab — gated by the same capability as the rest of that page.
+  { prefix: "/api/document-upload", key: "claim-validation" },
 
   { prefix: "/api/policy-doc", key: "policy-generator" },
   { prefix: "/policy-generator", key: "policy-generator" },

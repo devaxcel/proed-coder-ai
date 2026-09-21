@@ -26,7 +26,6 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Documentation & Validation Tools",
     links: [
       { href: "/code-check", label: "Code Check", key: "code-check" },
-      { href: "/document-upload", label: "Document Upload", key: "document-upload" },
       { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },

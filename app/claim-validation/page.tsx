@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 
 const BRAND = "#14457B";
@@ -22,6 +22,21 @@ type ValidationResult = {
   not_reviewable: string;
 };
 type Citation = { n: number; source: string; docTitle: string; sourceUrl: string };
+
+type DocUploadResult = {
+  supported_codes: { code_hint: string; description: string; evidence: string }[];
+  possible_codes_needing_more_documentation: {
+    code_hint: string;
+    description: string;
+    why_flagged: string;
+    documentation_needed: string;
+  }[];
+  overall_note: string;
+  extractedTextPreview?: string;
+  extractedCharCount?: number;
+  truncated?: boolean;
+  fileName?: string;
+};
 
 type ClaimRow = {
   id: string;
@@ -227,6 +242,17 @@ export default function ClaimValidationPage() {
   const [newFavLabel, setNewFavLabel] = useState("");
   const [showAddFavorite, setShowAddFavorite] = useState(false);
 
+  // Document upload — merged in from the former standalone Document
+  // Upload tab. Reuses the exact same /api/document-upload endpoint,
+  // unchanged, just surfaced as a section here instead of its own page.
+  const [docCodeSystem, setDocCodeSystem] = useState<"ICD-10" | "HCPCS" | "CPT">("ICD-10");
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docLoading, setDocLoading] = useState(false);
+  const [docResult, setDocResult] = useState<DocUploadResult | null>(null);
+  const [docErr, setDocErr] = useState<string | null>(null);
+  const [docDragActive, setDocDragActive] = useState(false);
+  const docFileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     setFavorites(loadFavorites());
   }, []);
@@ -278,6 +304,43 @@ export default function ClaimValidationPage() {
     r.modifiers = ["RT", "", "", ""];
     r.diagnosisCodes = ["I10", "E119", "", "", "", "", "", ""];
     setRows([r]);
+  }
+
+  function handleDocFileSelect(f: File | null) {
+    setDocFile(f);
+    setDocResult(null);
+    setDocErr(null);
+  }
+
+  function handleDocDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDocDragActive(false);
+    const dropped = e.dataTransfer.files?.[0];
+    if (dropped) handleDocFileSelect(dropped);
+  }
+
+  async function onDocAnalyze(e: React.FormEvent) {
+    e.preventDefault();
+    if (!docFile) return;
+    setDocLoading(true);
+    setDocErr(null);
+    setDocResult(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", docFile);
+      formData.append("codeSystem", docCodeSystem);
+      const r = await fetch("/api/document-upload", { method: "POST", body: formData });
+      const json = await r.json();
+      if (!r.ok) {
+        setDocErr(json.raw ? `${json.error} (partial AI output: "${json.raw}")` : (json.error ?? `HTTP ${r.status}`));
+      } else {
+        setDocResult(json);
+      }
+    } catch (e: unknown) {
+      setDocErr(e instanceof Error ? e.message : "Analysis failed");
+    } finally {
+      setDocLoading(false);
+    }
   }
 
   async function onValidate(e: React.FormEvent) {
@@ -399,6 +462,121 @@ export default function ClaimValidationPage() {
                 </button>
               </span>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Document Upload — merged in from the former standalone tab.
+          A separate, alternative way to get coding suggestions: upload a
+          chart note/record instead of manually filling in claim lines. */}
+      <div className="rounded-lg border p-4 space-y-3" style={{ borderColor: BRAND }}>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <span className="text-sm font-semibold" style={{ color: BRAND }}>📄 Or Upload a Document</span>
+          <div className="flex gap-2">
+            {(["ICD-10", "HCPCS", "CPT"] as const).map((sys) => (
+              <button
+                key={sys}
+                type="button"
+                onClick={() => setDocCodeSystem(sys)}
+                className="rounded-md px-3 py-1.5 text-xs font-medium border"
+                style={{
+                  borderColor: BRAND,
+                  backgroundColor: docCodeSystem === sys ? BRAND : "white",
+                  color: docCodeSystem === sys ? "white" : BRAND,
+                }}
+              >
+                {sys}
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="text-xs text-slate-500">
+          Upload a chart note or medical record (PDF or text) instead of manually entering claim lines below — flags likely codes and what documentation is missing to support them.
+        </p>
+
+        {docCodeSystem === "CPT" && (
+          <div className="rounded-md border border-amber-300 p-2 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
+            ⚠️ Placeholder mode — pending AMA CPT license. Shows plain-English service categories only, never a specific CPT code number.
+          </div>
+        )}
+
+        <form onSubmit={onDocAnalyze} className="space-y-2">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDocDragActive(true); }}
+            onDragLeave={() => setDocDragActive(false)}
+            onDrop={handleDocDrop}
+            onClick={() => docFileInputRef.current?.click()}
+            className="rounded-md border-2 border-dashed px-4 py-6 text-center cursor-pointer transition"
+            style={{
+              borderColor: docDragActive ? BRAND : "#CBD5E1",
+              backgroundColor: docDragActive ? CARD : "white",
+            }}
+          >
+            <input
+              ref={docFileInputRef}
+              type="file"
+              accept=".pdf,.txt,text/plain,application/pdf"
+              className="hidden"
+              onChange={(e) => handleDocFileSelect(e.target.files?.[0] ?? null)}
+            />
+            {docFile ? (
+              <div className="text-sm font-medium text-slate-800">📄 {docFile.name}</div>
+            ) : (
+              <div className="text-sm" style={{ color: BRAND }}>Click to upload, or drag and drop a PDF or text file</div>
+            )}
+          </div>
+          <button
+            type="submit"
+            disabled={docLoading || !docFile}
+            className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            style={{ backgroundColor: BRAND }}
+          >
+            {docLoading ? "Extracting & analyzing…" : `Check ${docCodeSystem} Documentation`}
+          </button>
+        </form>
+
+        {docErr && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">{docErr}</div>}
+
+        {docResult && (
+          <div className="space-y-3 pt-2 border-t border-slate-100">
+            {docResult.fileName && (
+              <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-600">
+                Extracted {docResult.extractedCharCount?.toLocaleString()} characters from <b>{docResult.fileName}</b>
+                {docResult.truncated && " (long document — analysis based on the first portion)"}
+              </div>
+            )}
+            {docResult.overall_note && (
+              <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: "#14457B" }}>
+                {docResult.overall_note}
+              </div>
+            )}
+            {docResult.supported_codes.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold mb-1" style={{ color: BRAND }}>✅ Supported by documentation</div>
+                <div className="space-y-1.5">
+                  {docResult.supported_codes.map((c, i) => (
+                    <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND }}>
+                      <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
+                      <div className="italic text-slate-600 mt-0.5">&ldquo;{c.evidence}&rdquo;</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            {docResult.possible_codes_needing_more_documentation.length > 0 && (
+              <div>
+                <div className="text-xs font-semibold mb-1" style={{ color: AMBER }}>⚠️ Possible — needs more documentation</div>
+                <div className="space-y-1.5">
+                  {docResult.possible_codes_needing_more_documentation.map((c, i) => (
+                    <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: AMBER, backgroundColor: AMBER_LIGHT }}>
+                      <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
+                      <div className="text-slate-700 mt-0.5">Mentioned: {c.why_flagged}</div>
+                      <div className="font-medium mt-0.5" style={{ color: AMBER }}>Documentation needed: {c.documentation_needed}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
