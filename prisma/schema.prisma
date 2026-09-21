@@ -399,3 +399,22 @@ model RolePermission {
   @@unique([role, capabilityKey])
   @@index([role])
 }
+
+// ---------- ICD-10-CM ALPHABETIC INDEX (Diseases & Injuries) ----------
+
+model IcdAlphabeticIndexEntry {
+  id         String  @id @default(cuid())
+  term       String
+  fullPath   String  @db.Text
+  code       String?
+  seeRef     String?
+  seeAlsoRef String?
+  letter     String
+  level      Int
+
+  createdAt DateTime @default(now())
+
+  @@index([term])
+  @@index([letter])
+  @@index([code])
+}

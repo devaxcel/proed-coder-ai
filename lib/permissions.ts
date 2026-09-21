@@ -20,6 +20,8 @@ export const CAPABILITIES = [
   { key: "annual-wellness", label: "Annual Wellness" },
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
   { key: "icd10-mappings", label: "ICD-10 Mappings" },
+  { key: "icd10-index", label: "ICD-10-CM Alphabetic Index" },
+  { key: "hcpcs-updates", label: "Upcoming & Recent HCPCS Changes" },
   { key: "code-check", label: "Code Documentation Check" },
   { key: "document-upload", label: "Document Upload" },
   { key: "policy-generator", label: "Policy Generator" },
@@ -76,6 +78,12 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/api/icd10-mappings", key: "icd10-mappings" },
   { prefix: "/icd10-mappings", key: "icd10-mappings" },
+
+  { prefix: "/api/icd10-index", key: "icd10-index" },
+  { prefix: "/icd10-index", key: "icd10-index" },
+
+  { prefix: "/api/hcpcs-updates", key: "hcpcs-updates" },
+  { prefix: "/hcpcs-updates", key: "hcpcs-updates" },
 
   { prefix: "/api/code-check", key: "code-check" },
   { prefix: "/code-check", key: "code-check" },
