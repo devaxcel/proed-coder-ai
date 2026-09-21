@@ -67,7 +67,7 @@ function CriteriaGroup({
 }) {
   return (
     <div>
-      <div className="text-xs font-semibold mb-2" style={{ color: BRAND }}>{title}</div>
+      <div className="text-sm font-bold mb-2" style={{ color: BRAND }}>{title}</div>
       <div className="space-y-3">
         {criteria.map((group) => (
           <div key={group.level} className="rounded-md border border-slate-200 p-3">
