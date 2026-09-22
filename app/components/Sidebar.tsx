@@ -19,7 +19,6 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
       { href: "/hcpcs-updates", label: "HCPCS Updates", key: "hcpcs-updates" },
       { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
-      { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
     ],
   },
   {
@@ -30,6 +29,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
       { href: "/annual-wellness", label: "Annual Wellness", key: "annual-wellness" },
+      { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
     ],
   },
   {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import AwvMeasuresPanel from "./AwvMeasuresPanel";
 
 const TEAL = "#14457B";
 const TEAL_LIGHT = "#E7ECF4";
@@ -353,6 +354,8 @@ export default function AnnualWellnessPage() {
           </div>
         </div>
       </section>
+
+      <AwvMeasuresPanel />
 
       <p className="text-xs text-slate-500">
         Source: ProEd Consulting AWV/HEDIS Tool 2026, BMI ICD-10 reference, and internal medication list. Verified against NCQA HEDIS MY 2026 &amp; CMS CY 2026 MPFS Final Rule (CMS-1832-F).
