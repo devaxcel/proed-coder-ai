@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
+import { checkWithConventionRules, type WithConventionRule } from "@/lib/icd10-with-convention-rules";
 
 const BRAND = "#14457B";
 const CARD = "#E7ECF4";
@@ -36,6 +37,8 @@ type DocUploadResult = {
   extractedCharCount?: number;
   truncated?: boolean;
   fileName?: string;
+  suggestedDos?: string | null;
+  codeSystem?: "ICD-10" | "HCPCS" | "CPT";
 };
 
 type ClaimRow = {
@@ -242,6 +245,14 @@ export default function ClaimValidationPage() {
   const [newFavLabel, setNewFavLabel] = useState("");
   const [showAddFavorite, setShowAddFavorite] = useState(false);
 
+  // Coding guideline check — runs live against every diagnosis code
+  // currently in the form, not just at submit time, so the coder sees
+  // the flag as soon as both trigger conditions are present.
+  const guidelineFlags: WithConventionRule[] = useMemo(() => {
+    const allDx = rows.flatMap((r) => r.diagnosisCodes);
+    return checkWithConventionRules(allDx);
+  }, [rows]);
+
   // Document upload — merged in from the former standalone Document
   // Upload tab. Reuses the exact same /api/document-upload endpoint,
   // unchanged, just surfaced as a section here instead of its own page.
@@ -341,6 +352,38 @@ export default function ClaimValidationPage() {
     } finally {
       setDocLoading(false);
     }
+  }
+
+  // Fills the LAST claim row with what the upload found — only codes the
+  // AI marked "supported" (never the "possible/needs more documentation"
+  // ones, since those aren't confirmed). Only touches empty fields, never
+  // overwrites something the user already typed in manually.
+  function applyDocResultToForm() {
+    if (!docResult) return;
+    const supportedCodes = docResult.supported_codes.map((c) => c.code_hint).filter(Boolean);
+    const lastIdx = rows.length - 1;
+    const updated = { ...rows[lastIdx] };
+
+    if (docResult.suggestedDos && !updated.dosFrom) {
+      updated.dosFrom = docResult.suggestedDos;
+      if (!updated.dosTo) updated.dosTo = docResult.suggestedDos;
+    }
+
+    if (docResult.codeSystem === "ICD-10") {
+      const dx = [...updated.diagnosisCodes];
+      let fillIdx = 0;
+      for (const code of supportedCodes) {
+        while (fillIdx < 8 && dx[fillIdx]) fillIdx++;
+        if (fillIdx >= 8) break;
+        dx[fillIdx] = code;
+        fillIdx++;
+      }
+      updated.diagnosisCodes = dx;
+    } else if (docResult.codeSystem === "HCPCS" && !updated.procedureSupply && supportedCodes.length > 0) {
+      updated.procedureSupply = supportedCodes[0];
+    }
+
+    updateRow(lastIdx, updated);
   }
 
   async function onValidate(e: React.FormEvent) {
@@ -545,6 +588,16 @@ export default function ClaimValidationPage() {
                 {docResult.truncated && " (long document — analysis based on the first portion)"}
               </div>
             )}
+            {docResult.supported_codes.length > 0 && docResult.codeSystem !== "CPT" && (
+              <button
+                type="button"
+                onClick={applyDocResultToForm}
+                className="rounded-md px-3 py-1.5 text-xs font-medium text-white"
+                style={{ backgroundColor: BRAND }}
+              >
+                ↓ Apply These Codes to the Claim Form Below
+              </button>
+            )}
             {docResult.overall_note && (
               <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: "#14457B" }}>
                 {docResult.overall_note}
@@ -580,6 +633,21 @@ export default function ClaimValidationPage() {
           </div>
         )}
       </div>
+
+      {guidelineFlags.length > 0 && (
+        <div className="space-y-2">
+          {guidelineFlags.map((rule) => (
+            <div key={rule.id} className="rounded-lg border p-3 text-xs" style={{ borderColor: AMBER, backgroundColor: AMBER_LIGHT, color: "#78350F" }}>
+              <div className="font-semibold mb-1" style={{ color: AMBER }}>
+                📋 Coding Guideline — {rule.label}
+              </div>
+              <p>{rule.guidance}</p>
+              <p className="mt-1"><b>Consider:</b> {rule.suggestedCodeRange}</p>
+              <p className="mt-1 italic text-[10px] opacity-75">{rule.citation} — verify the exact code against current documentation before use.</p>
+            </div>
+          ))}
+        </div>
+      )}
 
       <form onSubmit={onValidate} className="space-y-4">
         <div className="flex justify-end">

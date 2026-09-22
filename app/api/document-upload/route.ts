@@ -20,6 +20,28 @@ type CheckResult = {
   overall_note: string;
 };
 
+// Lightweight, regex-based date extraction — deliberately NOT asked of
+// the AI, since a simple pattern match against the actual document text
+// is more reliable than hoping the model formats a date consistently.
+function extractDateOfService(text: string): string | null {
+  const patterns = [
+    /date\s+of\s+service\s*:?\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+    /\bDOS\s*:?\s*(\d{1,2}\/\d{1,2}\/\d{2,4})/i,
+  ];
+  for (const p of patterns) {
+    const m = text.match(p);
+    if (m) return normalizeDate(m[1]);
+  }
+  return null;
+}
+function normalizeDate(raw: string): string | null {
+  const m = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (!m) return null;
+  let [, mo, day, yr] = m;
+  if (yr.length === 2) yr = (parseInt(yr, 10) > 50 ? "19" : "20") + yr;
+  return `${yr}-${mo.padStart(2, "0")}-${day.padStart(2, "0")}`;
+}
+
 function safeParseLlmJson(raw: string): CheckResult | null {
   let s = raw.trim();
   s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
@@ -114,5 +136,7 @@ export async function POST(req: NextRequest) {
     extractedCharCount: extractedText.length,
     truncated,
     fileName: file.name,
+    suggestedDos: extractDateOfService(extractedText),
+    codeSystem,
   });
 }
