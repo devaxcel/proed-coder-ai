@@ -65,6 +65,11 @@ export default function AwvMeasuresPanel() {
   const [selected, setSelected] = useState<Record<SelectionKey, boolean>>({});
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
   const [query, setQuery] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [dos, setDos] = useState("");
+  const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState<string | null>(null);
 
   function toggleSection(key: string) {
     setOpenSections((prev) => {
@@ -101,7 +106,52 @@ export default function AwvMeasuresPanel() {
       })
     : AWV_MEASURE_SECTIONS;
 
-  const totalSelected = Object.values(selected).filter(Boolean).length;
+  // The actual list of everything currently selected, across every
+  // section — this is what "clicking a code" is FOR: it builds this
+  // list, which you can review below and export as a document.
+  type SelectedListItem = { sectionTitle: string; code: string; description: string; dx: string };
+  const selectedList: SelectedListItem[] = [];
+  for (const section of AWV_MEASURE_SECTIONS) {
+    section.groups.forEach((group, gi) => {
+      group.items.forEach((item, ii) => {
+        if (selected[itemKey(section.key, gi, ii)]) {
+          selectedList.push({ sectionTitle: section.title, code: item.code, description: item.description, dx: item.dx ?? "" });
+        }
+      });
+    });
+  }
+  const totalSelected = selectedList.length;
+
+  async function onExport() {
+    if (totalSelected === 0) return;
+    setExporting(true);
+    setExportErr(null);
+    try {
+      const r = await fetch("/api/annual-wellness/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientName, accountNumber, dos, items: selectedList }),
+      });
+      if (!r.ok) {
+        const json = await r.json().catch(() => ({}));
+        setExportErr(json.error ?? "Export failed");
+        return;
+      }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ProEdCS-AWV-Measures-${Date.now()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setExportErr(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <div className="space-y-3">
@@ -114,6 +164,26 @@ export default function AwvMeasuresPanel() {
             {totalSelected} code{totalSelected !== 1 ? "s" : ""} selected
           </span>
         )}
+      </div>
+
+      <p className="text-xs text-slate-500">
+        Click a code below to mark it as applicable for this visit — clicking builds the summary list at the bottom of this panel, which you can then export as a document.
+      </p>
+
+      {/* Patient context for the export — same pattern as MEAT HCC */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-lg border p-3" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">Patient Name</label>
+          <input value={patientName} onChange={(e) => setPatientName(e.target.value)} placeholder="Last, First" className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">Account Number</label>
+          <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="MRN / Account #" className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        </div>
+        <div>
+          <label className="block text-[11px] font-medium text-slate-600 mb-1">Date of Service</label>
+          <input type="date" value={dos} onChange={(e) => setDos(e.target.value)} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
+        </div>
       </div>
 
       <input
@@ -191,6 +261,38 @@ export default function AwvMeasuresPanel() {
           <p className="text-sm text-slate-500">No sections match &ldquo;{query}&rdquo;.</p>
         )}
       </div>
+
+      {/* Live summary of everything selected — this is the actual
+          "output" of clicking codes, plus the export action. */}
+      {totalSelected > 0 && (
+        <div className="rounded-lg border p-4 space-y-3" style={{ borderColor: TEAL }}>
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <h3 className="text-sm font-bold" style={{ color: TEAL_DARK }}>
+              Selected Codes Summary ({totalSelected})
+            </h3>
+            <button
+              type="button"
+              onClick={onExport}
+              disabled={exporting}
+              className="rounded-md px-4 py-2 text-xs font-medium text-white disabled:opacity-50"
+              style={{ backgroundColor: TEAL }}
+            >
+              {exporting ? "Generating…" : "⬇ Export as DOCX"}
+            </button>
+          </div>
+          {exportErr && <p className="text-xs text-red-600">{exportErr}</p>}
+          <div className="space-y-1.5 max-h-64 overflow-y-auto">
+            {selectedList.map((item, i) => (
+              <div key={i} className="rounded-md p-2 text-xs" style={{ backgroundColor: TEAL_LIGHT }}>
+                <span className="font-semibold" style={{ color: TEAL_DARK }}>{item.code}</span>
+                <span className="text-slate-500"> — {item.sectionTitle} — </span>
+                <span className="text-slate-700">{item.description}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

@@ -72,6 +72,7 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/api/policies", key: "policies-qa" },
   { prefix: "/policies", key: "policies-qa" },
 
+  { prefix: "/api/annual-wellness", key: "annual-wellness" },
   { prefix: "/annual-wellness", key: "annual-wellness" },
 
   { prefix: "/api/meat-hcc", key: "meat-hcc" },
