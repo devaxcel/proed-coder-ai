@@ -263,6 +263,7 @@ export default function ClaimValidationPage() {
   const [docErr, setDocErr] = useState<string | null>(null);
   const [docDragActive, setDocDragActive] = useState(false);
   const docFileInputRef = useRef<HTMLInputElement>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   useEffect(() => {
     setFavorites(loadFavorites());
@@ -509,130 +510,134 @@ export default function ClaimValidationPage() {
         )}
       </div>
 
-      {/* Document Upload — merged in from the former standalone tab.
-          A separate, alternative way to get coding suggestions: upload a
-          chart note/record instead of manually filling in claim lines. */}
-      <div className="rounded-lg border p-4 space-y-3" style={{ borderColor: BRAND }}>
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-sm font-semibold" style={{ color: BRAND }}>📄 Or Upload a Document</span>
-          <div className="flex gap-2">
-            {(["ICD-10", "HCPCS", "CPT"] as const).map((sys) => (
-              <button
-                key={sys}
-                type="button"
-                onClick={() => setDocCodeSystem(sys)}
-                className="rounded-md px-3 py-1.5 text-xs font-medium border"
+      {showUploadModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(15, 23, 42, 0.5)" }}>
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-lg bg-white p-4 space-y-3 shadow-xl">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <span className="text-sm font-semibold" style={{ color: BRAND }}>📄 Upload a Document</span>
+              <button type="button" onClick={() => setShowUploadModal(false)} className="text-slate-400 hover:text-slate-700 text-lg leading-none" aria-label="Close">
+                ✕
+              </button>
+            </div>
+            <div className="flex gap-2">
+              {(["ICD-10", "HCPCS", "CPT"] as const).map((sys) => (
+                <button
+                  key={sys}
+                  type="button"
+                  onClick={() => setDocCodeSystem(sys)}
+                  className="rounded-md px-3 py-1.5 text-xs font-medium border"
+                  style={{
+                    borderColor: BRAND,
+                    backgroundColor: docCodeSystem === sys ? BRAND : "white",
+                    color: docCodeSystem === sys ? "white" : BRAND,
+                  }}
+                >
+                  {sys}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-slate-500">
+              Upload a chart note or medical record (PDF or text) instead of manually entering claim lines — flags likely codes and what documentation is missing to support them.
+            </p>
+
+            {docCodeSystem === "CPT" && (
+              <div className="rounded-md border border-amber-300 p-2 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
+                ⚠️ Placeholder mode — pending AMA CPT license. Shows plain-English service categories only, never a specific CPT code number.
+              </div>
+            )}
+
+            <form onSubmit={onDocAnalyze} className="space-y-2">
+              <div
+                onDragOver={(e) => { e.preventDefault(); setDocDragActive(true); }}
+                onDragLeave={() => setDocDragActive(false)}
+                onDrop={handleDocDrop}
+                onClick={() => docFileInputRef.current?.click()}
+                className="rounded-md border-2 border-dashed px-4 py-6 text-center cursor-pointer transition"
                 style={{
-                  borderColor: BRAND,
-                  backgroundColor: docCodeSystem === sys ? BRAND : "white",
-                  color: docCodeSystem === sys ? "white" : BRAND,
+                  borderColor: docDragActive ? BRAND : "#CBD5E1",
+                  backgroundColor: docDragActive ? CARD : "white",
                 }}
               >
-                {sys}
-              </button>
-            ))}
-          </div>
-        </div>
-        <p className="text-xs text-slate-500">
-          Upload a chart note or medical record (PDF or text) instead of manually entering claim lines below — flags likely codes and what documentation is missing to support them.
-        </p>
-
-        {docCodeSystem === "CPT" && (
-          <div className="rounded-md border border-amber-300 p-2 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
-            ⚠️ Placeholder mode — pending AMA CPT license. Shows plain-English service categories only, never a specific CPT code number.
-          </div>
-        )}
-
-        <form onSubmit={onDocAnalyze} className="space-y-2">
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDocDragActive(true); }}
-            onDragLeave={() => setDocDragActive(false)}
-            onDrop={handleDocDrop}
-            onClick={() => docFileInputRef.current?.click()}
-            className="rounded-md border-2 border-dashed px-4 py-6 text-center cursor-pointer transition"
-            style={{
-              borderColor: docDragActive ? BRAND : "#CBD5E1",
-              backgroundColor: docDragActive ? CARD : "white",
-            }}
-          >
-            <input
-              ref={docFileInputRef}
-              type="file"
-              accept=".pdf,.txt,text/plain,application/pdf"
-              className="hidden"
-              onChange={(e) => handleDocFileSelect(e.target.files?.[0] ?? null)}
-            />
-            {docFile ? (
-              <div className="text-sm font-medium text-slate-800">📄 {docFile.name}</div>
-            ) : (
-              <div className="text-sm" style={{ color: BRAND }}>Click to upload, or drag and drop a PDF or text file</div>
-            )}
-          </div>
-          <button
-            type="submit"
-            disabled={docLoading || !docFile}
-            className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-            style={{ backgroundColor: BRAND }}
-          >
-            {docLoading ? "Extracting & analyzing…" : `Check ${docCodeSystem} Documentation`}
-          </button>
-        </form>
-
-        {docErr && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">{docErr}</div>}
-
-        {docResult && (
-          <div className="space-y-3 pt-2 border-t border-slate-100">
-            {docResult.fileName && (
-              <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-600">
-                Extracted {docResult.extractedCharCount?.toLocaleString()} characters from <b>{docResult.fileName}</b>
-                {docResult.truncated && " (long document — analysis based on the first portion)"}
+                <input
+                  ref={docFileInputRef}
+                  type="file"
+                  accept=".pdf,.txt,text/plain,application/pdf"
+                  className="hidden"
+                  onChange={(e) => handleDocFileSelect(e.target.files?.[0] ?? null)}
+                />
+                {docFile ? (
+                  <div className="text-sm font-medium text-slate-800">📄 {docFile.name}</div>
+                ) : (
+                  <div className="text-sm" style={{ color: BRAND }}>Click to upload, or drag and drop a PDF or text file</div>
+                )}
               </div>
-            )}
-            {docResult.supported_codes.length > 0 && docResult.codeSystem !== "CPT" && (
               <button
-                type="button"
-                onClick={applyDocResultToForm}
-                className="rounded-md px-3 py-1.5 text-xs font-medium text-white"
+                type="submit"
+                disabled={docLoading || !docFile}
+                className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                 style={{ backgroundColor: BRAND }}
               >
-                ↓ Apply These Codes to the Claim Form Below
+                {docLoading ? "Extracting & analyzing…" : `Check ${docCodeSystem} Documentation`}
               </button>
-            )}
-            {docResult.overall_note && (
-              <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: "#14457B" }}>
-                {docResult.overall_note}
-              </div>
-            )}
-            {docResult.supported_codes.length > 0 && (
-              <div>
-                <div className="text-xs font-semibold mb-1" style={{ color: BRAND }}>✅ Supported by documentation</div>
-                <div className="space-y-1.5">
-                  {docResult.supported_codes.map((c, i) => (
-                    <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND }}>
-                      <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
-                      <div className="italic text-slate-600 mt-0.5">&ldquo;{c.evidence}&rdquo;</div>
+            </form>
+
+            {docErr && <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">{docErr}</div>}
+
+            {docResult && (
+              <div className="space-y-3 pt-2 border-t border-slate-100">
+                {docResult.fileName && (
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-2 text-xs text-slate-600">
+                    Extracted {docResult.extractedCharCount?.toLocaleString()} characters from <b>{docResult.fileName}</b>
+                    {docResult.truncated && " (long document — analysis based on the first portion)"}
+                  </div>
+                )}
+                {docResult.supported_codes.length > 0 && docResult.codeSystem !== "CPT" && (
+                  <button
+                    type="button"
+                    onClick={() => { applyDocResultToForm(); setShowUploadModal(false); }}
+                    className="rounded-md px-3 py-1.5 text-xs font-medium text-white"
+                    style={{ backgroundColor: BRAND }}
+                  >
+                    ↓ Apply These Codes to the Claim Form
+                  </button>
+                )}
+                {docResult.overall_note && (
+                  <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: "#14457B" }}>
+                    {docResult.overall_note}
+                  </div>
+                )}
+                {docResult.supported_codes.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1" style={{ color: BRAND }}>✅ Supported by documentation</div>
+                    <div className="space-y-1.5">
+                      {docResult.supported_codes.map((c, i) => (
+                        <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND }}>
+                          <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
+                          <div className="italic text-slate-600 mt-0.5">&ldquo;{c.evidence}&rdquo;</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            {docResult.possible_codes_needing_more_documentation.length > 0 && (
-              <div>
-                <div className="text-xs font-semibold mb-1" style={{ color: AMBER }}>⚠️ Possible — needs more documentation</div>
-                <div className="space-y-1.5">
-                  {docResult.possible_codes_needing_more_documentation.map((c, i) => (
-                    <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: AMBER, backgroundColor: AMBER_LIGHT }}>
-                      <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
-                      <div className="text-slate-700 mt-0.5">Mentioned: {c.why_flagged}</div>
-                      <div className="font-medium mt-0.5" style={{ color: AMBER }}>Documentation needed: {c.documentation_needed}</div>
+                  </div>
+                )}
+                {docResult.possible_codes_needing_more_documentation.length > 0 && (
+                  <div>
+                    <div className="text-xs font-semibold mb-1" style={{ color: AMBER }}>⚠️ Possible — needs more documentation</div>
+                    <div className="space-y-1.5">
+                      {docResult.possible_codes_needing_more_documentation.map((c, i) => (
+                        <div key={i} className="rounded-md border p-2 text-xs" style={{ borderColor: AMBER, backgroundColor: AMBER_LIGHT }}>
+                          <div className="font-medium text-slate-900">{c.code_hint} — {c.description}</div>
+                          <div className="text-slate-700 mt-0.5">Mentioned: {c.why_flagged}</div>
+                          <div className="font-medium mt-0.5" style={{ color: AMBER }}>Documentation needed: {c.documentation_needed}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {guidelineFlags.length > 0 && (
         <div className="space-y-2">
@@ -676,7 +681,7 @@ export default function ClaimValidationPage() {
           + Add Line
         </button>
 
-        <div>
+        <div className="flex items-center gap-2">
           <button
             type="submit"
             disabled={loading}
@@ -684,6 +689,14 @@ export default function ClaimValidationPage() {
             style={{ backgroundColor: BRAND }}
           >
             {loading ? "Validating…" : "Validate Claim"}
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowUploadModal(true)}
+            className="rounded-md px-4 py-3 text-sm font-medium border"
+            style={{ borderColor: BRAND, color: BRAND, backgroundColor: "white" }}
+          >
+            📄 Upload Document
           </button>
         </div>
       </form>
