@@ -128,7 +128,7 @@ export default function UserManagementClient({
           <button
             onClick={() => setShowAddForm((v) => !v)}
             className="rounded-md px-4 py-2 text-sm font-semibold text-navy"
-            style={{ backgroundColor: "#EFC932" }}
+            style={{ backgroundColor: THEME.secondary }}
           >
             {showAddForm ? "Cancel" : "+ Add User"}
           </button>

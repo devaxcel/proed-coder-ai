@@ -1,8 +1,11 @@
 import type { Config } from "tailwindcss";
 
 /**
- * ProEdCS visual identity — confirmed brand color from proedcs.com:
- * background #14457B, white text, Quicksand for headings.
+ * ProEdCS visual identity — updated to the new PROED Consulting
+ * "Compliance & Privacy" logo: deep navy #0B1E45 + gold #D4AF37.
+ * Colors here are kept in sync by hand with lib/theme.ts (THEME.primary /
+ * THEME.secondary) — Tailwind config can't import a TS runtime value
+ * directly, so if the brand colors change again, update both files.
  */
 
 const config: Config = {
@@ -11,30 +14,30 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          50:  "#e7ecf4",
-          100: "#cfd9e9",
-          200: "#9fb3d3",
-          300: "#6f8dbd",
-          400: "#3f67a7",
-          500: "#14457b", // ProEdCS confirmed brand color
-          600: "#113a68",
-          700: "#0e2f55",
-          800: "#0a2442",
-          900: "#07192f",
+          50:  "#f0f2f4",
+          100: "#dfe2e7",
+          200: "#b1b7c3",
+          300: "#838ca0",
+          400: "#485674",
+          500: "#0b1e45", // ProEd primary — matches THEME.primary
+          600: "#0a1a3c",
+          700: "#081632",
+          800: "#071229",
+          900: "#050d1f",
         },
         navy: {
-          DEFAULT: "#14457b",
-          light: "#3f67a7",
-          dark: "#0a2442",
+          DEFAULT: "#0b1e45",
+          light: "#485674",
+          dark: "#071229",
         },
         accent: {
-          yellow: "#efc932",
-          yellowDark: "#c9a81f",
+          yellow: "#d4af37",     // ProEd secondary (gold) — matches THEME.secondary
+          yellowDark: "#b8912a",
         },
         surface: {
           DEFAULT: "#ffffff",
-          soft: "#e7ecf4",
-          softer: "#f2f5fa",
+          soft: "#ebedf0",       // matches THEME.primaryLight
+          softer: "#f4f5f7",
         },
       },
       fontFamily: {

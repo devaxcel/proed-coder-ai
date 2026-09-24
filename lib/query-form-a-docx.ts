@@ -30,7 +30,7 @@ const BRAND_GRAY = "4B5563";      // secondary text
 const LIGHT_GRAY = "6B7280";      // tertiary / caption
 const CARD_BG = THEME_HEX.primaryLight;         // subtle surface tint of brand color
 const TABLE_HEADER_BG = THEME_HEX.primaryLight; // brand tint
-const YELLOW_ACCENT = "EFC932";   // ProEdCS accent yellow
+const YELLOW_ACCENT = THEME_HEX.secondary;   // ProEd accent gold
 
 // Unicode ballot symbols (matches ProEd's use of ☐ and ☑)
 const CHECKBOX_EMPTY = "☐";
