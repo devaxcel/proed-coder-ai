@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { AWV_MEASURE_SECTIONS, type MeasureItem } from "@/lib/awv-measures-data";
+import { THEME } from "@/lib/theme";
 
-const TEAL = "#14457B";
-const TEAL_LIGHT = "#E7ECF4";
-const TEAL_DARK = "#14457B";
+const TEAL = THEME.primary;
+const TEAL_LIGHT = THEME.primaryLight;
+const TEAL_DARK = THEME.primary;
 const AMBER = "#B45309";
 const AMBER_LIGHT = "#FEF3C7";
 

@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { AIOutputDisclaimer } from "@/lib/disclaimers";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
-const CARD = "#E7ECF4";
+const BRAND = THEME.primary;
+const CARD = THEME.primaryLight;
 const AMBER = "#B45309";
 const AMBER_LIGHT = "#FEF3C7";
 

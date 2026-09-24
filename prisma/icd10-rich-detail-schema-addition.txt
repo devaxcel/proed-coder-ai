@@ -1,0 +1,36 @@
+=====================================================================
+SCHEMA ADDITION — paste onto the END of prisma/schema.prisma.
+New, separate table — does not touch any existing ICD-10 tables.
+=====================================================================
+
+model Icd10RichDetail {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  parentCode  String?
+  description String
+
+  includes          String[]
+  excludes1         String[]
+  excludes2         String[]
+  codeFirst         String[]
+  useAdditionalCode String[]
+  codeAlso          String[]
+  inclusionTerms    String[]
+  sevenChrNote      String[]
+
+  isCategory  Boolean  @default(false)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([code])
+  @@index([parentCode])
+}
+
+After saving, run:
+  npx prisma generate
+  npm run db:push
+
+Verify it actually took (should NOT say "already in sync"):
+  Select-String -Path "prisma\schema.prisma" -Pattern "Icd10RichDetail"
+=====================================================================

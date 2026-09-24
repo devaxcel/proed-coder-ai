@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
-const CARD = "#E7ECF4";
+const BRAND = THEME.primary;
+const CARD = THEME.primaryLight;
 
 type Row = { code: string; desc: string; dx: string; status: string; note: string };
 type Category = { name: string; rows: Row[] };

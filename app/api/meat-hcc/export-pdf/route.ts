@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { readFile } from "fs/promises";
 import path from "path";
+import { THEME, hexToRgbFloat } from "@/lib/theme";
 
 export const runtime = "nodejs";
 
@@ -75,9 +76,9 @@ export async function POST(req: NextRequest) {
   }
   const { PDFDocument, StandardFonts, rgb } = pdfLib;
 
-  const TEAL = rgb(0.078, 0.271, 0.482); // #14457B (ProEdCS brand)
-  const TEAL_DARK = rgb(0.078, 0.271, 0.482); // #14457B
-  const TEAL_LIGHT = rgb(0.906, 0.925, 0.957); // #E7ECF4
+  const TEAL = rgb(...hexToRgbFloat(THEME.primary));
+  const TEAL_DARK = rgb(...hexToRgbFloat(THEME.primary));
+  const TEAL_LIGHT = rgb(...hexToRgbFloat(THEME.primaryLight));
   const WHITE = rgb(1, 1, 1);
   const DARK = rgb(0.122, 0.161, 0.216); // #1F2937
   const GRAY = rgb(0.42, 0.447, 0.502);

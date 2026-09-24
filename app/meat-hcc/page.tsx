@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { THEME } from "@/lib/theme";
 
 type ChecklistState = Record<string, boolean>;
 
-const TEAL = "#14457B";
-const TEAL_LIGHT = "#E7ECF4";
-const TEAL_DARK = "#14457B";
+const TEAL = THEME.primary;
+const TEAL_LIGHT = THEME.primaryLight;
+const TEAL_DARK = THEME.primary;
 
 const MONITORED = [
   { id: "m1", label: "Vital signs reviewed (BP, weight, O2 sat, HR)", ex: "e.g., BP 142/90 noted; weight stable" },

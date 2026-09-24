@@ -8,6 +8,7 @@
 
 import type { FormAOutput, QueryFormHeaderInputs } from "./query-form-prompts";
 import { getLogoImageRun } from "./proed-logo-docx";
+import { THEME_HEX } from "@/lib/theme";
 
 // docx is CJS — unwrap default at call site
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,14 +22,14 @@ async function loadDocx() {
 }
 
 const FONT = "Calibri";
-// ProEdCS confirmed brand color — #14457B, white text, per proedcs.com
-const BRAND_BLUE = "14457B";      // ProEdCS primary
-const BRAND_NAVY = "14457B";      // same color used for letterhead/top bar
+// Brand color sourced from THEME (lib/theme.ts), no longer hardcoded
+const BRAND_BLUE = THEME_HEX.primary;      // ProEdCS primary
+const BRAND_NAVY = THEME_HEX.primary;      // same color used for letterhead/top bar
 const BRAND_DARK = "1F2937";      // body text
 const BRAND_GRAY = "4B5563";      // secondary text
 const LIGHT_GRAY = "6B7280";      // tertiary / caption
-const CARD_BG = "E7ECF4";         // subtle surface tint of brand color
-const TABLE_HEADER_BG = "E7ECF4"; // brand tint
+const CARD_BG = THEME_HEX.primaryLight;         // subtle surface tint of brand color
+const TABLE_HEADER_BG = THEME_HEX.primaryLight; // brand tint
 const YELLOW_ACCENT = "EFC932";   // ProEdCS accent yellow
 
 // Unicode ballot symbols (matches ProEd's use of ☐ and ☑)

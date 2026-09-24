@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getLogoImageRun } from "@/lib/proed-logo-docx";
+import { THEME_HEX } from "@/lib/theme";
 
 export const runtime = "nodejs";
 
@@ -19,10 +20,10 @@ const Body = z.object({
 });
 
 const FONT = "Calibri";
-const BLUE = "14457B";
+const BLUE = THEME_HEX.primary;
 const GRAY = "4B5563";
 const DARK = "1F2937";
-const CARD = "E7ECF4";
+const CARD = THEME_HEX.primaryLight;
 
 export async function POST(req: NextRequest) {
   const parsed = Body.safeParse(await req.json());

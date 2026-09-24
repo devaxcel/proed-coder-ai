@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { THEME } from "@/lib/theme";
 
-const TEAL = "#14457B";
-const TEAL_LIGHT = "#E7ECF4";
-const TEAL_DARK = "#14457B";
+const TEAL = THEME.primary;
+const TEAL_LIGHT = THEME.primaryLight;
+const TEAL_DARK = THEME.primary;
 const AMBER = "#B45309";
 const AMBER_LIGHT = "#FEF3C7";
 

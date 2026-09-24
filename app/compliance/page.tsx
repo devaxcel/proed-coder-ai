@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
-const CARD = "#E7ECF4";
+const BRAND = THEME.primary;
+const CARD = THEME.primaryLight;
 
 type Doc = {
   id: string;

@@ -1,6 +1,8 @@
 "use client";
 
-const BRAND = "#14457B";
+import { THEME } from "@/lib/theme";
+
+const BRAND = THEME.primary;
 
 export default function TopBar({
   onMenuClick,

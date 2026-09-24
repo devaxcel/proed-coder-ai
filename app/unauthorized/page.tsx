@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { THEME } from "@/lib/theme";
 
 export default function UnauthorizedPage() {
   return (
@@ -8,7 +9,7 @@ export default function UnauthorizedPage() {
       <p className="text-sm text-slate-500 max-w-sm mb-4">
         Your account&apos;s role doesn&apos;t currently include this tool. If you believe this is incorrect, contact your ProEd administrator.
       </p>
-      <Link href="/" className="text-sm font-medium" style={{ color: "#14457B" }}>
+      <Link href="/" className="text-sm font-medium" style={{ color: THEME.primary }}>
         ← Back to Codes Search
       </Link>
     </div>

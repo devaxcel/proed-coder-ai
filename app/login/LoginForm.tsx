@@ -3,8 +3,9 @@
 import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
+const BRAND = THEME.primary;
 
 export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
   const [email, setEmail] = useState("");

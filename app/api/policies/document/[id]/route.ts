@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getLogoImageRun } from "@/lib/proed-logo-docx";
+import { THEME_HEX } from "@/lib/theme";
 
 export const runtime = "nodejs";
 
@@ -52,9 +53,9 @@ export async function GET(
   const logoRun = await getLogoImageRun(docxLib);
 
   const font = "Calibri";
-  // ProEdCS confirmed brand color — #14457B, white text, per proedcs.com
-  const BRAND_BLUE = "14457B";
-  const BRAND_NAVY = "14457B";
+  // Brand color sourced from THEME (lib/theme.ts), no longer hardcoded
+  const BRAND_BLUE = THEME_HEX.primary;
+  const BRAND_NAVY = THEME_HEX.primary;
   const BRAND_GRAY = "4B5563";
   const LIGHT_GRAY = "6B7280";
 

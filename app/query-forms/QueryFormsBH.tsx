@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
+const BRAND = THEME.primary;
 
 type FormLetter = "B" | "C" | "D" | "E" | "F" | "G" | "H";
 

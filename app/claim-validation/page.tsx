@@ -3,14 +3,15 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { AIOutputDisclaimer, NoPHIWarning } from "@/lib/disclaimers";
 import { checkWithConventionRules, type WithConventionRule } from "@/lib/icd10-with-convention-rules";
+import { THEME } from "@/lib/theme";
 
-const BRAND = "#14457B";
-const CARD = "#E7ECF4";
+const BRAND = THEME.primary;
+const CARD = THEME.primaryLight;
 const AMBER = "#B45309";
 const AMBER_LIGHT = "#FEF3C7";
 
 const SEVERITY_STYLE: Record<string, { bg: string; text: string; label: string }> = {
-  info: { bg: "#E7ECF4", text: "#14457B", label: "Info" },
+  info: { bg: THEME.primaryLight, text: THEME.primary, label: "Info" },
   review_needed: { bg: "#FEF3C7", text: "#B45309", label: "Review Needed" },
   likely_issue: { bg: "#FEE2E2", text: "#991B1B", label: "Likely Issue" },
 };
@@ -602,7 +603,7 @@ export default function ClaimValidationPage() {
                   </button>
                 )}
                 {docResult.overall_note && (
-                  <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: "#14457B" }}>
+                  <div className="rounded-md border p-2 text-xs" style={{ borderColor: BRAND, backgroundColor: CARD, color: THEME.primary }}>
                     {docResult.overall_note}
                   </div>
                 )}

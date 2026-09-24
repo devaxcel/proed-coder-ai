@@ -9,6 +9,7 @@
 import type { FormBHOutput } from "./query-form-bh-prompts";
 import type { QueryFormHeaderInputs } from "./query-form-prompts";
 import { getLogoImageRun } from "./proed-logo-docx";
+import { THEME_HEX } from "@/lib/theme";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let docxLib: any = null;
@@ -21,11 +22,11 @@ async function loadDocx() {
 }
 
 const FONT = "Calibri";
-const BRAND = "14457B";
+const BRAND = THEME_HEX.primary;
 const GRAY = "4B5563";
 const LIGHT = "6B7280";
 const DARK = "1F2937";
-const CARD = "E7ECF4";
+const CARD = THEME_HEX.primaryLight;
 
 const CHECKBOX_EMPTY = "☐";
 
