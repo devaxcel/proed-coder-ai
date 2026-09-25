@@ -117,7 +117,7 @@ export default function Sidebar({
           <div className="rounded-md bg-white p-2">
             {/* Plain img tag, not next/image — avoids Turbopack's dev-mode
                 image optimizer issues with locally-added static assets. */}
-            <img src="/proed-logo-sidebar.png" alt="ProEd Consulting" className="w-full h-auto" />
+            <img src="/proed-logo.png" alt="ProEd Consulting" className="w-full h-auto" />
           </div>
         </Link>
       </div>
