@@ -10,7 +10,7 @@ type NavGroup = { label: string; links: NavLink[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Code Lookup & Reference",
+    label: "Code Lookup",
     links: [
       { href: "/", label: "Codes Search", key: "codes-search" },
       { href: "/icd10-index", label: "ICD-10 Search", key: "icd10-index" },
