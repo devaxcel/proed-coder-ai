@@ -10,6 +10,7 @@ const SelectedItem = z.object({
   code: z.string(),
   description: z.string(),
   dx: z.string().optional().default(""),
+  isSelected: z.boolean().optional(),
 });
 
 const Body = z.object({
@@ -17,6 +18,7 @@ const Body = z.object({
   accountNumber: z.string().optional().default(""),
   dos: z.string().optional().default(""),
   items: z.array(SelectedItem).default([]),
+  fullReference: z.boolean().optional().default(false),
 });
 
 const FONT = "Calibri";
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  const { patientName, accountNumber, dos, items } = parsed.data;
+  const { patientName, accountNumber, dos, items, fullReference } = parsed.data;
 
   if (items.length === 0) {
     return NextResponse.json({ error: "No codes selected — select at least one code before exporting." }, { status: 400 });
@@ -82,6 +84,7 @@ export async function POST(req: NextRequest) {
                 shading: { type: ShadingType.CLEAR, fill: i % 2 === 0 ? "FFFFFF" : CARD, color: "auto" },
                 children: [
                   p([
+                    ...(fullReference ? [tr(item.isSelected ? "☑  " : "☐  ", { bold: true, size: 20, color: item.isSelected ? BLUE : GRAY })] : []),
                     tr(item.code + "  ", { bold: true, size: 20, color: BLUE }),
                     tr(item.description, { size: 20 }),
                     ...(item.dx ? [tr("  (Dx: " + item.dx + ")", { size: 18, color: GRAY })] : []),

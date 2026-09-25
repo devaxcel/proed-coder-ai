@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AWV_MEASURE_SECTIONS, type MeasureItem } from "@/lib/awv-measures-data";
+import { AWV_MEASURE_SECTIONS, type MeasureItem, lookupBmiDxCodes, bmiToMipsIndex, systolicToIndex, diastolicToIndex } from "@/lib/awv-measures-data";
 import { THEME } from "@/lib/theme";
 
 const TEAL = THEME.primary;
@@ -72,6 +72,38 @@ export default function AwvMeasuresPanel() {
   const [exporting, setExporting] = useState(false);
   const [exportErr, setExportErr] = useState<string | null>(null);
 
+  // BMI numeric input — auto-computes Z68.x/E66.x diagnosis codes AND
+  // auto-selects the matching MIPS chip (group index 1 in the "bmi"
+  // section), per Lupita's request to merge the old BMI lookup in here.
+  const [bmiInput, setBmiInput] = useState("");
+  const bmiValue = parseFloat(bmiInput);
+  const bmiDxResult = !isNaN(bmiValue) && bmiValue > 0 ? lookupBmiDxCodes(bmiValue) : null;
+
+  function onBmiInputChange(value: string) {
+    setBmiInput(value);
+    const n = parseFloat(value);
+    const idx = bmiToMipsIndex(n);
+    if (idx !== null) {
+      selectSingle("bmi", 1, idx, 4);
+    }
+  }
+
+  // Blood Pressure numeric inputs — same auto-select pattern, for the
+  // Systolic (group 0) and Diastolic (group 1) groups independently.
+  const [systolicInput, setSystolicInput] = useState("");
+  const [diastolicInput, setDiastolicInput] = useState("");
+
+  function onSystolicChange(value: string) {
+    setSystolicInput(value);
+    const idx = systolicToIndex(parseFloat(value));
+    if (idx !== null) selectSingle("blood-pressure", 0, idx, 3);
+  }
+  function onDiastolicChange(value: string) {
+    setDiastolicInput(value);
+    const idx = diastolicToIndex(parseFloat(value));
+    if (idx !== null) selectSingle("blood-pressure", 1, idx, 3);
+  }
+
   function toggleSection(key: string) {
     setOpenSections((prev) => {
       const next = new Set(prev);
@@ -122,6 +154,55 @@ export default function AwvMeasuresPanel() {
     });
   }
   const totalSelected = selectedList.length;
+
+  // Full reference — every code in every section, with a selected flag,
+  // for the "export the whole page" request distinct from "export just
+  // what I clicked."
+  type FullRefItem = SelectedListItem & { isSelected: boolean };
+  const fullReferenceList: FullRefItem[] = [];
+  for (const section of AWV_MEASURE_SECTIONS) {
+    section.groups.forEach((group, gi) => {
+      group.items.forEach((item, ii) => {
+        fullReferenceList.push({
+          sectionTitle: section.title,
+          code: item.code,
+          description: item.description,
+          dx: item.dx ?? "",
+          isSelected: !!selected[itemKey(section.key, gi, ii)],
+        });
+      });
+    });
+  }
+
+  async function onExportFullReference() {
+    setExporting(true);
+    setExportErr(null);
+    try {
+      const r = await fetch("/api/annual-wellness/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ patientName, accountNumber, dos, items: fullReferenceList, fullReference: true }),
+      });
+      if (!r.ok) {
+        const json = await r.json().catch(() => ({}));
+        setExportErr(json.error ?? "Export failed");
+        return;
+      }
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ProEdCS-AWV-Full-Reference-${Date.now()}.docx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e: unknown) {
+      setExportErr(e instanceof Error ? e.message : "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   async function onExport() {
     if (totalSelected === 0) return;
@@ -194,6 +275,17 @@ export default function AwvMeasuresPanel() {
         className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
       />
 
+      <button
+        type="button"
+        onClick={onExportFullReference}
+        disabled={exporting}
+        className="rounded-md px-4 py-2 text-xs font-medium border disabled:opacity-50"
+        style={{ borderColor: TEAL, color: TEAL }}
+      >
+        {exporting ? "Generating…" : "⬇ Export Full Reference (All Codes, Every Section)"}
+      </button>
+      {exportErr && <p className="text-xs text-red-600">{exportErr}</p>}
+
       <div className="space-y-2">
         {filteredSections.map((section) => {
           const isOpen = openSections.has(section.key) || !!query.trim();
@@ -228,10 +320,83 @@ export default function AwvMeasuresPanel() {
                       {section.sectionNote}
                     </div>
                   )}
+
+                  {/* BMI numeric lookup — merged in from the old standalone
+                      BMI section per Lupita's request. Entering a value
+                      shows the Z68.x/E66.x diagnosis codes AND
+                      auto-selects the matching MIPS chip below. */}
+                  {section.key === "bmi" && (
+                    <div className="rounded-md border p-3" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
+                      <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Enter Patient BMI Value</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={bmiInput}
+                        onChange={(e) => onBmiInputChange(e.target.value)}
+                        placeholder="e.g., 30"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-32"
+                      />
+                      {bmiDxResult && (
+                        <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <div className="rounded-md border border-slate-200 bg-white p-2">
+                            <div className="text-[10px] font-semibold text-slate-500">BMI diagnosis code (Z68.x)</div>
+                            {bmiDxResult.z ? (
+                              <div className="text-sm"><b style={{ color: TEAL_DARK }}>{bmiDxResult.z.code}</b> — {bmiDxResult.z.category} ({bmiDxResult.z.label})</div>
+                            ) : <div className="text-xs text-slate-400">Out of table range</div>}
+                          </div>
+                          <div className="rounded-md border border-slate-200 bg-white p-2">
+                            <div className="text-[10px] font-semibold text-slate-500">Companion obesity code (E66.x), if clinically documented</div>
+                            {bmiDxResult.e ? (
+                              <div className="text-sm"><b>{bmiDxResult.e.code}</b> — {bmiDxResult.e.label}</div>
+                            ) : <div className="text-xs text-slate-400">Not applicable at this BMI</div>}
+                          </div>
+                        </div>
+                      )}
+                      <p className="mt-2 text-[10px] text-slate-500">
+                        Pair a Z-code with an E66.x code only when obesity is clinically documented by the provider — never assign E66.x from the BMI value alone.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Blood Pressure numeric lookup — same auto-select pattern */}
+                  {section.key === "blood-pressure" && (
+                    <div className="rounded-md border p-3 grid grid-cols-2 gap-3" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
+                      <div>
+                        <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Systolic (mmHg)</label>
+                        <input
+                          type="number"
+                          value={systolicInput}
+                          onChange={(e) => onSystolicChange(e.target.value)}
+                          placeholder="e.g., 128"
+                          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-full"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Diastolic (mmHg)</label>
+                        <input
+                          type="number"
+                          value={diastolicInput}
+                          onChange={(e) => onDiastolicChange(e.target.value)}
+                          placeholder="e.g., 82"
+                          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-full"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {section.groups.map((group, gi) => (
                     <div key={gi}>
                       {group.type === "single-select" && group.label && (
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{group.label} — select one</div>
+                        <div
+                          className={
+                            section.key === "blood-pressure"
+                              ? "text-xs font-bold uppercase tracking-wide mb-1.5"
+                              : "text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5"
+                          }
+                          style={section.key === "blood-pressure" ? { color: TEAL_DARK } : undefined}
+                        >
+                          {group.label} — select one
+                        </div>
                       )}
                       <div className={group.type === "single-select" ? "grid grid-cols-1 sm:grid-cols-2 gap-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
                         {group.items.map((item, ii) => {

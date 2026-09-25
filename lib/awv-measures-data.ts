@@ -203,8 +203,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
         items: [{ code: "99498", description: "ACP — Each additional 30 min; add-on to 99497", dx: "Z00.00", status: "IN OFFICE", note: "Add-on to 99497; document additional time" }],
       },
       {
-        type: "single-select",
-        label: "ACP outcome",
+        type: "checklist",
         items: [
           { code: "1158F", description: "MIPS — ACP Documented — Patient Wishes Confirmed (Wish Form)", dx: "Z00.00 / Z71.89", status: "IN OFFICE", note: "POS 11" },
           { code: "1157F", description: "ACP Documented — Surrogate Named / legal document stored", dx: "Z00.00 / Z71.89", status: "IN OFFICE", note: "POS 11" },
@@ -423,7 +422,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
   },
   {
     key: "retinopathy",
-    title: "Retinopathy / Glaucoma Examination Results",
+    title: "Retinopathy / Glaucoma Examination Results (After Study)",
     populationNote: "Specialist referral — after study, wait for report before reporting to CMS/NCQA",
     groups: [
       {
@@ -457,7 +456,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
   },
   {
     key: "glycemic-status",
-    title: "Glycemic Status",
+    title: "Glycemic Status (After Study)",
     populationNote: "GSD: 18–75",
     groups: [
       {
@@ -631,7 +630,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
   },
   {
     key: "dxa",
-    title: "DXA Bone Density",
+    title: "DXA Bone Density (After Study)",
     populationNote: "OSW: Women 65–75",
     groups: [
       {
@@ -645,7 +644,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
   },
   {
     key: "mammogram",
-    title: "Breast Cancer Mammogram Assessment",
+    title: "Breast Cancer Mammogram Assessment (After Study)",
     populationNote: "BCS-E: 50–74",
     groups: [
       {
@@ -669,7 +668,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
   },
   {
     key: "cervical-cancer",
-    title: "Cervical Cancer Screening",
+    title: "Cervical Cancer Screening (After Study)",
     populationNote: "CCS-E: 21–64",
     groups: [
       {
@@ -703,3 +702,76 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
     ],
   },
 ];
+
+// ---- BMI diagnosis-code lookup (Z68.x weight status + E66.x obesity) ----
+// Moved here from the old standalone Annual Wellness BMI section per
+// Lupita's request — she specifically liked this exact lookup and wanted
+// it merged into the unified measures panel rather than removed.
+export const BMI_DX_TABLE = [
+  { code: "Z68.1", range: [0, 19.9] as [number, number], label: "≤ 19.9", category: "Underweight" },
+  { code: "Z68.20", range: [20.0, 20.9] as [number, number], label: "20.0–20.9", category: "Normal weight" },
+  { code: "Z68.21", range: [21.0, 21.9] as [number, number], label: "21.0–21.9", category: "Normal weight" },
+  { code: "Z68.22", range: [22.0, 22.9] as [number, number], label: "22.0–22.9", category: "Normal weight" },
+  { code: "Z68.23", range: [23.0, 23.9] as [number, number], label: "23.0–23.9", category: "Normal weight" },
+  { code: "Z68.24", range: [24.0, 24.9] as [number, number], label: "24.0–24.9", category: "Normal weight" },
+  { code: "Z68.25", range: [25.0, 25.9] as [number, number], label: "25.0–25.9", category: "Overweight" },
+  { code: "Z68.26", range: [26.0, 26.9] as [number, number], label: "26.0–26.9", category: "Overweight" },
+  { code: "Z68.27", range: [27.0, 27.9] as [number, number], label: "27.0–27.9", category: "Overweight" },
+  { code: "Z68.28", range: [28.0, 28.9] as [number, number], label: "28.0–28.9", category: "Overweight" },
+  { code: "Z68.29", range: [29.0, 29.9] as [number, number], label: "29.0–29.9", category: "Overweight" },
+  { code: "Z68.30", range: [30.0, 30.9] as [number, number], label: "30.0–30.9", category: "Obesity, Class 1" },
+  { code: "Z68.31", range: [31.0, 31.9] as [number, number], label: "31.0–31.9", category: "Obesity, Class 1" },
+  { code: "Z68.32", range: [32.0, 32.9] as [number, number], label: "32.0–32.9", category: "Obesity, Class 1" },
+  { code: "Z68.33", range: [33.0, 33.9] as [number, number], label: "33.0–33.9", category: "Obesity, Class 1" },
+  { code: "Z68.34", range: [34.0, 34.9] as [number, number], label: "34.0–34.9", category: "Obesity, Class 1" },
+  { code: "Z68.35", range: [35.0, 35.9] as [number, number], label: "35.0–35.9", category: "Obesity, Class 2" },
+  { code: "Z68.36", range: [36.0, 36.9] as [number, number], label: "36.0–36.9", category: "Obesity, Class 2" },
+  { code: "Z68.37", range: [37.0, 37.9] as [number, number], label: "37.0–37.9", category: "Obesity, Class 2" },
+  { code: "Z68.38", range: [38.0, 38.9] as [number, number], label: "38.0–38.9", category: "Obesity, Class 2" },
+  { code: "Z68.39", range: [39.0, 39.9] as [number, number], label: "39.0–39.9", category: "Obesity, Class 2" },
+  { code: "Z68.41", range: [40.0, 44.9] as [number, number], label: "40.0–44.9", category: "Obesity, Class 3" },
+  { code: "Z68.42", range: [45.0, 49.9] as [number, number], label: "45.0–49.9", category: "Obesity, Class 3" },
+  { code: "Z68.43", range: [50.0, 59.9] as [number, number], label: "50.0–59.9", category: "Obesity, Class 3" },
+  { code: "Z68.44", range: [60.0, 69.9] as [number, number], label: "60.0–69.9", category: "Obesity, Class 3" },
+  { code: "Z68.45", range: [70.0, 999] as [number, number], label: "≥ 70", category: "Obesity, Class 3" },
+];
+
+export const BMI_OBESITY_TABLE = [
+  { code: "E66.3", range: [25.0, 29.9] as [number, number], label: "Overweight" },
+  { code: "E66.811", range: [30.0, 34.9] as [number, number], label: "Obesity, class 1" },
+  { code: "E66.812", range: [35.0, 39.9] as [number, number], label: "Obesity, class 2" },
+  { code: "E66.813", range: [40.0, 999] as [number, number], label: "Obesity, class 3 (may also support E66.01/E66.2 if documented as morbid/severe with alveolar hypoventilation)" },
+];
+
+export function lookupBmiDxCodes(bmi: number) {
+  const z = BMI_DX_TABLE.find((r) => bmi >= r.range[0] && bmi <= r.range[1]);
+  const e = BMI_OBESITY_TABLE.find((r) => bmi >= r.range[0] && bmi <= r.range[1]);
+  return { z, e };
+}
+
+// Which MIPS BMI chip (by item index within the "bmi" section's
+// single-select group) should auto-highlight for a given BMI number.
+// Indices match the order of items in the "bmi" section's MIPS group:
+// 0 = G8417 (above normal), 1 = G8418 (below normal), 2 = G8420 (within normal), 3 = G8421 (not calculated)
+export function bmiToMipsIndex(bmi: number): number | null {
+  if (isNaN(bmi) || bmi <= 0) return null;
+  if (bmi < 18.5) return 1; // below normal parameters
+  if (bmi >= 18.5 && bmi < 25) return 2; // within normal parameters
+  return 0; // above normal parameters (25+)
+}
+
+// Which BP chip index should auto-highlight for a given systolic/diastolic
+// reading. Indices match the "Systolic reading" / "Diastolic reading"
+// groups in the "blood-pressure" section.
+export function systolicToIndex(value: number): number | null {
+  if (isNaN(value) || value <= 0) return null;
+  if (value < 130) return 0; // 3074F
+  if (value < 140) return 1; // 3075F
+  return 2; // 3077F
+}
+export function diastolicToIndex(value: number): number | null {
+  if (isNaN(value) || value <= 0) return null;
+  if (value < 80) return 0; // 3078F
+  if (value < 90) return 1; // 3079F
+  return 2; // 3080F
+}
