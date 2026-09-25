@@ -85,20 +85,17 @@ export default function Sidebar({
     return null;
   }, [pathname]);
 
-  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
+  const [openGroup, setOpenGroup] = useState<string | null>(null);
   useEffect(() => {
     if (activeGroupLabel) {
-      setOpenGroups((prev) => new Set(prev).add(activeGroupLabel));
+      setOpenGroup(activeGroupLabel);
     }
   }, [activeGroupLabel]);
 
   function toggleGroup(label: string) {
-    setOpenGroups((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
-      return next;
-    });
+    // Accordion behavior — opening a group closes whichever one was open
+    // before it. Clicking the already-open group's header closes it.
+    setOpenGroup((prev) => (prev === label ? null : label));
   }
 
   const linkClass = (href: string) => {
@@ -121,22 +118,25 @@ export default function Sidebar({
           <div className="rounded-md bg-white p-2">
             {/* Plain img tag, not next/image — avoids Turbopack's dev-mode
                 image optimizer issues with locally-added static assets. */}
-            <img src="/proed-logo-new.png" alt="ProEd Consulting — Compliance & Privacy" className="w-full h-auto" />
+            <img src="/proed-logo.png" alt="ProEd Consulting" className="w-full h-auto" />
           </div>
         </Link>
       </div>
-
+ 
       <nav className="flex-1 overflow-y-auto scrollbar-none px-3 py-4 space-y-1">
         {NAV_GROUPS.map((group) => {
           const visibleLinks = group.links.filter((l) => canSee(l.key));
           if (visibleLinks.length === 0) return null; // hide empty groups entirely
-          const isOpen = openGroups.has(group.label);
+          const isOpen = openGroup === group.label;
           return (
             <div key={group.label}>
               <button
                 onClick={() => toggleGroup(group.label)}
-                className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition text-left"
-                style={{ color: isOpen ? THEME.secondary : "rgba(255,255,255,0.55)" }}
+                className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition text-left border"
+                style={{
+                  color: isOpen ? THEME.secondary : "rgba(255,255,255,0.55)",
+                  borderColor: isOpen ? THEME.secondary : "rgba(212, 194, 152, 0.3)",
+                }}
               >
                 <span>{group.label}</span>
                 <span className={`transition-transform ${isOpen ? "rotate-90" : ""}`} style={{ color: THEME.secondary }}>›</span>
