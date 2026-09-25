@@ -68,7 +68,7 @@ export default function HcpcsUpdatesPage() {
     <div className="space-y-6">
       <section className="rounded-lg overflow-hidden">
         <div className="px-6 py-5" style={{ backgroundColor: TEAL }}>
-          <h1 className="text-xl font-bold text-white">Upcoming & Recent HCPCS Changes</h1>
+          <h1 className="text-xl font-bold text-white">HCPCS Search</h1>
           <p className="mt-1 text-sm text-white/85">
             Codes added, discontinued, or revised in the current CMS quarterly update{quarters.length ? ` (${quarters.join(", ")})` : ""}
           </p>

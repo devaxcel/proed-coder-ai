@@ -65,9 +65,9 @@ export default function Icd10IndexPage() {
       <section className="rounded-lg overflow-hidden">
         <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3" style={{ backgroundColor: TEAL }}>
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-white leading-snug">ICD-10-CM Alphabetic Index</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-white leading-snug">ICD-10 Search</h1>
             <p className="mt-1 text-sm text-white/85">
-              Browse by medical term, the way the official index book works — search a condition to see its sub-entries and resulting code
+              Search by code or medical term — matches how the official index works, covering sub-entries and their resulting codes
             </p>
           </div>
           <div className="rounded-md bg-white/95 px-4 py-2 text-center shadow-sm">
@@ -125,7 +125,7 @@ export default function Icd10IndexPage() {
           </div>
         ))}
         {q && !loading && results.length === 0 && (
-          <p className="text-sm text-slate-500">No index entries match &ldquo;{q}&rdquo;.</p>
+          <p className="text-sm text-slate-500">No codes match &ldquo;{q}&rdquo;.</p>
         )}
       </div>
 

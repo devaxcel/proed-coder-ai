@@ -13,17 +13,16 @@ const NAV_GROUPS: NavGroup[] = [
     label: "Code Lookup & Reference",
     links: [
       { href: "/", label: "Codes Search", key: "codes-search" },
-      { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
-      { href: "/icd10-index", label: "ICD-10-CM Index", key: "icd10-index" },
+      { href: "/icd10-index", label: "ICD-10 Search", key: "icd10-index" },
       { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
-      { href: "/hcpcs-updates", label: "HCPCS Updates", key: "hcpcs-updates" },
+      { href: "/hcpcs-updates", label: "HCPCS Search", key: "hcpcs-updates" },
       { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
     ],
   },
   {
     label: "Documentation & Validation Tools",
     links: [
-      { href: "/code-check", label: "Code Check", key: "code-check" },
+      { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
       { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
@@ -118,11 +117,11 @@ export default function Sidebar({
           <div className="rounded-md bg-white p-2">
             {/* Plain img tag, not next/image — avoids Turbopack's dev-mode
                 image optimizer issues with locally-added static assets. */}
-            <img src="/proed-logo.png" alt="ProEd Consulting" className="w-full h-auto" />
+            <img src="/proed-logo-sidebar.png" alt="ProEd Consulting" className="w-full h-auto" />
           </div>
         </Link>
       </div>
- 
+
       <nav className="flex-1 overflow-y-auto scrollbar-none px-3 py-4 space-y-1">
         {NAV_GROUPS.map((group) => {
           const visibleLinks = group.links.filter((l) => canSee(l.key));

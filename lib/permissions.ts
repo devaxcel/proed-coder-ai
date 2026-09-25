@@ -20,11 +20,10 @@ export const CAPABILITIES = [
   { key: "annual-wellness", label: "Annual Wellness" },
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
   { key: "icd10-mappings", label: "ICD-10 Mappings" },
-  { key: "icd10-index", label: "ICD-10-CM Alphabetic Index" },
-  { key: "hcpcs-updates", label: "Upcoming & Recent HCPCS Changes" },
+  { key: "icd10-index", label: "ICD-10 Search" },
+  { key: "hcpcs-updates", label: "HCPCS Search" },
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
-  { key: "code-check", label: "Code Documentation Check" },
   { key: "policy-generator", label: "Policy Generator" },
   { key: "hedis-measures", label: "HEDIS Measures" },
   { key: "em-tool", label: "E/M Tool" },
@@ -92,9 +91,6 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/api/covid-vaccine", key: "covid-vaccine" },
   { prefix: "/covid-vaccine", key: "covid-vaccine" },
-
-  { prefix: "/api/code-check", key: "code-check" },
-  { prefix: "/code-check", key: "code-check" },
 
   // Document upload is now a section INSIDE Claim Validation, not its own
   // tab — gated by the same capability as the rest of that page.
