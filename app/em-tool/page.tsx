@@ -195,6 +195,11 @@ export default function EMToolPage() {
 
         {basis === "time" && (
           <div className="mt-4">
+            {patientType && (
+              <div className="mb-3 inline-flex items-center gap-2 rounded-md px-3 py-1.5 text-xs font-semibold" style={{ backgroundColor: CARD, color: BRAND }}>
+                Showing time bands for: <span className="capitalize">{patientType}</span> Patient
+              </div>
+            )}
             <label className="text-xs font-medium text-slate-600 block mb-2">
               Select the time band that covers the total time spent on the date of the encounter
               {!patientType && <span className="text-amber-600"> — select a patient type above first</span>}
@@ -220,6 +225,9 @@ export default function EMToolPage() {
             <p className="mt-3 text-xs text-slate-500">
               Countable time includes: reviewing history, exam, counseling, ordering tests, documenting, and care coordination performed by the billing provider on the date of the encounter.
             </p>
+            <div className="mt-3 rounded-md border border-amber-200 p-3 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
+              <b>Important — read this before relying on any time-based code:</b> official time-based codes each represent a full <i>range</i> of minutes, not just a single minimum floor. A common misreading of the official guidance is treating the lower number as a hard cutoff — in reality, a visit lasting anywhere within a given code's full range still qualifies for that same code. The exact ranges and their corresponding codes will populate here once ProEd's AMA CPT license is active; until then, use your own reference materials for the precise thresholds, and don't assume the lowest number in any published guidance is the only qualifying minute count.
+            </div>
           </div>
         )}
       </div>
