@@ -47,6 +47,13 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/legal", label: "Legal & Disclaimers", key: "legal" },
     ],
   },
+  {
+    label: "Reference Materials",
+    links: [
+      { href: "/anatomy-physiology", label: "Anatomy and Physiology", key: "anatomy-physiology" },
+      { href: "/handouts", label: "Handouts", key: "handouts" },
+    ],
+  },
 ];
 
 export default function Sidebar({

@@ -30,6 +30,8 @@ export const CAPABILITIES = [
   { key: "claim-validation", label: "Claim Validation" },
   { key: "compliance", label: "Compliance" },
   { key: "legal", label: "Legal & Disclaimers" },
+  { key: "anatomy-physiology", label: "Anatomy and Physiology" },
+  { key: "handouts", label: "Handouts" },
   { key: "user-management", label: "User Management" },
 ] as const;
 
@@ -112,6 +114,9 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/api/legal", key: "legal" }, // PATCH additionally requires edit-legal, checked inside that route
   { prefix: "/legal", key: "legal" },
+
+  { prefix: "/anatomy-physiology", key: "anatomy-physiology" },
+  { prefix: "/handouts", key: "handouts" },
 ];
 
 /**
