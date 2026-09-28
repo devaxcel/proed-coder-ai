@@ -446,6 +446,11 @@ export default function AwvMeasuresPanel() {
                           {group.label} — select one
                         </div>
                       )}
+                      {group.type === "checklist" && group.label && (
+                        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                          {group.label}
+                        </div>
+                      )}
                       <div className={group.type === "single-select" ? "grid grid-cols-1 sm:grid-cols-2 gap-2" : "grid grid-cols-1 sm:grid-cols-2 gap-2"}>
                         {group.items.map((item, ii) => {
                           const key = itemKey(section.key, gi, ii);

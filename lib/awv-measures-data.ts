@@ -19,7 +19,7 @@ export type MeasureItem = {
 
 export type MeasureGroup =
   | { type: "single-select"; label?: string; items: MeasureItem[] }
-  | { type: "checklist"; items: MeasureItem[] };
+  | { type: "checklist"; label?: string; items: MeasureItem[] };
 
 export type MeasureSection = {
   key: string;
@@ -200,7 +200,10 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
     groups: [
       {
         type: "checklist",
-        items: [{ code: "99498", description: "ACP — Each additional 30 min; add-on to 99497", dx: "Z00.00", status: "IN OFFICE", note: "Add-on to 99497; document additional time" }],
+        items: [
+          { code: "99497-33", description: "ACP: explanation & discussion of advance directives such as standard forms (completion when performed); first 30 min F2F", dx: "Z00.00", status: "IN OFFICE", note: "Mod -33 w/ same-day AWV waives deductible; doc time" },
+          { code: "99498", description: "ACP — Each additional 30 min; add-on to 99497", dx: "Z00.00", status: "IN OFFICE", note: "Add-on to 99497; document additional time" },
+        ],
       },
       {
         type: "checklist",
@@ -277,7 +280,6 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
           { code: "1090F", description: "Presence or Absence of Urinary Incontinence Assessed", dx: "R32 OR Z00.00", status: "IN OFFICE", note: "POS 11" },
           { code: "1091F", description: "Urinary Incontinence Characterized (frequency, volume, timing, type, how bothersome)", dx: "R32", status: "IN OFFICE", note: "POS 11" },
           { code: "0509F", description: "Urinary Incontinence Plan of Care Documented", dx: "R32", status: "IN OFFICE", note: "POS 11" },
-          { code: "99497-33", description: "ACP: explanation & discussion of advance directives such as standard forms (completion when performed); first 30 min F2F", dx: "Z00.00", status: "IN OFFICE", note: "Mod -33 w/ same-day AWV waives deductible; doc time" },
         ],
       },
     ],
@@ -680,6 +682,41 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
           { code: "3015F", description: "Cervical Cancer Screening Results Documented and Reviewed", dx: "Z12.4", status: "DOC ONLY", note: "Medicare Part B covers Pap + pelvic every 24 months, ages 21–64 unless high risk; document prior result" },
           { code: "Q0091", description: "Screening Pap smear; obtaining, preparing & conveyance to lab (Medicare)", dx: "Z12.4", status: "IN OFFICE", note: "Screening collection performed in office" },
         ],
+      },
+    ],
+  },
+  {
+    key: "medication-validation",
+    title: "Medication Validation",
+    populationNote: "Medication review & adherence/monitoring — Diuretics, ACE/ARB, Beta Blocker, Statin",
+    sectionNote: "Anticonvulsants medication-validation row is blank/retired in the source document and is excluded here.",
+    groups: [
+      {
+        type: "checklist",
+        label: "Diuretics",
+        items: [
+          { code: "4190F", description: "Diuretic Monitor Ordered/Performed", dx: "HTN, CKD, HF", status: "IN OFFICE", note: "Order during visit; POS 11" },
+          { code: "4221F", description: "Diuretic Medication Therapy > 6 months", status: "IN OFFICE", note: "POS 11" },
+        ],
+      },
+      {
+        type: "checklist",
+        label: "ACE/ARB",
+        items: [
+          { code: "4095F", description: "ACE/ARB Prescribed 1st time", dx: "I10 OR OTHER DX", status: "IN OFFICE", note: "e-Rx; POS 11" },
+          { code: "4010F", description: "ACE Inhibitor or ARB therapy prescribed or currently being taken", dx: "CAD, CKD, HF, DM / HTN, CKD, HF", status: "IN OFFICE", note: "POS 11" },
+          { code: "4210F", description: "ACE/ARB > 6 months", dx: "HTN, CKD, HF", status: "IN OFFICE", note: "POS 11" },
+        ],
+      },
+      {
+        type: "checklist",
+        label: "Beta Blocker",
+        items: [{ code: "4008F", description: "Beta Blocker Prescribed or Currently Being Taken", dx: "HTN, HF", status: "IN OFFICE", note: "POS 11" }],
+      },
+      {
+        type: "checklist",
+        label: "Statin",
+        items: [{ code: "4013F", description: "Statin therapy prescribed or currently being taken", dx: "CAD", status: "IN OFFICE", note: "e-Rx; POS 11 — SPC-E/SPD-E ECDS-only (sex-specific age bands removed for MY 2026)" }],
       },
     ],
   },
