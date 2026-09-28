@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AWV_MEASURE_SECTIONS, type MeasureItem, lookupBmiDxCodes, bmiToMipsIndex, systolicToIndex, diastolicToIndex } from "@/lib/awv-measures-data";
+import { AWV_MEASURE_SECTIONS, type MeasureItem, lookupBmiDxCodes, bmiToMipsIndex, systolicToIndex, diastolicToIndex, hba1cToIndex, ldlToIndex } from "@/lib/awv-measures-data";
 import { THEME } from "@/lib/theme";
 
 const TEAL = THEME.primary;
@@ -102,6 +102,24 @@ export default function AwvMeasuresPanel() {
     setDiastolicInput(value);
     const idx = diastolicToIndex(parseFloat(value));
     if (idx !== null) selectSingle("blood-pressure", 1, idx, 3);
+  }
+
+  // HbA1c numeric input — same auto-select pattern, for the "HbA1c level"
+  // group (group 0) in the "glycemic-status" section.
+  const [hba1cInput, setHba1cInput] = useState("");
+  function onHba1cChange(value: string) {
+    setHba1cInput(value);
+    const idx = hba1cToIndex(parseFloat(value));
+    if (idx !== null) selectSingle("glycemic-status", 0, idx, 4);
+  }
+
+  // LDL numeric input — same auto-select pattern, for the "LDL result"
+  // group (group 0) in the "ldl" section.
+  const [ldlInput, setLdlInput] = useState("");
+  function onLdlChange(value: string) {
+    setLdlInput(value);
+    const idx = ldlToIndex(parseFloat(value));
+    if (idx !== null) selectSingle("ldl", 0, idx, 3);
   }
 
   function toggleSection(key: string) {
@@ -381,6 +399,36 @@ export default function AwvMeasuresPanel() {
                           className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-full"
                         />
                       </div>
+                    </div>
+                  )}
+
+                  {/* HbA1c numeric lookup — same auto-select pattern as BMI/BP */}
+                  {section.key === "glycemic-status" && (
+                    <div className="rounded-md border p-3" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
+                      <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Enter HbA1c Lab Value (%)</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={hba1cInput}
+                        onChange={(e) => onHba1cChange(e.target.value)}
+                        placeholder="e.g., 7.5"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-32"
+                      />
+                    </div>
+                  )}
+
+                  {/* LDL numeric lookup — same auto-select pattern as BMI/BP */}
+                  {section.key === "ldl" && (
+                    <div className="rounded-md border p-3" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
+                      <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Enter LDL Lab Value (mg/dL)</label>
+                      <input
+                        type="number"
+                        step="1"
+                        value={ldlInput}
+                        onChange={(e) => onLdlChange(e.target.value)}
+                        placeholder="e.g., 115"
+                        className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm w-32"
+                      />
                     </div>
                   )}
 

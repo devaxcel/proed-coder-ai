@@ -471,7 +471,10 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
       },
       {
         type: "checklist",
-        items: [{ code: "M1212", description: "MIPS — Glycemic Status Assessment (HbA1c or GMI) Missing or Not Performed During Measurement Period", status: "IN OFFICE", note: "Order lab during visit" }],
+        items: [
+          { code: "M1212", description: "MIPS — Glycemic Status Assessment (HbA1c or GMI) Missing or Not Performed During Measurement Period", status: "IN OFFICE", note: "Order lab during visit" },
+          { code: "83036-QW", description: "A1C Lab In-House Done in Office", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA lab — use this instead of the after-study codes above when the result is available same-day" },
+        ],
       },
     ],
   },
@@ -691,7 +694,6 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
           { code: "93005", description: "EKG Done in Office", dx: "HTN-CARD", status: "IN OFFICE", note: "Performed in office" },
           { code: "51798", description: "Bladder Scan Done in Office", dx: "R35.0", status: "IN OFFICE", note: "Performed in office" },
           { code: "76705", description: "Aorta Ultrasound Done in Office", dx: "HTN-CARD", status: "IN OFFICE", note: "Performed in office" },
-          { code: "83036-QW", description: "A1C Lab In-House Done in Office", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA lab" },
           { code: "82947-QW", description: "Finger Stick / Glucose Done in Office (CLIA)", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA — do NOT also bill 36415" },
           { code: "36415", description: "Venipuncture (routine blood draw) — Commercial ins. ONLY when blood sample is sent to an outside lab (Quest/LabCorp). Do NOT bill for in-office CLIA labs.", status: "IN OFFICE", note: "Outside-lab send-out only. NOT for in-office CLIA-certified laboratory work." },
           { code: "81000", description: "Urine Dipstick Done in Office", status: "IN OFFICE", note: "Performed in office" },
@@ -774,4 +776,26 @@ export function diastolicToIndex(value: number): number | null {
   if (value < 80) return 0; // 3078F
   if (value < 90) return 1; // 3079F
   return 2; // 3080F
+}
+
+// Which HbA1c chip index should auto-highlight for a given lab value.
+// Indices match the "HbA1c level" group (group 0) in the
+// "glycemic-status" section: 0=3044F (<7%), 1=3051F (7%-<8%),
+// 2=3052F (8%-9%), 3=3046F/M1211 (>9%).
+export function hba1cToIndex(value: number): number | null {
+  if (isNaN(value) || value <= 0) return null;
+  if (value < 7) return 0; // 3044F
+  if (value < 8) return 1; // 3051F
+  if (value <= 9) return 2; // 3052F
+  return 3; // 3046F / M1211
+}
+
+// Which LDL chip index should auto-highlight for a given lab value.
+// Indices match the "LDL result" group (group 0) in the "ldl" section:
+// 0=3048F (<100), 1=3049F (100-129), 2=3050F (>129).
+export function ldlToIndex(value: number): number | null {
+  if (isNaN(value) || value <= 0) return null;
+  if (value < 100) return 0; // 3048F
+  if (value <= 129) return 1; // 3049F
+  return 2; // 3050F
 }

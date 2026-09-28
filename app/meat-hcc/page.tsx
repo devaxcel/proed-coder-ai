@@ -1,13 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { THEME } from "@/lib/theme";
 
 type ChecklistState = Record<string, boolean>;
 
-const TEAL = THEME.primary;
-const TEAL_LIGHT = THEME.primaryLight;
-const TEAL_DARK = THEME.primary;
+type SavedPatient = {
+  id: string;
+  patientName: string;
+  accountNumber: string;
+  icdCodes: string;
+  condition: string;
+  dos: string;
+  npi: string;
+  notes: string;
+  checked: ChecklistState;
+  quadrantsMetCount: number;
+};
+
+const TEAL = "#14457B";
+const TEAL_LIGHT = "#E7ECF4";
+const TEAL_DARK = "#14457B";
 
 const MONITORED = [
   { id: "m1", label: "Vital signs reviewed (BP, weight, O2 sat, HR)", ex: "e.g., BP 142/90 noted; weight stable" },
@@ -99,7 +111,9 @@ export default function MeatHccPage() {
   const [npi, setNpi] = useState("");
   const [notes, setNotes] = useState("");
   const [checked, setChecked] = useState<ChecklistState>({});
-  const [exporting, setExporting] = useState<"docx" | "pdf" | null>(null);
+  const [exporting, setExporting] = useState<"docx" | "pdf" | "batch" | null>(null);
+  const [savedPatients, setSavedPatients] = useState<SavedPatient[]>([]);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
 
   function toggle(id: string) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -119,6 +133,41 @@ export default function MeatHccPage() {
   const quadrantsMetCount = [monitoredMet, evaluatedMet, assessedMet, treatedMet].filter(Boolean).length;
   const isValidated = quadrantsMetCount >= 3;
 
+  function resetForm() {
+    setPatientName("");
+    setAccountNumber("");
+    setIcdCodes("");
+    setCondition("");
+    setDos("");
+    setNpi("");
+    setNotes("");
+    setChecked({});
+  }
+
+  function onSaveToBatch() {
+    if (!isValidated) return;
+    const entry: SavedPatient = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      patientName,
+      accountNumber,
+      icdCodes,
+      condition,
+      dos,
+      npi,
+      notes,
+      checked,
+      quadrantsMetCount,
+    };
+    setSavedPatients((prev) => [...prev, entry]);
+    setSaveMessage(`Saved "${patientName || "(unnamed patient)"}" to batch — ${savedPatients.length + 1} patient(s) queued.`);
+    resetForm();
+    setTimeout(() => setSaveMessage(null), 4000);
+  }
+
+  function onRemoveSaved(id: string) {
+    setSavedPatients((prev) => prev.filter((p) => p.id !== id));
+  }
+
   async function onExport(format: "docx" | "pdf") {
     setExporting(format);
     try {
@@ -134,6 +183,41 @@ export default function MeatHccPage() {
       const a = document.createElement("a");
       a.href = url;
       a.download = `ProEdCS-MEAT-HCC-Checklist-${Date.now()}.${format}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function onExportBatch() {
+    if (savedPatients.length === 0) return;
+    setExporting("batch");
+    try {
+      const r = await fetch("/api/meat-hcc/export-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patients: savedPatients.map(({ patientName, accountNumber, icdCodes, condition, dos, npi, notes, checked }) => ({
+            patientName,
+            accountNumber,
+            icdCodes,
+            condition,
+            dos,
+            npi,
+            notes,
+            checked,
+          })),
+        }),
+      });
+      if (!r.ok) throw new Error(`Batch export failed: ${r.status}`);
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ProEdCS-MEAT-HCC-Batch-${savedPatients.length}-Patients-${Date.now()}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -164,6 +248,51 @@ export default function MeatHccPage() {
           Each chronic condition documented must demonstrate active management via MEAT criteria. Check all applicable items and record ICD-10 code(s) below. <b>Minimum requirement: at least 3 of the 4 MEAT components (Monitored, Evaluated, Assessed, Treated) must have at least one item checked to validate this diagnosis.</b>
         </p>
       </section>
+
+      {/* Saved patients batch panel */}
+      {savedPatients.length > 0 && (
+        <div className="rounded-lg border p-4" style={{ borderColor: TEAL }}>
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h2 className="text-sm font-semibold" style={{ color: TEAL_DARK }}>
+              Saved Patients for Batch Export ({savedPatients.length})
+            </h2>
+            <button
+              onClick={onExportBatch}
+              disabled={exporting !== null}
+              className="rounded-md px-4 py-2 text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: TEAL }}
+            >
+              {exporting === "batch" ? "Generating…" : `⬇ Export Batch (${savedPatients.length} Patients, DOCX)`}
+            </button>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {savedPatients.map((sp) => (
+              <li key={sp.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                <div>
+                  <span className="font-medium text-slate-900">{sp.patientName || "(unnamed patient)"}</span>
+                  {sp.accountNumber && <span className="text-slate-500"> · Acct {sp.accountNumber}</span>}
+                  {sp.condition && <span className="text-slate-500"> · {sp.condition}</span>}
+                  <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: "#059669" }}>
+                    {sp.quadrantsMetCount} of 4 met
+                  </span>
+                </div>
+                <button
+                  onClick={() => onRemoveSaved(sp.id)}
+                  className="text-xs text-red-600 hover:text-red-800"
+                >
+                  Remove
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {saveMessage && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+          ✓ {saveMessage}
+        </div>
+      )}
 
       {/* Header fields */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3 rounded-lg border p-4" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
@@ -250,11 +379,20 @@ export default function MeatHccPage() {
 
       {!isValidated && (
         <div className="rounded-md border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-          ⚠ Export is disabled until at least 3 of the 4 MEAT components are met. Currently: {quadrantsMetCount} of 4.
+          ⚠ Saving and exporting are disabled until at least 3 of the 4 MEAT components are met. Currently: {quadrantsMetCount} of 4.
         </div>
       )}
 
       <div className="flex flex-wrap gap-3">
+        <button
+          onClick={onSaveToBatch}
+          disabled={exporting !== null || !isValidated}
+          title={!isValidated ? "Minimum 3 of 4 MEAT components must be met before saving" : undefined}
+          className="rounded-md px-5 py-3 text-sm font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: "#059669" }}
+        >
+          + Save Patient to Batch
+        </button>
         <button
           onClick={() => onExport("docx")}
           disabled={exporting !== null || !isValidated}
