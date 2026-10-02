@@ -9,6 +9,13 @@
  * IMPORTANT: this list was built by enumerating every actual route folder
  * in app/ and app/api/ at the time of writing, to make sure nothing is
  * left unprotected. If new tools/tabs are added later, add them here too.
+ *
+ * NOTE (per Lupita's App_Changes request): "covid-vaccine", "policies-qa",
+ * "query-forms", "forms-bh", "history", and "claim-validation" were removed
+ * from the Sidebar nav and are no longer reachable from the menu. Their
+ * capabilities, routes, and data are deliberately left defined here —
+ * nothing was deleted on the backend — so access can be restored by
+ * re-adding the nav links if needed, without any data loss.
  */
 
 export const CAPABILITIES = [
@@ -19,13 +26,13 @@ export const CAPABILITIES = [
   { key: "history", label: "Query History" },
   { key: "annual-wellness", label: "Annual Wellness" },
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
-  { key: "icd10-mappings", label: "ICD-10 Mappings" },
+  { key: "icd10-mappings", label: "ICD-10 CMS HCC Mappings" },
   { key: "icd10-index", label: "ICD-10 Search" },
   { key: "hcpcs-updates", label: "HCPCS Search" },
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
   { key: "policy-generator", label: "Policy Generator" },
-  { key: "hedis-measures", label: "HEDIS Measures" },
+  { key: "hedis-measures", label: "HEDIS® Measures Codes" },
   { key: "em-tool", label: "E/M Tool" },
   { key: "claim-validation", label: "Claim Validation" },
   { key: "compliance", label: "Compliance" },

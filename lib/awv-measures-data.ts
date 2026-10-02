@@ -201,7 +201,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
       {
         type: "checklist",
         items: [
-          { code: "99497-33", description: "ACP: explanation & discussion of advance directives such as standard forms (completion when performed); first 30 min F2F", dx: "Z00.00", status: "IN OFFICE", note: "Mod -33 w/ same-day AWV waives deductible; doc time" },
+          { code: "99497-33", description: "ACP: explanation & discussion of advance directives such as standard forms (completion when performed); 15–30 min F2F", dx: "Z00.00", status: "IN OFFICE", note: "Mod -33 w/ same-day AWV waives deductible; doc time" },
           { code: "99498", description: "ACP — Each additional 30 min; add-on to 99497", dx: "Z00.00", status: "IN OFFICE", note: "Add-on to 99497; document additional time" },
         ],
       },
@@ -624,11 +624,11 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
       {
         type: "checklist",
         items: [
-          { code: "1030F", description: "Influenza Assessment", dx: "Z23", status: "IN OFFICE", note: "POS 11" },
-          { code: "4037F", description: "Flu Vaccine Given", dx: "Z23", status: "IN OFFICE", note: "Administered in office (or document prior administration)" },
-          { code: "4274F", description: "Influenza immunization administered or previously received", dx: "Z23", status: "DOC ONLY", note: "Document prior administration" },
-          { code: "1022F", description: "Pneumococcus immunization status assessed", dx: "Z23", status: "IN OFFICE", note: "POS 11" },
-          { code: "4040F", description: "Pneumococcal Vaccine Given", dx: "Z23", status: "IN OFFICE", note: "Administered in office (or document prior administration)" },
+          { code: "1030F", description: "Influenza Assessment", dx: "Z00.00", status: "IN OFFICE", note: "POS 11" },
+          { code: "4037F", description: "Flu Vaccine Given", dx: "Z00.00", status: "IN OFFICE", note: "Administered in office (or document prior administration)" },
+          { code: "4274F", description: "Influenza immunization administered or previously received", dx: "Z00.00", status: "DOC ONLY", note: "Document prior administration" },
+          { code: "1022F", description: "Pneumococcus immunization status assessed", dx: "Z00.00", status: "IN OFFICE", note: "POS 11" },
+          { code: "4040F", description: "Pneumococcal Vaccine Given", dx: "Z00.00", status: "IN OFFICE", note: "Administered in office (or document prior administration)" },
         ],
       },
     ],
@@ -729,6 +729,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
         type: "checklist",
         items: [
           { code: "93005", description: "EKG Done in Office", dx: "HTN-CARD", status: "IN OFFICE", note: "Performed in office" },
+          { code: "Q0091", description: "Cervical / Pap screening collection (Medicare)", dx: "Z12.4", status: "IN OFFICE", note: "Screening collection in office" },
           { code: "51798", description: "Bladder Scan Done in Office", dx: "R35.0", status: "IN OFFICE", note: "Performed in office" },
           { code: "76705", description: "Aorta Ultrasound Done in Office", dx: "HTN-CARD", status: "IN OFFICE", note: "Performed in office" },
           { code: "82947-QW", description: "Finger Stick / Glucose Done in Office (CLIA)", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA — do NOT also bill 36415" },
@@ -746,13 +747,19 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
 // Moved here from the old standalone Annual Wellness BMI section per
 // Lupita's request — she specifically liked this exact lookup and wanted
 // it merged into the unified measures panel rather than removed.
+// FY2027 low-BMI update, effective 10/01/2026 (per Lupita's updated
+// "BMI_ICD10_Codes_Adult" reference): the old single "Z68.1 ≤ 19.9
+// Underweight" row is retired and split into Z68.18 (true underweight,
+// ≤ 18.4) and Z68.19 (18.5–19.9, which is actually Healthy weight, not
+// underweight — this was the specific error the update corrects).
 export const BMI_DX_TABLE = [
-  { code: "Z68.1", range: [0, 19.9] as [number, number], label: "≤ 19.9", category: "Underweight" },
-  { code: "Z68.20", range: [20.0, 20.9] as [number, number], label: "20.0–20.9", category: "Normal weight" },
-  { code: "Z68.21", range: [21.0, 21.9] as [number, number], label: "21.0–21.9", category: "Normal weight" },
-  { code: "Z68.22", range: [22.0, 22.9] as [number, number], label: "22.0–22.9", category: "Normal weight" },
-  { code: "Z68.23", range: [23.0, 23.9] as [number, number], label: "23.0–23.9", category: "Normal weight" },
-  { code: "Z68.24", range: [24.0, 24.9] as [number, number], label: "24.0–24.9", category: "Normal weight" },
+  { code: "Z68.18", range: [0, 18.4] as [number, number], label: "≤ 18.4", category: "Underweight" },
+  { code: "Z68.19", range: [18.5, 19.9] as [number, number], label: "18.5–19.9", category: "Healthy weight" },
+  { code: "Z68.20", range: [20.0, 20.9] as [number, number], label: "20.0–20.9", category: "Healthy weight" },
+  { code: "Z68.21", range: [21.0, 21.9] as [number, number], label: "21.0–21.9", category: "Healthy weight" },
+  { code: "Z68.22", range: [22.0, 22.9] as [number, number], label: "22.0–22.9", category: "Healthy weight" },
+  { code: "Z68.23", range: [23.0, 23.9] as [number, number], label: "23.0–23.9", category: "Healthy weight" },
+  { code: "Z68.24", range: [24.0, 24.9] as [number, number], label: "24.0–24.9", category: "Healthy weight" },
   { code: "Z68.25", range: [25.0, 25.9] as [number, number], label: "25.0–25.9", category: "Overweight" },
   { code: "Z68.26", range: [26.0, 26.9] as [number, number], label: "26.0–26.9", category: "Overweight" },
   { code: "Z68.27", range: [27.0, 27.9] as [number, number], label: "27.0–27.9", category: "Overweight" },

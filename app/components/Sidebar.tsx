@@ -16,32 +16,25 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/icd10-index", label: "ICD-10 Search", key: "icd10-index" },
       { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
       { href: "/hcpcs-updates", label: "HCPCS Search", key: "hcpcs-updates" },
-      { href: "/covid-vaccine", label: "COVID Vaccine Codes", key: "covid-vaccine" },
     ],
   },
   {
+    // Per Lupita's App_Changes doc: renamed "ICD-10 Mappings" ->
+    // "ICD-10 CMS HCC Mappings" and "HEDIS Measures" -> "HEDIS® Measures
+    // Codes"; "Claim Validation" dropped since her requested list for this
+    // group didn't include it.
     label: "Documentation & Validation Tools",
     links: [
-      { href: "/icd10-mappings", label: "ICD-10 Mappings", key: "icd10-mappings" },
-      { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
+      { href: "/icd10-mappings", label: "ICD-10 CMS HCC Mappings", key: "icd10-mappings" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
       { href: "/annual-wellness", label: "Annual Wellness", key: "annual-wellness" },
-      { href: "/hedis-measures", label: "HEDIS Measures", key: "hedis-measures" },
-    ],
-  },
-  {
-    label: "Query Forms",
-    links: [
-      { href: "/query-forms", label: "Query Forms", key: "query-forms" },
-      { href: "/query-forms/more", label: "Forms B–H", key: "forms-bh" },
-      { href: "/query-forms/history", label: "History", key: "history" },
+      { href: "/hedis-measures", label: "HEDIS® Measures Codes", key: "hedis-measures" },
     ],
   },
   {
     label: "Policies & Compliance",
     links: [
-      { href: "/policies", label: "Policies Q&A", key: "policies-qa" },
       { href: "/policy-generator", label: "Policy Generator", key: "policy-generator" },
       { href: "/compliance", label: "Compliance", key: "compliance" },
       { href: "/legal", label: "Legal & Disclaimers", key: "legal" },

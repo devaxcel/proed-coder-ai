@@ -17,17 +17,17 @@ type PatientType = "new" | "established" | null;
 type TimeBand = { code: string; minMinutes: number; label: string };
 
 const TIME_BANDS_ESTABLISHED: TimeBand[] = [
-  { code: "99212", minMinutes: 10, label: "10 min" },
-  { code: "99213", minMinutes: 20, label: "20 min" },
-  { code: "99214", minMinutes: 30, label: "30 min" },
-  { code: "99215", minMinutes: 40, label: "40 min" },
+  { code: "99212", minMinutes: 10, label: "10–19 min" },
+  { code: "99213", minMinutes: 20, label: "20–29 min" },
+  { code: "99214", minMinutes: 30, label: "30–39 min" },
+  { code: "99215", minMinutes: 40, label: "40–54 min" },
 ];
 
 const TIME_BANDS_NEW: TimeBand[] = [
-  { code: "99202", minMinutes: 15, label: "15 min" },
-  { code: "99203", minMinutes: 30, label: "30 min" },
-  { code: "99204", minMinutes: 45, label: "45 min" },
-  { code: "99205", minMinutes: 60, label: "60 min" },
+  { code: "99202", minMinutes: 15, label: "15–29 min" },
+  { code: "99203", minMinutes: 30, label: "30–44 min" },
+  { code: "99204", minMinutes: 45, label: "45–59 min" },
+  { code: "99205", minMinutes: 60, label: "60–74 min" },
 ];
 
 // MDM criteria — AMA CPT-licensed content (2021 E/M guidelines table).
@@ -324,7 +324,7 @@ export default function EMToolPage() {
               Countable time includes: reviewing history, exam, counseling, ordering tests, documenting, and care coordination performed by the billing provider on the date of the encounter.
             </p>
             <div className="mt-3 rounded-md border border-amber-200 p-3 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
-              <b>Total time on DOS must meet or exceed</b> the selected band's threshold — select the highest band the total time reaches. If total time exceeds the top band ({bands[bands.length - 1].code}, {bands[bands.length - 1].label}+), a prolonged services add-on code may apply — not covered by this tool yet.
+              <b>Total time on DOS must meet or exceed</b> the selected band's threshold — select the highest band the total time reaches. If total time exceeds the top band ({bands[bands.length - 1].code}, {bands[bands.length - 1].label}), a prolonged services add-on code may apply — not covered by this tool yet.
             </div>
           </div>
         )}
@@ -359,7 +359,7 @@ export default function EMToolPage() {
           </div>
           {basis === "time" && selectedBand ? (
             <div className="text-lg font-bold text-slate-900">
-              {selectedBand.code} — {selectedBand.label}+ (time-based)
+              {selectedBand.code} — {selectedBand.label} (time-based)
             </div>
           ) : (
             <div className="text-lg font-bold text-slate-900">
