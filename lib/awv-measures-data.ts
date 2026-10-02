@@ -732,6 +732,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
           { code: "Q0091", description: "Cervical / Pap screening collection (Medicare)", dx: "Z12.4", status: "IN OFFICE", note: "Screening collection in office" },
           { code: "51798", description: "Bladder Scan Done in Office", dx: "R35.0", status: "IN OFFICE", note: "Performed in office" },
           { code: "76705", description: "Aorta Ultrasound Done in Office", dx: "HTN-CARD", status: "IN OFFICE", note: "Performed in office" },
+          { code: "83036-QW", description: "A1C Lab In-House Done in Office", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA lab" },
           { code: "82947-QW", description: "Finger Stick / Glucose Done in Office (CLIA)", dx: "DM DX", status: "IN OFFICE", note: "In-office CLIA — do NOT also bill 36415" },
           { code: "36415", description: "Venipuncture (routine blood draw) — Commercial ins. ONLY when blood sample is sent to an outside lab (Quest/LabCorp). Do NOT bill for in-office CLIA labs.", status: "IN OFFICE", note: "Outside-lab send-out only. NOT for in-office CLIA-certified laboratory work." },
           { code: "81000", description: "Urine Dipstick Done in Office", status: "IN OFFICE", note: "Performed in office" },
