@@ -15,8 +15,18 @@ async function requireAdmin() {
   return session;
 }
 
-const ROLES = ["CODER", "AUDITOR", "CLIENT"] as const;
 const ALL_KEYS = [...CAPABILITIES.map((c) => c.key), ...EDIT_CAPABILITIES.map((c) => c.key)];
+
+// Roles shown/edited in this matrix are every role EXCEPT the protected
+// system role (Admin) — Admin always has full access and is never governed
+// by this table (see lib/auth.ts's hardcoded ADMIN bypass), so it's
+// excluded here the same way it always was when roles were a fixed enum.
+async function getGovernedRoles() {
+  return db.role.findMany({
+    where: { isSystem: false },
+    orderBy: { label: "asc" },
+  });
+}
 
 export async function GET() {
   const session = await requireAdmin();
@@ -24,14 +34,17 @@ export async function GET() {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
+  const roles = await getGovernedRoles();
+  const roleKeys = roles.map((r) => r.key);
+
   const rows = await db.rolePermission.findMany();
   const matrix: Record<string, Record<string, boolean>> = {};
-  for (const role of ROLES) matrix[role] = {};
+  for (const key of roleKeys) matrix[key] = {};
 
-  for (const key of ALL_KEYS) {
-    for (const role of ROLES) {
-      const row = rows.find((r) => r.role === role && r.capabilityKey === key);
-      matrix[role][key] = row?.allowed ?? false;
+  for (const capKey of ALL_KEYS) {
+    for (const roleKey of roleKeys) {
+      const row = rows.find((r) => r.role === roleKey && r.capabilityKey === capKey);
+      matrix[roleKey][capKey] = row?.allowed ?? false;
     }
   }
 
@@ -39,7 +52,10 @@ export async function GET() {
     matrix,
     tabs: CAPABILITIES,
     editCapabilities: EDIT_CAPABILITIES,
-    roles: ROLES,
+    // Full {key, label} objects now (not bare strings) so the client can
+    // render column headers for any role, including ones added later
+    // from Admin > Roles, without needing a second fetch.
+    roles: roles.map((r) => ({ key: r.key, label: r.label })),
   });
 }
 
@@ -55,18 +71,22 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
   }
 
+  // Only ever write rows for roles that actually exist (and aren't the
+  // protected system role) — ignores any stray/stale keys the client
+  // might send, so a deleted role can never leave orphaned permission rows.
+  const roles = await getGovernedRoles();
+  const roleKeys = roles.map((r) => r.key);
+
   const ops = [];
-  for (const role of ROLES) {
-    const roleMatrix = matrix[role] ?? {};
+  for (const roleKey of roleKeys) {
+    const roleMatrix = matrix[roleKey] ?? {};
     for (const key of ALL_KEYS) {
       const allowed = !!roleMatrix[key];
       ops.push(
         db.rolePermission.upsert({
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          where: { role_capabilityKey: { role: role as any, capabilityKey: key } },
+          where: { role_capabilityKey: { role: roleKey, capabilityKey: key } },
           update: { allowed },
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          create: { role: role as any, capabilityKey: key, allowed },
+          create: { role: roleKey, capabilityKey: key, allowed },
         })
       );
     }

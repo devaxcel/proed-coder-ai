@@ -5,13 +5,13 @@ import { THEME } from "@/lib/theme";
 
 const BRAND = THEME.primary;
 const CARD = THEME.primaryLight;
-const ROLES = ["CODER", "AUDITOR", "CLIENT"] as const;
-const ROLE_LABELS: Record<string, string> = { CODER: "Coder", AUDITOR: "Auditor", CLIENT: "Client" };
 
 type Tab = { key: string; label: string };
+type Role = { key: string; label: string };
 type Matrix = Record<string, Record<string, boolean>>;
 
 export default function PermissionsClient() {
+  const [roles, setRoles] = useState<Role[]>([]);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [editCapabilities, setEditCapabilities] = useState<Tab[]>([]);
   const [matrix, setMatrix] = useState<Matrix>({});
@@ -23,6 +23,7 @@ export default function PermissionsClient() {
     fetch("/api/admin/permissions")
       .then((r) => r.json())
       .then((json) => {
+        setRoles(json.roles ?? []);
         setTabs(json.tabs ?? []);
         setEditCapabilities(json.editCapabilities ?? []);
         setMatrix(json.matrix ?? {});
@@ -60,7 +61,8 @@ export default function PermissionsClient() {
         <div className="px-6 py-5" style={{ backgroundColor: BRAND }}>
           <h1 className="text-xl font-bold text-white">Role Permissions</h1>
           <p className="mt-1 text-sm text-white/85">
-            Control exactly which tabs Coder, Auditor, and Client accounts can reach. Admin always has full access and is not shown here.
+            Control exactly which tabs each role can reach. New roles created in Admin &gt; Roles appear here
+            automatically. Admin always has full access and is not shown here.
           </p>
         </div>
       </section>
@@ -69,57 +71,63 @@ export default function PermissionsClient() {
         Changes take effect the next time an affected user signs in — not instantly for someone already logged in.
       </div>
 
-      <div className="rounded-lg border overflow-hidden" style={{ borderColor: BRAND }}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{ backgroundColor: BRAND }}>
-              <th className="px-4 py-2 text-left text-white font-medium">Tab</th>
-              {ROLES.map((role) => (
-                <th key={role} className="px-4 py-2 text-center text-white font-medium">{ROLE_LABELS[role]}</th>
+      {roles.length === 0 ? (
+        <div className="rounded-md border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+          No non-Admin roles exist yet. Add one in Admin &gt; Roles first.
+        </div>
+      ) : (
+        <div className="rounded-lg border overflow-hidden" style={{ borderColor: BRAND }}>
+          <table className="w-full text-sm">
+            <thead>
+              <tr style={{ backgroundColor: BRAND }}>
+                <th className="px-4 py-2 text-left text-white font-medium">Tab</th>
+                {roles.map((role) => (
+                  <th key={role.key} className="px-4 py-2 text-center text-white font-medium">{role.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {tabs.map((tab, i) => (
+                <tr key={tab.key} style={{ backgroundColor: i % 2 === 0 ? "white" : CARD }}>
+                  <td className="px-4 py-2 text-slate-700">{tab.label}</td>
+                  {roles.map((role) => (
+                    <td key={role.key} className="px-4 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={!!matrix[role.key]?.[tab.key]}
+                        onChange={() => toggle(role.key, tab.key)}
+                        className="h-4 w-4"
+                        style={{ accentColor: BRAND }}
+                      />
+                    </td>
+                  ))}
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {tabs.map((tab, i) => (
-              <tr key={tab.key} style={{ backgroundColor: i % 2 === 0 ? "white" : CARD }}>
-                <td className="px-4 py-2 text-slate-700">{tab.label}</td>
-                {ROLES.map((role) => (
-                  <td key={role} className="px-4 py-2 text-center">
-                    <input
-                      type="checkbox"
-                      checked={!!matrix[role]?.[tab.key]}
-                      onChange={() => toggle(role, tab.key)}
-                      className="h-4 w-4"
-                      style={{ accentColor: BRAND }}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-            {editCapabilities.map((cap, i) => (
-              <tr key={cap.key} style={{ backgroundColor: (tabs.length + i) % 2 === 0 ? "white" : CARD }} className="border-t-2" >
-                <td className="px-4 py-2 text-slate-700 italic">{cap.label}</td>
-                {ROLES.map((role) => (
-                  <td key={role} className="px-4 py-2 text-center">
-                    <input
-                      type="checkbox"
-                      checked={!!matrix[role]?.[cap.key]}
-                      onChange={() => toggle(role, cap.key)}
-                      className="h-4 w-4"
-                      style={{ accentColor: BRAND }}
-                    />
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              {editCapabilities.map((cap, i) => (
+                <tr key={cap.key} style={{ backgroundColor: (tabs.length + i) % 2 === 0 ? "white" : CARD }} className="border-t-2" >
+                  <td className="px-4 py-2 text-slate-700 italic">{cap.label}</td>
+                  {roles.map((role) => (
+                    <td key={role.key} className="px-4 py-2 text-center">
+                      <input
+                        type="checkbox"
+                        checked={!!matrix[role.key]?.[cap.key]}
+                        onChange={() => toggle(role.key, cap.key)}
+                        className="h-4 w-4"
+                        style={{ accentColor: BRAND }}
+                      />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <button
           onClick={save}
-          disabled={saving}
+          disabled={saving || roles.length === 0}
           className="rounded-md px-5 py-2.5 text-sm font-medium text-white disabled:opacity-50"
           style={{ backgroundColor: BRAND }}
         >
