@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { THEME } from "@/lib/theme";
@@ -11,7 +11,7 @@ type UserRow = {
   id: string;
   email: string;
   name: string | null;
-  role: "ADMIN" | "CODER" | "AUDITOR" | "CLIENT";
+  role: string;
   isActive: boolean;
   createdAt: string | Date;
 };
@@ -31,7 +31,7 @@ export default function UserManagementClient({
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [newRole, setNewRole] = useState<"ADMIN" | "CODER" | "AUDITOR" | "CLIENT">("CODER");
+  const [newRole, setNewRole] = useState<string>("CODER");
 
   const [resetTargetId, setResetTargetId] = useState<string | null>(null);
   const [resetPasswordValue, setResetPasswordValue] = useState("");
@@ -156,7 +156,7 @@ export default function UserManagementClient({
             </div>
             <div>
               <label className="mb-0.5 block text-xs font-medium" style={{ color: TEAL_DARK }}>Role</label>
-              <select value={newRole} onChange={(e) => setNewRole(e.target.value as "ADMIN" | "CODER" | "AUDITOR" | "CLIENT")} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
+              <select value={newRole} onChange={(e) => setNewRole(e.target.value as string)} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm">
                 <option value="CODER">Coder</option>
                 <option value="AUDITOR">Auditor</option>
                 <option value="ADMIN">Admin</option>
@@ -165,7 +165,7 @@ export default function UserManagementClient({
             </div>
           </div>
           <button type="submit" disabled={saving} className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50" style={{ backgroundColor: TEAL }}>
-            {saving ? "Creating…" : "Create User"}
+            {saving ? "Creatingâ€¦" : "Create User"}
           </button>
         </form>
       )}
@@ -185,7 +185,7 @@ export default function UserManagementClient({
           <tbody>
             {users.map((u, i) => (
               <tr key={u.id} style={{ backgroundColor: i % 2 === 0 ? TEAL_LIGHT : "white" }}>
-                <td className="px-3 py-2">{u.name || "—"} {u.id === currentUserId && <span className="text-xs text-slate-400">(you)</span>}</td>
+                <td className="px-3 py-2">{u.name || "â€”"} {u.id === currentUserId && <span className="text-xs text-slate-400">(you)</span>}</td>
                 <td className="px-3 py-2 text-slate-700">{u.email}</td>
                 <td className="px-3 py-2">
                   <select
@@ -193,9 +193,9 @@ export default function UserManagementClient({
                     onChange={(e) => updateUser(u.id, { role: e.target.value })}
                     className="rounded border border-slate-300 px-2 py-1 text-xs bg-white"
                   >
-                    <option value="CODER">Coder</option>
-                    <option value="AUDITOR">Auditor</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="AUDITOR">Auditor</option>
+                    <option value="CODER">Coder</option>
                     <option value="CLIENT">Client</option>
                   </select>
                 </td>
@@ -232,7 +232,7 @@ export default function UserManagementClient({
                 </td>
                 <td className="px-3 py-2">
                   {u.id === currentUserId ? (
-                    <span className="text-xs text-slate-300">—</span>
+                    <span className="text-xs text-slate-300">â€”</span>
                   ) : deleteTargetId === u.id ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-red-700">Delete {u.email}?</span>
@@ -241,7 +241,7 @@ export default function UserManagementClient({
                         disabled={deleting}
                         className="text-xs font-semibold text-red-600 hover:text-red-800 disabled:opacity-50"
                       >
-                        {deleting ? "Deleting…" : "Confirm"}
+                        {deleting ? "Deletingâ€¦" : "Confirm"}
                       </button>
                       <button onClick={() => setDeleteTargetId(null)} className="text-xs text-slate-400">Cancel</button>
                     </div>
@@ -263,3 +263,4 @@ export default function UserManagementClient({
     </div>
   );
 }
+
