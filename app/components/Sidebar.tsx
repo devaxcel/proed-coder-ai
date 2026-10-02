@@ -165,6 +165,9 @@ export default function Sidebar({
             <Link href="/admin/users" onClick={onClose} className={linkClass("/admin/users")} style={linkStyle("/admin/users")}>
               User Management
             </Link>
+            <Link href="/admin/roles" onClick={onClose} className={linkClass("/admin/roles")} style={linkStyle("/admin/roles")}>
+              Roles
+            </Link>
             <Link href="/admin/permissions" onClick={onClose} className={linkClass("/admin/permissions")} style={linkStyle("/admin/permissions")}>
               Role Permissions
             </Link>

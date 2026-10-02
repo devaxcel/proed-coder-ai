@@ -20,7 +20,12 @@ model User {
   name          String?
   emailVerified DateTime?
   image         String?
-  role          UserRole  @default(CODER)
+  // Was a hardcoded `UserRole` enum (ADMIN/CODER/AUDITOR/CLIENT). Now a
+  // plain string referencing Role.key, so roles can be added/renamed/
+  // deleted from the Admin > Roles page without a schema change. "ADMIN"
+  // stays a protected, non-deletable, always-full-access literal — see
+  // Role.isSystem and lib/auth.ts's hardcoded ADMIN bypass.
+  role          String    @default("CODER")
   passwordHash  String?
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
@@ -31,11 +36,24 @@ model User {
   queryForms QueryForm[]
 }
 
-enum UserRole {
-  ADMIN
-  CODER
-  AUDITOR
-  CLIENT
+// ---------- DYNAMIC ROLES (Admin-managed, replaces the old UserRole enum) ----------
+
+model Role {
+  id        String   @id @default(cuid())
+  // Stable identifier stored on User.role / RolePermission.role — uppercase,
+  // no spaces, e.g. "ADMIN", "CODER", "BILLING_SPECIALIST". Never changes
+  // after creation (rename the label instead); changing it would orphan
+  // every User/RolePermission row already using the old key.
+  key       String   @unique
+  // Display name shown in the Admin UI — this IS editable.
+  label     String
+  // "ADMIN" only. Protected: cannot be deleted or renamed, and always has
+  // full access regardless of RolePermission rows (see lib/auth.ts).
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
 }
 
 model Account {
@@ -391,79 +409,13 @@ model DmeposFeeSchedule {
 
 model RolePermission {
   id            String   @id @default(cuid())
-  role          UserRole
+  // References Role.key. Was `UserRole` enum — now a plain string, same
+  // reason as User.role above.
+  role          String
   capabilityKey String
   allowed       Boolean  @default(true)
   updatedAt     DateTime @updatedAt
 
   @@unique([role, capabilityKey])
   @@index([role])
-}
-
-// ---------- ICD-10-CM ALPHABETIC INDEX (Diseases & Injuries) ----------
-
-model IcdAlphabeticIndexEntry {
-  id         String  @id @default(cuid())
-  term       String
-  fullPath   String  @db.Text
-  code       String?
-  seeRef     String?
-  seeAlsoRef String?
-  letter     String
-  level      Int
-
-  createdAt DateTime @default(now())
-
-  @@index([term])
-  @@index([letter])
-  @@index([code])
-}
-
-// ---------- ICD-9-CM LEGACY CODES (retired 2015, historical reference) ----------
-
-model Icd9Code {
-  id             String @id @default(cuid())
-  code           String @unique
-  longDesc       String
-  shortDesc      String
-  codeType       String // "DX" (diagnosis) or "SG" (surgery/procedure)
-
-  createdAt DateTime @default(now())
-
-  @@index([code])
-  @@index([codeType])
-}
-
-// ---------- COVID VACCINE CODES (CVX/NDC only, CPT column excluded) ----------
-
-model CovidVaccineCode {
-  id            String @id @default(cuid())
-  manufacturer  String
-  productLabel  String
-  cvxCode       String
-  cvxTermDesc   String @db.Text
-  cvxShortDesc  String
-  virusStrain   String?
-  ndcCodes      String? @db.Text
-  packaging     String?
-  ageCohort     String? @db.Text
-
-  createdAt DateTime @default(now())
-
-  @@index([cvxCode])
-}
-
-// ---------- DME SUPPLIER MUE (Medically Unlikely Edits) ----------
-
-model DmeMueLimit {
-  id            String @id @default(cuid())
-  code          String @unique
-  mueValue      Int
-  adjudicationIndicator String
-  rationale     String
-
-  quarter       String // e.g. "2026-OCT"
-  createdAt DateTime @default(now())
-
-  @@index([code])
 }

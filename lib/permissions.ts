@@ -59,13 +59,14 @@ export type CapabilityKey = (typeof CAPABILITIES)[number]["key"] | (typeof EDIT_
 const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/api/admin/users", key: "user-management" },
   { prefix: "/admin/users", key: "user-management" },
-  // NOTE: /admin/permissions and /api/admin/permissions are DELIBERATELY
-  // NOT in this map. They must stay hardcoded Admin-only (checked inside
-  // that route/page directly), never governed by the configurable table
-  // itself — otherwise granting "user-management" to a role would let
-  // that role open the permissions matrix and grant itself anything,
-  // including admin-equivalent access. This is the one part of the
-  // system that must never become self-referential.
+  // NOTE: /admin/permissions, /api/admin/permissions, /admin/roles, and
+  // /api/admin/roles are DELIBERATELY NOT in this map. They must stay
+  // hardcoded Admin-only (checked inside that route/page directly), never
+  // governed by the configurable table itself — otherwise granting
+  // "user-management" to a role would let that role open the permissions
+  // matrix or the roles page and grant itself (or a role it creates)
+  // admin-equivalent access. This is the one part of the system that must
+  // never become self-referential.
 
   { prefix: "/api/query-form/generate-bh", key: "forms-bh" },
   { prefix: "/api/query-form/export-bh", key: "forms-bh" },
