@@ -28,7 +28,7 @@ export const CAPABILITIES = [
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
   { key: "icd10-mappings", label: "ICD-10 CMS HCC Mappings" },
   { key: "icd10-index", label: "ICD-10 Search" },
-  { key: "hcpcs-updates", label: "HCPCS Search" },
+  { key: "hcpcs-updates", label: "HCPCS Code Search" },
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
   { key: "policy-generator", label: "Policy Generator" },

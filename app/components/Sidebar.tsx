@@ -15,7 +15,7 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/", label: "Codes Search", key: "codes-search" },
       { href: "/icd10-index", label: "ICD-10 Search", key: "icd10-index" },
       { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
-      { href: "/hcpcs-updates", label: "HCPCS Search", key: "hcpcs-updates" },
+      { href: "/hcpcs-updates", label: "HCPCS Code Search", key: "hcpcs-updates" },
     ],
   },
   {
