@@ -20,14 +20,14 @@ const TIME_BANDS_ESTABLISHED: TimeBand[] = [
   { code: "99212", minMinutes: 10, label: "10–19 min" },
   { code: "99213", minMinutes: 20, label: "20–29 min" },
   { code: "99214", minMinutes: 30, label: "30–39 min" },
-  { code: "99215", minMinutes: 40, label: "40–54 min" },
+  { code: "99215", minMinutes: 40, label: "40+ min" },
 ];
 
 const TIME_BANDS_NEW: TimeBand[] = [
   { code: "99202", minMinutes: 15, label: "15–29 min" },
   { code: "99203", minMinutes: 30, label: "30–44 min" },
   { code: "99204", minMinutes: 45, label: "45–59 min" },
-  { code: "99205", minMinutes: 60, label: "60–74 min" },
+  { code: "99205", minMinutes: 60, label: "60+ min" },
 ];
 
 // MDM criteria — AMA CPT-licensed content (2021 E/M guidelines table).
