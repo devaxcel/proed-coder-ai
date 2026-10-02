@@ -4,16 +4,13 @@ import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-function requireAdmin(session: Awaited<ReturnType<typeof auth>>) {
-  const role = (session?.user as { role?: string } | undefined)?.role;
-  return !!session && role === "ADMIN";
-}
-
 // GET /api/admin/roles — list all roles, Admin-only (same as the existing
 // Role Permissions matrix).
 export async function GET() {
   const session = await auth();
-  if (!requireAdmin(session)) {
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = !!session && role === "ADMIN";
+  if (!isAdmin) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
@@ -27,7 +24,9 @@ export async function GET() {
 // New roles are never isSystem — only the seeded ADMIN role is protected.
 export async function POST(req: NextRequest) {
   const session = await auth();
-  if (!requireAdmin(session)) {
+  const sessionRole = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = !!session && sessionRole === "ADMIN";
+  if (!isAdmin) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 

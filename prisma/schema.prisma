@@ -419,3 +419,71 @@ model RolePermission {
   @@unique([role, capabilityKey])
   @@index([role])
 }
+
+// ---------- ICD-10-CM ALPHABETIC INDEX (Diseases & Injuries) ----------
+
+model IcdAlphabeticIndexEntry {
+  id         String  @id @default(cuid())
+  term       String
+  fullPath   String  @db.Text
+  code       String?
+  seeRef     String?
+  seeAlsoRef String?
+  letter     String
+  level      Int
+
+  createdAt DateTime @default(now())
+
+  @@index([term])
+  @@index([letter])
+  @@index([code])
+}
+
+// ---------- ICD-9-CM LEGACY CODES (retired 2015, historical reference) ----------
+
+model Icd9Code {
+  id             String @id @default(cuid())
+  code           String @unique
+  longDesc       String
+  shortDesc      String
+  codeType       String // "DX" (diagnosis) or "SG" (surgery/procedure)
+
+  createdAt DateTime @default(now())
+
+  @@index([code])
+  @@index([codeType])
+}
+
+// ---------- COVID VACCINE CODES (CVX/NDC only, CPT column excluded) ----------
+
+model CovidVaccineCode {
+  id            String @id @default(cuid())
+  manufacturer  String
+  productLabel  String
+  cvxCode       String
+  cvxTermDesc   String @db.Text
+  cvxShortDesc  String
+  virusStrain   String?
+  ndcCodes      String? @db.Text
+  packaging     String?
+  ageCohort     String? @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([cvxCode])
+}
+
+// ---------- DME SUPPLIER MUE (Medically Unlikely Edits) ----------
+
+model DmeMueLimit {
+  id            String @id @default(cuid())
+  code          String @unique
+  mueValue      Int
+  adjudicationIndicator String
+  rationale     String
+
+  quarter       String // e.g. "2026-OCT"
+  createdAt DateTime @default(now())
+
+  @@index([code])
+}

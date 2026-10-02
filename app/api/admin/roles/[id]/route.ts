@@ -4,18 +4,15 @@ import { db } from "@/lib/db";
 
 export const runtime = "nodejs";
 
-function requireAdmin(session: Awaited<ReturnType<typeof auth>>) {
-  const role = (session?.user as { role?: string } | undefined)?.role;
-  return !!session && role === "ADMIN";
-}
-
 // PATCH /api/admin/roles/[id] — rename a role's display label only.
 // `key` and `isSystem` are intentionally not editable here: changing a
 // key would orphan every User/RolePermission row already using the old
 // one, and isSystem is a protection flag, not a user-facing setting.
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!requireAdmin(session)) {
+  const sessionRole = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = !!session && sessionRole === "ADMIN";
+  if (!isAdmin) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
@@ -35,7 +32,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 // never silently strand a real account in a non-existent role.
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth();
-  if (!requireAdmin(session)) {
+  const sessionRole = (session?.user as { role?: string } | undefined)?.role;
+  const isAdmin = !!session && sessionRole === "ADMIN";
+  if (!isAdmin) {
     return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   }
 
