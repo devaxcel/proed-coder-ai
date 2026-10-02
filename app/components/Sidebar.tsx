@@ -10,12 +10,18 @@ type NavGroup = { label: string; links: NavLink[] };
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Code Lookup",
+    // Per Lupita's App_Changes doc: group renamed "Code Lookup" -> "Code
+    // Search", with 5 tabs in the exact order/wording she gave. ICD-9-CM
+    // Legacy wasn't in her list — kept (not deleted), just moved after her
+    // 5 requested items, since she didn't say to remove it.
+    label: "Code Search",
     links: [
-      { href: "/", label: "Codes Search", key: "codes-search" },
-      { href: "/icd10-index", label: "ICD-10 Search", key: "icd10-index" },
-      { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
+      { href: "/icd10-index", label: "ICD10 Index Search", key: "icd10-index" },
+      { href: "/", label: "ICD10 Code Search", key: "codes-search" },
+      { href: "/cpt-search", label: "CPT Code Search", key: "cpt-search" },
       { href: "/hcpcs-updates", label: "HCPCS Code Search", key: "hcpcs-updates" },
+      { href: "/modifier-search", label: "Modifier Search", key: "modifier-search" },
+      { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
     ],
   },
   {

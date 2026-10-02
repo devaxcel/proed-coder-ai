@@ -19,7 +19,9 @@
  */
 
 export const CAPABILITIES = [
-  { key: "codes-search", label: "Codes Search" },
+  { key: "codes-search", label: "ICD10 Code Search" },
+  { key: "cpt-search", label: "CPT Code Search" },
+  { key: "modifier-search", label: "Modifier Search" },
   { key: "policies-qa", label: "Policies Q&A" },
   { key: "query-forms", label: "Query Forms — Form A" },
   { key: "forms-bh", label: "Query Forms B–H" },
@@ -27,7 +29,7 @@ export const CAPABILITIES = [
   { key: "annual-wellness", label: "Annual Wellness" },
   { key: "meat-hcc", label: "MEAT HCC Checklist" },
   { key: "icd10-mappings", label: "ICD-10 CMS HCC Mappings" },
-  { key: "icd10-index", label: "ICD-10 Search" },
+  { key: "icd10-index", label: "ICD10 Index Search" },
   { key: "hcpcs-updates", label: "HCPCS Code Search" },
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
@@ -76,6 +78,11 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/query-forms", key: "query-forms" },
 
   { prefix: "/api/search", key: "codes-search" },
+
+  { prefix: "/api/cpt-search", key: "cpt-search" },
+  { prefix: "/cpt-search", key: "cpt-search" },
+
+  { prefix: "/modifier-search", key: "modifier-search" },
 
   { prefix: "/api/policies", key: "policies-qa" },
   { prefix: "/policies", key: "policies-qa" },
