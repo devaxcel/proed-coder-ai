@@ -49,8 +49,51 @@
  *   npx tsx scripts/cms-data/parse-hcpcs-quarterly.ts --file ./cms-raw/HCPC2026_OCT_ANWEB_09232026.txt --quarter 2026Q4
  */
 
-import { readFileSync } from "fs";
-import { PrismaClient } from "@prisma/client";
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
+import { randomUUID } from "crypto";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+// ---------- resume / retry support ----------
+// Neon's serverless Postgres can close an idle or long-running connection
+// mid-import (P1017 "Server has closed the connection") — routine for a
+// bulk load like this, not a sign anything is wrong. Progress is
+// checkpointed to a local file after every successful batch, and a dropped
+// connection is retried with a fresh PrismaClient a few times before giving
+// up, so re-running after an interruption resumes instead of starting over.
+
+function checkpointPath(quarter: string): string {
+  return `.hcpcs-import-checkpoint-${quarter}.json`;
+}
+
+function readCheckpoint(quarter: string): number {
+  const p = checkpointPath(quarter);
+  if (!existsSync(p)) return 0;
+  try {
+    return JSON.parse(readFileSync(p, "utf8")).completed ?? 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeCheckpoint(quarter: string, completed: number): void {
+  writeFileSync(checkpointPath(quarter), JSON.stringify({ completed }));
+}
+
+function clearCheckpoint(quarter: string): void {
+  const p = checkpointPath(quarter);
+  if (existsSync(p)) unlinkSync(p);
+}
+
+function isConnectionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("P1017") ||
+    msg.includes("Server has closed the connection") ||
+    msg.includes("ECONNRESET") ||
+    msg.includes("Connection terminated") ||
+    msg.includes("Closed")
+  );
+}
 
 // 0-indexed [start, end) slices, converted from CMS's 1-indexed column doc.
 const COLUMNS = {
@@ -137,6 +180,48 @@ function parseFixedWidth(text: string): ParsedRow[] {
   return rows;
 }
 
+// One multi-row "INSERT ... ON CONFLICT DO UPDATE" per batch instead of one
+// upsert() round-trip per code — same fix as the ICD-10 script, for the
+// same reason (500+ separate round-trips per batch was the real bottleneck,
+// not the parsing).
+async function bulkUpsertRows(db: PrismaClient, batch: ParsedRow[], quarter: string): Promise<void> {
+  // Same defensive dedup as the ICD-10 script — a single multi-row INSERT
+  // can't ON CONFLICT DO UPDATE the same code twice in one statement.
+  // HCPCS codes checked clean during verification, but this guards against
+  // ever crashing the whole import over it regardless of cause.
+  const dedupedByCode = new Map<string, ParsedRow>();
+  for (const row of batch) dedupedByCode.set(row.code, row);
+  const deduped = [...dedupedByCode.values()];
+  if (deduped.length !== batch.length) {
+    console.warn(
+      `  [warning] batch had ${batch.length - deduped.length} duplicate code(s) within one batch — kept the last occurrence of each, dropped the rest.`
+    );
+  }
+
+  const values = deduped.map(
+    (r) => Prisma.sql`(
+      ${randomUUID()}, ${r.code}, ${r.shortDesc}, ${r.longDesc ?? null}, ${r.coverageCode ?? null},
+      ${r.actionCode ?? null}, ${r.effectiveDate ?? null}, ${r.terminationDate ?? null}, ${quarter}, now(), now()
+    )`
+  );
+
+  await db.$executeRaw(Prisma.sql`
+    INSERT INTO "HcpcsLevelIIEntry"
+      (id, code, "shortDesc", "longDesc", "coverageCode", "actionCode", "effectiveDate", "terminationDate",
+       quarter, "createdAt", "updatedAt")
+    VALUES ${Prisma.join(values)}
+    ON CONFLICT (code) DO UPDATE SET
+      "shortDesc" = EXCLUDED."shortDesc",
+      "longDesc" = EXCLUDED."longDesc",
+      "coverageCode" = EXCLUDED."coverageCode",
+      "actionCode" = EXCLUDED."actionCode",
+      "effectiveDate" = EXCLUDED."effectiveDate",
+      "terminationDate" = EXCLUDED."terminationDate",
+      quarter = EXCLUDED.quarter,
+      "updatedAt" = now()
+  `);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const fileIdx = args.indexOf("--file");
@@ -171,25 +256,45 @@ async function main() {
     return;
   }
 
-  const db = new PrismaClient();
+  let db = new PrismaClient();
+  const startAt = readCheckpoint(quarter);
+  if (startAt > 0) {
+    console.log(`Resuming from checkpoint: ${startAt} / ${rows.length} already written.`);
+  }
+
   try {
-    console.log("Writing to database in batches of 500...");
-    for (let i = 0; i < rows.length; i += 500) {
-      const batch = rows.slice(i, i + 500);
-      await db.$transaction(
-        batch.map((r) =>
-          db.hcpcsLevelIIEntry.upsert({
-            where: { code: r.code },
-            update: { ...r, quarter },
-            create: { ...r, quarter },
-          })
-        )
-      );
-      console.log(`  ${Math.min(i + 500, rows.length)} / ${rows.length}`);
+    console.log("Writing to database in batches of 1000 (safe to re-run if this is interrupted — it resumes)...");
+    const BATCH = 1000;
+    const MAX_ATTEMPTS = 5;
+
+    for (let i = startAt; i < rows.length; i += BATCH) {
+      const batch = rows.slice(i, i + BATCH);
+
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await bulkUpsertRows(db, batch, quarter);
+          break; // batch succeeded
+        } catch (err) {
+          if (!isConnectionError(err) || attempt >= MAX_ATTEMPTS) throw err;
+          const waitMs = Math.min(2000 * attempt, 15000);
+          console.warn(
+            `  [connection dropped, attempt ${attempt}/${MAX_ATTEMPTS}] reconnecting in ${waitMs}ms and retrying this batch...`
+          );
+          await db.$disconnect().catch(() => {});
+          await new Promise((r) => setTimeout(r, waitMs));
+          db = new PrismaClient();
+        }
+      }
+
+      const done = Math.min(i + BATCH, rows.length);
+      console.log(`  ${done} / ${rows.length}`);
+      writeCheckpoint(quarter, done);
     }
+
+    clearCheckpoint(quarter);
     console.log("Done.");
   } finally {
-    await db.$disconnect();
+    await db.$disconnect().catch(() => {});
   }
 }
 

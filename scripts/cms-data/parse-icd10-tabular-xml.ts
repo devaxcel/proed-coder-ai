@@ -37,10 +37,58 @@
  * final sanity check on your machine.
  */
 
-import { readdirSync, readFileSync } from "fs";
+import { readdirSync, readFileSync, writeFileSync, existsSync, unlinkSync } from "fs";
 import { join } from "path";
+import { randomUUID } from "crypto";
 import { XMLParser } from "fast-xml-parser";
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+// ---------- resume / retry support ----------
+// Neon's serverless Postgres can close an idle or long-running connection
+// mid-import (P1017 "Server has closed the connection") — this is routine
+// for a bulk load like this, not a sign anything is wrong. Rather than make
+// you start over from zero each time, progress is checkpointed to a local
+// file after every successful batch, and a dropped connection is retried
+// with a fresh PrismaClient a few times before giving up.
+
+interface Checkpoint {
+  completedEntries: number;
+  sectionNotesDone: boolean;
+}
+
+function checkpointPath(sourceYear: number): string {
+  return `.icd10-import-checkpoint-${sourceYear}.json`;
+}
+
+function readCheckpoint(sourceYear: number): Checkpoint {
+  const p = checkpointPath(sourceYear);
+  if (!existsSync(p)) return { completedEntries: 0, sectionNotesDone: false };
+  try {
+    return JSON.parse(readFileSync(p, "utf8"));
+  } catch {
+    return { completedEntries: 0, sectionNotesDone: false };
+  }
+}
+
+function writeCheckpoint(sourceYear: number, data: Checkpoint): void {
+  writeFileSync(checkpointPath(sourceYear), JSON.stringify(data));
+}
+
+function clearCheckpoint(sourceYear: number): void {
+  const p = checkpointPath(sourceYear);
+  if (existsSync(p)) unlinkSync(p);
+}
+
+function isConnectionError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return (
+    msg.includes("P1017") ||
+    msg.includes("Server has closed the connection") ||
+    msg.includes("ECONNRESET") ||
+    msg.includes("Connection terminated") ||
+    msg.includes("Closed")
+  );
+}
 
 type NoteBucket = string[];
 
@@ -82,14 +130,32 @@ function extractNotes(node: unknown): string[] {
 }
 
 function findXmlFile(dir: string): string {
-  const candidates = readdirSync(dir).filter((f) => f.toLowerCase().endsWith(".xml"));
-  if (candidates.length === 0) {
+  const allXml = readdirSync(dir).filter((f) => f.toLowerCase().endsWith(".xml"));
+  if (allXml.length === 0) {
     throw new Error(`No .xml file found in ${dir} — did you unzip the CMS file here?`);
   }
-  if (candidates.length > 1) {
-    console.warn(`Multiple .xml files found in ${dir}, using the first: ${candidates[0]}`);
+
+  // CMS ships SEVERAL xml files in this folder — tabular, index, eindex
+  // (external cause index), neoplasm table, drug/chemical table — only
+  // "tabular" is the one this parser understands. Picking "the first .xml
+  // alphabetically" silently grabs the wrong one (icd10cm_drug_2027.xml
+  // sorts before icd10cm_tabular_2027.xml), so look specifically for a name
+  // containing "tabular".
+  const tabularMatches = allXml.filter((f) => f.toLowerCase().includes("tabular"));
+  if (tabularMatches.length === 1) {
+    return join(dir, tabularMatches[0]);
   }
-  return join(dir, candidates[0]);
+  if (tabularMatches.length > 1) {
+    console.warn(`Multiple "tabular" xml files found in ${dir}, using the first: ${tabularMatches[0]}`);
+    return join(dir, tabularMatches[0]);
+  }
+
+  // No filename contains "tabular" at all — don't guess silently.
+  throw new Error(
+    `Found ${allXml.length} .xml file(s) in ${dir} (${allXml.join(", ")}), but none has "tabular" in its ` +
+      `name. This parser only understands the ICD-10-CM Tabular List XML — check which file is the right ` +
+      `one and rename it to include "tabular", or point --dir at a folder containing only that file.`
+  );
 }
 
 function walkDiag(
@@ -187,6 +253,65 @@ function parseTabularXml(xmlPath: string): { entries: ParsedEntry[]; sectionNote
   return { entries, sectionNotes };
 }
 
+// Writes a whole batch as ONE multi-row "INSERT ... ON CONFLICT DO UPDATE"
+// statement instead of one upsert() call per row. The earlier per-row
+// upsert() loop issued one database round-trip per code (47,025 of them) —
+// even inside a single $transaction, Prisma still sends each statement
+// separately. Over a network connection to Neon this was the actual
+// bottleneck (not the parsing, not Node) and is why the import felt slow.
+// Bulk-upserting cuts ~1000 round-trips down to ~1 per batch.
+async function bulkUpsertEntries(db: PrismaClient, batch: ParsedEntry[], sourceYear: number): Promise<void> {
+  // Defensive: a single multi-row "INSERT ... ON CONFLICT DO UPDATE" throws
+  // "ON CONFLICT DO UPDATE command cannot affect row a second time" if two
+  // rows in the SAME statement share a `code` — Postgres can't apply two
+  // updates to the same conflict target within one command. We didn't find
+  // any duplicate codes in our own copy of the source XML, but a duplicate
+  // should never be allowed to crash the whole import regardless of where
+  // it comes from, so dedupe within the batch first (keeping the LAST
+  // occurrence, in case a later entry in source order is the more complete
+  // one) before building the SQL.
+  const dedupedByCode = new Map<string, ParsedEntry>();
+  for (const entry of batch) dedupedByCode.set(entry.code, entry);
+  const deduped = [...dedupedByCode.values()];
+  if (deduped.length !== batch.length) {
+    console.warn(
+      `  [warning] batch had ${batch.length - deduped.length} duplicate code(s) within one batch — kept the last occurrence of each, dropped the rest.`
+    );
+  }
+
+  const rows = deduped.map(
+    (e) => Prisma.sql`(
+      ${randomUUID()}, ${e.code}, ${e.description}, ${e.chapterName ?? null}, ${e.sectionName ?? null},
+      ${e.categoryCode ?? null}, ${JSON.stringify(e.includesNotes)}::jsonb, ${JSON.stringify(e.excludes1Notes)}::jsonb,
+      ${JSON.stringify(e.excludes2Notes)}::jsonb, ${JSON.stringify(e.inclusionTerms)}::jsonb,
+      ${JSON.stringify(e.codeFirstNotes)}::jsonb, ${JSON.stringify(e.useAddlNotes)}::jsonb,
+      ${e.sevenChrNote ?? null}, ${sourceYear}, now(), now()
+    )`
+  );
+
+  await db.$executeRaw(Prisma.sql`
+    INSERT INTO "Icd10TabularEntry"
+      (id, code, description, "chapterName", "sectionName", "categoryCode",
+       "includesNotes", "excludes1Notes", "excludes2Notes", "inclusionTerms", "codeFirstNotes", "useAddlNotes",
+       "sevenChrNote", "sourceYear", "createdAt", "updatedAt")
+    VALUES ${Prisma.join(rows)}
+    ON CONFLICT (code) DO UPDATE SET
+      description = EXCLUDED.description,
+      "chapterName" = EXCLUDED."chapterName",
+      "sectionName" = EXCLUDED."sectionName",
+      "categoryCode" = EXCLUDED."categoryCode",
+      "includesNotes" = EXCLUDED."includesNotes",
+      "excludes1Notes" = EXCLUDED."excludes1Notes",
+      "excludes2Notes" = EXCLUDED."excludes2Notes",
+      "inclusionTerms" = EXCLUDED."inclusionTerms",
+      "codeFirstNotes" = EXCLUDED."codeFirstNotes",
+      "useAddlNotes" = EXCLUDED."useAddlNotes",
+      "sevenChrNote" = EXCLUDED."sevenChrNote",
+      "sourceYear" = EXCLUDED."sourceYear",
+      "updatedAt" = now()
+  `);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const dirIdx = args.indexOf("--dir");
@@ -221,64 +346,76 @@ async function main() {
     return;
   }
 
-  const db = new PrismaClient();
+  let db = new PrismaClient();
+  const checkpoint = readCheckpoint(sourceYear);
+  if (checkpoint.completedEntries > 0 || checkpoint.sectionNotesDone) {
+    console.log(
+      `Resuming from checkpoint: ${checkpoint.completedEntries} / ${entries.length} codes already written` +
+        (checkpoint.sectionNotesDone ? ", section notes already written." : ".")
+    );
+  }
+
   try {
-    console.log("Writing to database in batches of 500...");
-    for (let i = 0; i < entries.length; i += 500) {
-      const batch = entries.slice(i, i + 500);
-      await db.$transaction(
-        batch.map((e) =>
-          db.icd10TabularEntry.upsert({
-            where: { code: e.code },
-            update: {
-              description: e.description,
-              chapterName: e.chapterName,
-              sectionName: e.sectionName,
-              categoryCode: e.categoryCode,
-              includesNotes: e.includesNotes,
-              excludes1Notes: e.excludes1Notes,
-              excludes2Notes: e.excludes2Notes,
-              inclusionTerms: e.inclusionTerms,
-              codeFirstNotes: e.codeFirstNotes,
-              useAddlNotes: e.useAddlNotes,
-              sevenChrNote: e.sevenChrNote,
-              sourceYear,
-            },
-            create: {
-              code: e.code,
-              description: e.description,
-              chapterName: e.chapterName,
-              sectionName: e.sectionName,
-              categoryCode: e.categoryCode,
-              includesNotes: e.includesNotes,
-              excludes1Notes: e.excludes1Notes,
-              excludes2Notes: e.excludes2Notes,
-              inclusionTerms: e.inclusionTerms,
-              codeFirstNotes: e.codeFirstNotes,
-              useAddlNotes: e.useAddlNotes,
-              sevenChrNote: e.sevenChrNote,
-              sourceYear,
-            },
-          })
-        )
-      );
-      console.log(`  ${Math.min(i + 500, entries.length)} / ${entries.length}`);
+    console.log("Writing to database in batches of 1000 (safe to re-run if this is interrupted — it resumes)...");
+    const BATCH = 1000;
+    const MAX_ATTEMPTS = 5;
+
+    for (let i = checkpoint.completedEntries; i < entries.length; i += BATCH) {
+      const batch = entries.slice(i, i + BATCH);
+
+      for (let attempt = 1; ; attempt++) {
+        try {
+          await bulkUpsertEntries(db, batch, sourceYear);
+          break; // batch succeeded
+        } catch (err) {
+          if (!isConnectionError(err) || attempt >= MAX_ATTEMPTS) throw err;
+          const waitMs = Math.min(2000 * attempt, 15000);
+          console.warn(
+            `  [connection dropped, attempt ${attempt}/${MAX_ATTEMPTS}] reconnecting in ${waitMs}ms and retrying this batch...`
+          );
+          await db.$disconnect().catch(() => {});
+          await new Promise((r) => setTimeout(r, waitMs));
+          db = new PrismaClient();
+        }
+      }
+
+      const done = Math.min(i + BATCH, entries.length);
+      console.log(`  ${done} / ${entries.length}`);
+      writeCheckpoint(sourceYear, { completedEntries: done, sectionNotesDone: checkpoint.sectionNotesDone });
     }
 
-    console.log("Writing chapter/section-level notes...");
-    // Simple strategy: clear this year's section notes and re-insert, since
-    // there's no natural unique key to upsert against.
-    await db.icd10SectionNote.deleteMany({ where: { sourceYear } });
-    for (let i = 0; i < sectionNotes.length; i += 500) {
-      const batch = sectionNotes.slice(i, i + 500);
-      await db.icd10SectionNote.createMany({
-        data: batch.map((n) => ({ ...n, sourceYear })),
-      });
+    if (!checkpoint.sectionNotesDone) {
+      console.log("Writing chapter/section-level notes...");
+      for (let attempt = 1; ; attempt++) {
+        try {
+          // Simple strategy: clear this year's section notes and re-insert,
+          // since there's no natural unique key to upsert against.
+          await db.icd10SectionNote.deleteMany({ where: { sourceYear } });
+          for (let i = 0; i < sectionNotes.length; i += 500) {
+            const batch = sectionNotes.slice(i, i + 500);
+            await db.icd10SectionNote.createMany({
+              data: batch.map((n) => ({ ...n, sourceYear })),
+            });
+          }
+          break;
+        } catch (err) {
+          if (!isConnectionError(err) || attempt >= MAX_ATTEMPTS) throw err;
+          const waitMs = Math.min(2000 * attempt, 15000);
+          console.warn(
+            `  [connection dropped, attempt ${attempt}/${MAX_ATTEMPTS}] reconnecting in ${waitMs}ms and retrying section notes...`
+          );
+          await db.$disconnect().catch(() => {});
+          await new Promise((r) => setTimeout(r, waitMs));
+          db = new PrismaClient();
+        }
+      }
+      writeCheckpoint(sourceYear, { completedEntries: entries.length, sectionNotesDone: true });
     }
 
+    clearCheckpoint(sourceYear);
     console.log("Done.");
   } finally {
-    await db.$disconnect();
+    await db.$disconnect().catch(() => {});
   }
 }
 

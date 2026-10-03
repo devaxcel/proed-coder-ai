@@ -487,3 +487,81 @@ model DmeMueLimit {
 
   @@index([code])
 }
+// ============================================================================
+// APPEND THESE THREE MODELS to the end of your existing prisma/schema.prisma.
+// Do NOT replace the whole file — just paste this block in after the last
+// model currently there. This is purely additive (new tables only), so it
+// does not touch anything that exists today.
+// ============================================================================
+
+// ---------- ICD-10-CM / HCPCS RAW DATA (from CMS free public files) ----------
+// Added per Lupita's 2026-10-03 request: while the AMA CPT contract is still
+// pending, build out ICD-10 and HCPCS from CMS's free-access data so the app
+// isn't blocked on CPT licensing, and scope how the raw data can drive
+// per-section/per-code "pop" (pop-up) instructional content.
+//
+// Populated by scripts/cms-data/*.ts — see scripts/cms-data/README.md for
+// where the source files come from and how to run them.
+
+model Icd10TabularEntry {
+  id             String   @id @default(cuid())
+  code           String   @unique
+  description    String
+
+  // Hierarchy context, carried down from the CMS Tabular XML structure —
+  // this is what lets the app show "you're in Chapter 4 / Endocrine
+  // diseases" context, not just a bare code.
+  chapterName    String?
+  sectionName    String?
+  categoryCode   String?  // e.g. "E11" — the 3-character category this code rolls up under
+
+  // The actual instructional content CMS publishes per code — this is the
+  // raw material for per-code pop-up guidance. Stored as JSON string arrays
+  // since a code can have zero, one, or several notes of each type.
+  includesNotes  Json?    // "Includes" notes
+  excludes1Notes Json?    // "Excludes1" — NOT coded here, conditions that can't coexist
+  excludes2Notes Json?    // "Excludes2" — NOT included here, but may be coded together
+  inclusionTerms Json?    // synonyms / clinical terms covered by this code
+  codeFirstNotes Json?    // "Code first" sequencing notes
+  useAddlNotes   Json?    // "Use additional code" notes
+  sevenChrNote   String?  // 7th-character extension guidance, if any
+
+  sourceYear     Int      // FY the data came from, e.g. 2027 — lets you tell which vintage a row is from if re-imported later
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([chapterName])
+  @@index([categoryCode])
+}
+
+// Chapter/section-level notes that apply broadly (not tied to one code) —
+// this is the raw material for a "pop" shown when a user opens a whole
+// section rather than drilling into a single code.
+model Icd10SectionNote {
+  id          String   @id @default(cuid())
+  chapterName String
+  sectionName String?
+  noteType    String   // "includes" | "excludes1" | "excludes2" | "note" | "useAdditionalCode" | "codeFirst"
+  noteText    String
+  sourceYear  Int
+  createdAt   DateTime @default(now())
+
+  @@index([chapterName, sectionName])
+}
+
+model HcpcsLevelIIEntry {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  shortDesc       String
+  longDesc        String?
+  coverageCode    String?   // CMS coverage/pricing indicator, when the source file includes one
+  actionCode      String?   // added / changed / deleted this quarter, when available
+  effectiveDate   DateTime?
+  terminationDate DateTime?
+  quarter         String    // e.g. "2026Q4" — which quarterly file this row came from
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([quarter])
+}
