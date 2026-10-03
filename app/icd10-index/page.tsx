@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { THEME } from "@/lib/theme";
+import { Icd10CodeNotesButton } from "@/components/Icd10NotesPopup";
 
 const TEAL = THEME.primary;
 const TEAL_LIGHT = THEME.primaryLight;
@@ -102,9 +103,16 @@ export default function Icd10IndexPage() {
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-base font-semibold text-slate-900">{entry.term}</span>
               {entry.code && (
-                <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
-                  {entry.code}
-                </span>
+                <>
+                  <span className="inline-flex items-center rounded px-2 py-0.5 text-xs font-bold" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
+                    {entry.code}
+                  </span>
+                  {/* CMS "pop" instructions — Includes/Excludes/instructional
+                      notes for this code, pulled from the Tabular List data.
+                      Hides itself automatically if this particular code has
+                      no notes attached. */}
+                  <Icd10CodeNotesButton code={entry.code} />
+                </>
               )}
             </div>
             {entry.seeRef && (
