@@ -15,6 +15,19 @@ import { db } from "@/lib/db";
  * Any signed-in user can read this — it's reference material, not
  * something that needs role gating the way admin routes do.
  */
+
+// Other parts of the app (e.g. the ICD-10 Alphabetic Index search) store
+// codes without the decimal point ("E119"), while Icd10TabularEntry stores
+// them in the normal "E11.9" display format. Normalize whatever comes in —
+// strip anything that isn't a letter/digit, then reinsert the decimal
+// after the 3rd character — so a lookup works regardless of which format
+// the caller happens to send.
+function normalizeIcd10Code(raw: string): string {
+  const stripped = raw.trim().toUpperCase().replace(/[^A-Z0-9]/g, "");
+  if (stripped.length <= 3) return stripped;
+  return `${stripped.slice(0, 3)}.${stripped.slice(3)}`;
+}
+
 export async function GET(
   _req: Request,
   { params }: { params: Promise<{ code: string }> }
@@ -25,7 +38,7 @@ export async function GET(
   }
 
   const { code: rawCode } = await params;
-  const code = decodeURIComponent(rawCode).trim().toUpperCase();
+  const code = normalizeIcd10Code(decodeURIComponent(rawCode));
 
   const entry = await db.icd10TabularEntry.findUnique({
     where: { code },
