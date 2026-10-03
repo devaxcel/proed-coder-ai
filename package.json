@@ -42,6 +42,7 @@
     "adm-zip": "^0.5.16",
     "bcryptjs": "^3.0.3",
     "docx": "^9.0.2",
+    "fast-xml-parser": "^4.5.7",
     "groq-sdk": "^0.9.0",
     "next": "^16.3.0",
     "next-auth": "^5.0.0-beta.22",
@@ -50,9 +51,8 @@
     "pg": "^8.13.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "xlsx": "^0.18.5",
     "unpdf": "^0.11.0",
-    "fast-xml-parser": "^4.5.0",
+    "xlsx": "^0.18.5",
     "zod": "^3.23.8"
   },
   "devDependencies": {
