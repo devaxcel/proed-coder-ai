@@ -150,6 +150,21 @@ async function embedBatchHuggingFace(texts: string[]): Promise<number[][]> {
 const GEMINI_MODEL = "gemini-embedding-001";
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:embedContent`;
 const GEMINI_BATCH_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:batchEmbedContents`;
+const GEMINI_DIMS = 384;
+
+// Safety net: Gemini's embeddings are MRL-trained, meaning the first N
+// dimensions of the FULL vector are already a valid, meaningful embedding
+// on their own — so truncating client-side (then re-normalizing to unit
+// length, which pgvector's cosine distance assumes) is a legitimate
+// fallback if the server ever ignores our dimension request again (as it
+// silently did when the field name was wrong) instead of hard-failing on
+// a dimension mismatch.
+function truncateAndNormalize(vec: number[], dims: number): number[] {
+  if (vec.length <= dims) return vec;
+  const truncated = vec.slice(0, dims);
+  const norm = Math.sqrt(truncated.reduce((sum, v) => sum + v * v, 0));
+  return norm > 0 ? truncated.map((v) => v / norm) : truncated;
+}
 
 async function embedGemini(text: string): Promise<number[]> {
   const key = process.env.GEMINI_API_KEY;
@@ -161,9 +176,8 @@ async function embedGemini(text: string): Promise<number[]> {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: `models/${GEMINI_MODEL}`,
       content: { parts: [{ text }] },
-      embedContentConfig: { outputDimensionality: 384 },
+      outputDimensionality: GEMINI_DIMS,
     }),
   });
   if (!res.ok) {
@@ -171,7 +185,7 @@ async function embedGemini(text: string): Promise<number[]> {
     throw new Error(`Gemini API ${res.status}: ${body.slice(0, 300)}`);
   }
   const j = await res.json();
-  return j.embedding.values as number[];
+  return truncateAndNormalize(j.embedding.values as number[], GEMINI_DIMS);
 }
 
 async function embedBatchGemini(texts: string[]): Promise<number[][]> {
@@ -192,7 +206,7 @@ async function embedBatchGemini(texts: string[]): Promise<number[][]> {
         requests: chunk.map((text) => ({
           model: `models/${GEMINI_MODEL}`,
           content: { parts: [{ text }] },
-          embedContentConfig: { outputDimensionality: 384 },
+          outputDimensionality: GEMINI_DIMS,
         })),
       }),
     });
@@ -202,7 +216,7 @@ async function embedBatchGemini(texts: string[]): Promise<number[][]> {
     }
     const j = await res.json();
     for (const e of j.embeddings as Array<{ values: number[] }>) {
-      results.push(e.values);
+      results.push(truncateAndNormalize(e.values, GEMINI_DIMS));
     }
   }
   return results;
