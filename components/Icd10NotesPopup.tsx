@@ -98,8 +98,15 @@ export function Icd10CodeNotesButton({
   }
 
   // If hideIfEmpty is set and we've already confirmed (from a prior open)
-  // that this code has nothing to show, don't render the trigger at all.
-  if (hideIfEmpty && checkedEmpty && data && !data.hasNotes) return null;
+  // that this code has nothing to show, don't render the trigger — but
+  // only while the modal is CLOSED. Without the `!open` check here, the
+  // instant the "no notes" response came back while the modal was open,
+  // this would return null and unmount the whole thing — modal included —
+  // which is exactly the "opens and then immediately disappears" bug.
+  // With it, a no-notes code's button simply won't reappear the NEXT time
+  // this list re-renders, instead of yanking the open modal out from
+  // under the person who just clicked it.
+  if (hideIfEmpty && checkedEmpty && data && !data.hasNotes && !open) return null;
 
   return (
     <>

@@ -25,12 +25,43 @@ export default function Icd10IndexPage() {
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  // Which of the currently-displayed codes actually have CMS notes
+  // attached. Checked in one batch call right after a search comes back,
+  // so the "Notes" button only ever renders for a code that genuinely has
+  // something to show — instead of showing a button for every code and
+  // letting it discover (after the click) that there's nothing there.
+  const [codesWithNotes, setCodesWithNotes] = useState<Set<string>>(new Set());
   const pageSize = 25;
+
+  async function fetchNotesAvailability(codes: string[]) {
+    if (codes.length === 0) {
+      setCodesWithNotes(new Set());
+      return;
+    }
+    try {
+      const r = await fetch("/api/icd10/notes-exists", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codes }),
+      });
+      if (!r.ok) {
+        setCodesWithNotes(new Set());
+        return;
+      }
+      const json = await r.json();
+      setCodesWithNotes(new Set(json.withNotes ?? []));
+    } catch {
+      // Fail closed — no buttons shown — rather than risk showing buttons
+      // for codes we couldn't actually confirm have notes.
+      setCodesWithNotes(new Set());
+    }
+  }
 
   async function search(newPage = 1) {
     if (!q.trim()) {
       setResults([]);
       setTotal(0);
+      setCodesWithNotes(new Set());
       return;
     }
     setLoading(true);
@@ -40,6 +71,12 @@ export default function Icd10IndexPage() {
       setResults(json.results);
       setTotal(json.total);
       setPage(newPage);
+      const codes = (json.results as Entry[])
+        .map((e) => e.code)
+        .filter((c): c is string => !!c);
+      // Don't block the results from showing while this runs — the Notes
+      // buttons simply pop in a moment after the results themselves.
+      fetchNotesAvailability(codes);
     } finally {
       setLoading(false);
     }
@@ -109,9 +146,12 @@ export default function Icd10IndexPage() {
                   </span>
                   {/* CMS "pop" instructions — Includes/Excludes/instructional
                       notes for this code, pulled from the Tabular List data.
-                      Hides itself automatically if this particular code has
-                      no notes attached. */}
-                  <Icd10CodeNotesButton code={entry.code} />
+                      Only rendered when the batch check above confirmed this
+                      code actually has notes, so a code with nothing
+                      attached never shows a button in the first place. */}
+                  {codesWithNotes.has(entry.code) && (
+                    <Icd10CodeNotesButton code={entry.code} />
+                  )}
                 </>
               )}
             </div>
