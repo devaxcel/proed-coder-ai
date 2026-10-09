@@ -190,6 +190,54 @@ function CriteriaGroup({
   );
 }
 
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  type?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block text-xs font-semibold mb-1" style={{ color: BRAND }}>{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm"
+      />
+    </label>
+  );
+}
+
+type SavedCase = {
+  id: string;
+  patientName: string;
+  accountNumber: string;
+  dos: string;
+  npi: string;
+  patientType: PatientType;
+  basis: Basis;
+  // Time-based
+  timeCode: string | null;
+  timeLabel: string | null;
+  // MDM-based
+  problemLevel: number;
+  dataLevel: number;
+  riskLevel: number;
+  mdmFinalLevel: number | null;
+  mdmOverall: string | null;
+  mdmCode: string | null;
+  wasDowncoded: boolean;
+};
+
 export default function EMToolPage() {
   const [basis, setBasis] = useState<Basis>(null);
   const [patientType, setPatientType] = useState<PatientType>(null);
@@ -199,21 +247,47 @@ export default function EMToolPage() {
   const [dataChecked, setDataChecked] = useState<Record<string, boolean>>({});
   const [riskChecked, setRiskChecked] = useState<Record<string, boolean>>({});
 
+  // Patient info — same fields/pattern as the MEAT HCC tool, so cases can
+  // be identified on a printed/exported record.
+  const [patientName, setPatientName] = useState("");
+  const [accountNumber, setAccountNumber] = useState("");
+  const [dos, setDos] = useState("");
+  const [npi, setNpi] = useState("");
+
+  const [savedCases, setSavedCases] = useState<SavedCase[]>([]);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [exporting, setExporting] = useState<"pdf" | "batch" | null>(null);
+
   const problemLevel = overallFromChecked(problemChecked, PROBLEM_CRITERIA);
   const dataLevel = overallFromChecked(dataChecked, DATA_CRITERIA);
   const riskLevel = overallFromChecked(riskChecked, RISK_CRITERIA);
 
-  const mdmMiddleLevel = (() => {
-    if (!problemLevel || !dataLevel || !riskLevel) return null;
-    const levels = [problemLevel, dataLevel, riskLevel].sort((a, b) => a - b);
-    return levels[1]; // 2-of-3 methodology
-  })();
+  // ------------------------------------------------------------------
+  // MDM leveling — PER PROED POLICY (explicitly requested Oct 2026,
+  // overriding the standard CMS/AMA 2021 "2-of-3 elements" methodology):
+  // all three MDM elements (Problems, Data, Risk) must be at the SAME
+  // level. If they are not all equal, the encounter is downcoded to the
+  // LOWEST of the three levels, with an explanation shown on screen and
+  // on the printed/exported record.
+  //
+  // NOTE: this is NOT the CMS/AMA national standard, which sets the MDM
+  // level at whichever level 2 of the 3 elements meet or exceed (so e.g.
+  // 4-2-4 is correctly Level 4 under CMS/AMA, not Level 2). This was
+  // flagged to the requester before implementation; they confirmed they
+  // want the "all three must match, else downcode to lowest" rule
+  // implemented as described. If ProEd's policy changes, change
+  // `mdmFinalLevel` below back to the 2-of-3 "middle value" calculation.
+  // ------------------------------------------------------------------
+  const allThreeSelected = problemLevel > 0 && dataLevel > 0 && riskLevel > 0;
+  const allThreeEqual = allThreeSelected && problemLevel === dataLevel && dataLevel === riskLevel;
+  const mdmFinalLevel = allThreeSelected ? Math.min(problemLevel, dataLevel, riskLevel) : null;
+  const wasDowncoded = allThreeSelected && !allThreeEqual;
 
   const mdmOverall = (() => {
-    if (mdmMiddleLevel === null) return null;
-    if (mdmMiddleLevel >= 5) return "High";
-    if (mdmMiddleLevel === 4) return "Moderate";
-    if (mdmMiddleLevel === 3) return "Low";
+    if (mdmFinalLevel === null) return null;
+    if (mdmFinalLevel >= 5) return "High";
+    if (mdmFinalLevel === 4) return "Moderate";
+    if (mdmFinalLevel === 3) return "Low";
     return "Straightforward";
   })();
 
@@ -221,19 +295,115 @@ export default function EMToolPage() {
 
   // MDM level maps to the same code family as the time bands (e.g.
   // established Level 3 MDM = 99213, same code as the 20-min time band).
-  const mdmCode = mdmMiddleLevel !== null ? bands[Math.max(0, Math.min(3, mdmMiddleLevel - 2))]?.code : null;
+  const mdmCode = mdmFinalLevel !== null ? bands[Math.max(0, Math.min(3, mdmFinalLevel - 2))]?.code : null;
 
   function toggle(setter: React.Dispatch<React.SetStateAction<Record<string, boolean>>>, key: string) {
     setter((prev) => ({ ...prev, [key]: !prev[key] }));
   }
 
-  function reset() {
+  function resetForm() {
     setBasis(null);
     setPatientType(null);
     setSelectedBand(null);
     setProblemChecked({});
     setDataChecked({});
     setRiskChecked({});
+    setPatientName("");
+    setAccountNumber("");
+    setDos("");
+    setNpi("");
+  }
+
+  const hasResult = (basis === "time" && !!selectedBand) || (basis === "mdm" && !!mdmOverall);
+
+  function onSaveToBatch() {
+    if (!hasResult) return;
+    const entry: SavedCase = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      patientName,
+      accountNumber,
+      dos,
+      npi,
+      patientType,
+      basis,
+      timeCode: basis === "time" ? selectedBand?.code ?? null : null,
+      timeLabel: basis === "time" ? selectedBand?.label ?? null : null,
+      problemLevel,
+      dataLevel,
+      riskLevel,
+      mdmFinalLevel,
+      mdmOverall,
+      mdmCode,
+      wasDowncoded,
+    };
+    setSavedCases((prev) => [...prev, entry]);
+    setSaveMessage(`Saved "${patientName || "(unnamed patient)"}" to batch — ${savedCases.length + 1} case(s) queued.`);
+    resetForm();
+    setTimeout(() => setSaveMessage(null), 4000);
+  }
+
+  function onRemoveSaved(id: string) {
+    setSavedCases((prev) => prev.filter((c) => c.id !== id));
+  }
+
+  async function downloadBlob(res: Response, filename: string) {
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function onExportPdf() {
+    if (!hasResult) return;
+    setExporting("pdf");
+    try {
+      const res = await fetch("/api/em-tool/export-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          patientName,
+          accountNumber,
+          dos,
+          npi,
+          patientType,
+          basis,
+          timeCode: basis === "time" ? selectedBand?.code ?? null : null,
+          timeLabel: basis === "time" ? selectedBand?.label ?? null : null,
+          problemLevel,
+          dataLevel,
+          riskLevel,
+          mdmFinalLevel,
+          mdmOverall,
+          mdmCode,
+          wasDowncoded,
+        }),
+      });
+      if (!res.ok) throw new Error(`Export failed: ${res.status}`);
+      await downloadBlob(res, `ProEdCS-EM-Level-${Date.now()}.pdf`);
+    } finally {
+      setExporting(null);
+    }
+  }
+
+  async function onExportBatch() {
+    if (savedCases.length === 0) return;
+    setExporting("batch");
+    try {
+      const res = await fetch("/api/em-tool/export-batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cases: savedCases }),
+      });
+      if (!res.ok) throw new Error(`Batch export failed: ${res.status}`);
+      await downloadBlob(res, `ProEdCS-EM-Level-Batch-${savedCases.length}-Patients-${Date.now()}.docx`);
+    } finally {
+      setExporting(null);
+    }
   }
 
   return (
@@ -248,6 +418,61 @@ export default function EMToolPage() {
       </section>
 
       <AIOutputDisclaimer />
+
+      {/* Saved cases batch panel */}
+      {savedCases.length > 0 && (
+        <div className="rounded-lg border p-4" style={{ borderColor: BRAND }}>
+          <div className="flex items-center justify-between flex-wrap gap-2 mb-3">
+            <h2 className="text-sm font-semibold" style={{ color: BRAND }}>
+              Saved Cases for Batch Export ({savedCases.length})
+            </h2>
+            <button
+              onClick={onExportBatch}
+              disabled={exporting !== null}
+              className="rounded-md px-4 py-2 text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: BRAND }}
+            >
+              {exporting === "batch" ? "Generating…" : `⬇ Export Batch (${savedCases.length} Patients, DOCX)`}
+            </button>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            {savedCases.map((c) => {
+              const code = c.basis === "time" ? c.timeCode : c.mdmCode;
+              return (
+                <li key={c.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+                  <div>
+                    <span className="font-medium text-slate-900">{c.patientName || "(unnamed patient)"}</span>
+                    {c.accountNumber && <span className="text-slate-500"> · Acct {c.accountNumber}</span>}
+                    <span className="text-slate-500"> · {code ?? "—"}</span>
+                    {c.wasDowncoded && (
+                      <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: AMBER }}>
+                        Downcoded
+                      </span>
+                    )}
+                  </div>
+                  <button onClick={() => onRemoveSaved(c.id)} className="text-xs text-red-600 hover:text-red-800">
+                    Remove
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      )}
+
+      {saveMessage && (
+        <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700">
+          ✓ {saveMessage}
+        </div>
+      )}
+
+      {/* Patient info */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 rounded-lg border p-4" style={{ borderColor: CARD, backgroundColor: CARD }}>
+        <Field label="Patient Name" value={patientName} onChange={setPatientName} placeholder="Last, First" />
+        <Field label="Account Number" value={accountNumber} onChange={setAccountNumber} placeholder="MRN / Account #" />
+        <Field label="Date of Service" value={dos} onChange={setDos} type="date" />
+        <Field label="Provider NPI" value={npi} onChange={setNpi} />
+      </div>
 
       {/* Step 1: New vs Established */}
       <div className="rounded-lg border p-5" style={{ borderColor: BRAND }}>
@@ -352,7 +577,7 @@ export default function EMToolPage() {
       )}
 
       {/* Result */}
-      {((basis === "time" && selectedBand) || (basis === "mdm" && mdmOverall)) && (
+      {hasResult && (
         <div className="rounded-lg border p-5" style={{ borderColor: BRAND, backgroundColor: CARD }}>
           <div className="text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: BRAND }}>
             Result
@@ -369,13 +594,50 @@ export default function EMToolPage() {
           <p className="mt-2 text-sm text-slate-600">
             Patient type: <b className="capitalize">{patientType ?? "not selected"}</b>
           </p>
+
+          {basis === "mdm" && allThreeSelected && (
+            <div
+              className="mt-3 rounded-md border p-3 text-xs"
+              style={wasDowncoded ? { backgroundColor: AMBER_LIGHT, borderColor: AMBER, color: AMBER } : { backgroundColor: "white", borderColor: BRAND, color: "#334155" }}
+            >
+              {wasDowncoded ? (
+                <>
+                  <b>Downcoded.</b> Problems = Level {problemLevel}, Data = Level {dataLevel}, Risk = Level {riskLevel} — these three elements are not all at the same level.
+                  Per ProEd policy, all three MDM elements must match; when they don&apos;t, the encounter is downcoded to the lowest of the three: <b>Level {mdmFinalLevel} ({mdmCode})</b>.
+                </>
+              ) : (
+                <>
+                  <b>No downcoding.</b> All three MDM elements (Problems, Data, Risk) are at Level {mdmFinalLevel} — code reflects that level directly.
+                </>
+              )}
+            </div>
+          )}
+
           <div className="mt-3 rounded-md bg-white border border-slate-200 p-3 text-xs text-slate-500 italic">
             This is a decision-support estimate, not a final coding determination — always verify against the full documentation and your organization&apos;s coding policy before billing.
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={onSaveToBatch}
+              className="rounded-md px-4 py-2 text-xs font-medium border"
+              style={{ borderColor: BRAND, color: BRAND, backgroundColor: "white" }}
+            >
+              + Save to Batch
+            </button>
+            <button
+              onClick={onExportPdf}
+              disabled={exporting !== null}
+              className="rounded-md px-4 py-2 text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ backgroundColor: BRAND }}
+            >
+              {exporting === "pdf" ? "Generating…" : "⬇ Print / Export This Case (PDF)"}
+            </button>
           </div>
         </div>
       )}
 
-      <button onClick={reset} className="text-xs text-slate-500 hover:underline">
+      <button onClick={resetForm} className="text-xs text-slate-500 hover:underline">
         Reset all selections
       </button>
     </div>
