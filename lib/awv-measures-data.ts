@@ -844,3 +844,22 @@ export function ldlToIndex(value: number): number | null {
   if (value <= 129) return 1; // 3049F
   return 2; // 3050F
 }
+
+// Which Nephropathy chip index should auto-highlight for a given urine
+// microalbumin/creatinine ratio lab value (mg/g). Indices match the
+// "Microalbuminuria result" group (group 0) in the "nephropathy" section:
+// 0=3060F (positive, >=300), 1=3061F (negative, <30),
+// 2=3062F (positive + confirmed, 30-299).
+export function nephropathyToIndex(value: number): number | null {
+  if (isNaN(value) || value < 0) return null;
+  if (value < 30) return 1; // 3061F negative
+  if (value < 300) return 2; // 3062F positive + confirmation
+  return 0; // 3060F positive >= 300
+}
+
+// Section titles that are suffixed "(After Study)" in AWV_MEASURE_SECTIONS
+// get a report-on-file date + checkbox block in the panel. Centralized
+// here so the detection rule lives in one place.
+export function isAfterStudySection(title: string): boolean {
+  return title.includes("(After Study)");
+}
