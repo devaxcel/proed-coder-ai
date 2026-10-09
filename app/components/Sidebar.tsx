@@ -14,12 +14,23 @@ const NAV_GROUPS: NavGroup[] = [
     // Search", with 5 tabs in the exact order/wording she gave. ICD-9-CM
     // Legacy wasn't in her list — kept (not deleted), just moved after her
     // 5 requested items, since she didn't say to remove it.
+    //
+    // FIX (Oct 2026): "HCPCS Code Search" previously pointed at
+    // /hcpcs-updates — the CMS quarterly-changes tracker (a small
+    // "what changed this quarter" dataset), not a real search across the
+    // full ~9,300-code HCPCS Level II set. It now points at the new
+    // /hcpcs-search page, which queries the full MedicalCode table the
+    // same way /cpt-search already does. The key stays "hcpcs-updates"
+    // so existing Role Permissions grants for this nav item keep working
+    // unchanged. The quarterly tracker itself is still available — see
+    // Reference Materials below — just under its own key, since it's a
+    // genuinely different feature from code search.
     label: "Code Search",
     links: [
       { href: "/icd10-index", label: "ICD10 Index Search", key: "icd10-index" },
       { href: "/", label: "ICD10 Code Search", key: "codes-search" },
       { href: "/cpt-search", label: "CPT Code Search", key: "cpt-search" },
-      { href: "/hcpcs-updates", label: "HCPCS Code Search", key: "hcpcs-updates" },
+      { href: "/hcpcs-search", label: "HCPCS Code Search", key: "hcpcs-updates" },
       { href: "/modifier-search", label: "Modifier Search", key: "modifier-search" },
       { href: "/icd9-lookup", label: "ICD-9-CM Legacy", key: "icd9-lookup" },
     ],
@@ -54,6 +65,12 @@ const NAV_GROUPS: NavGroup[] = [
     links: [
       { href: "/anatomy-physiology", label: "Anatomy and Physiology", key: "anatomy-physiology" },
       { href: "/handouts", label: "Handouts", key: "handouts" },
+      // New nav entry for the page that used to be mislabeled "HCPCS Code
+      // Search" above. New key ("hcpcs-quarterly") means it's a NEW
+      // capability — an Admin needs to grant it under Role Permissions
+      // before non-admin roles will see this link, same as any other new
+      // nav item. Until granted, only Admins see it.
+      { href: "/hcpcs-updates", label: "HCPCS Quarterly Changes", key: "hcpcs-quarterly" },
     ],
   },
 ];
