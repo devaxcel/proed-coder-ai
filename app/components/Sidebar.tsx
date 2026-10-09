@@ -27,10 +27,13 @@ const NAV_GROUPS: NavGroup[] = [
   {
     // Per Lupita's App_Changes doc: renamed "ICD-10 Mappings" ->
     // "ICD-10 CMS HCC Mappings" and "HEDIS Measures" -> "HEDIS® Measures
-    // Codes"; "Claim Validation" dropped since her requested list for this
-    // group didn't include it.
+    // Codes". "Claim Validation" was dropped from this group back then,
+    // then restored per a later request (Oct 2026) — the page and its
+    // "claim-validation" capability (see lib/permissions.ts) were never
+    // removed, so re-adding the link here is the whole fix.
     label: "Documentation & Validation Tools",
     links: [
+      { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
       { href: "/icd10-mappings", label: "ICD-10 CMS HCC Mappings", key: "icd10-mappings" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },

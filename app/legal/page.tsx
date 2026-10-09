@@ -86,7 +86,7 @@ export default function LegalPage() {
         <div className="px-6 py-5" style={{ backgroundColor: BRAND }}>
           <h1 className="text-xl font-bold text-white">Legal &amp; Disclaimers</h1>
           <p className="mt-1 text-sm text-white/85">
-            The compliance notices that apply to ProEdCS Coder AI. This page stays available at all times — it is not a one-time notice to dismiss.
+            The compliance notices that apply to MedRecPros MD™. This page stays available at all times — it is not a one-time notice to dismiss.
             {canEdit && " As Admin, you can edit any section below at any time."}
           </p>
         </div>

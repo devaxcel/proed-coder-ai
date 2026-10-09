@@ -237,7 +237,7 @@ export async function POST(req: NextRequest) {
 
   // ---- Footer ----
   page.drawRectangle({ x: MARGIN, y: y - 18, width: WIDTH, height: 18, color: TEAL });
-  text("ProEd Consulting & Staffing  ·  West Covina, California  ·  info@proedcs.com  ·  +1-626-771-3704", MARGIN + 8, y - 12, {
+  text("ProEd Consulting & Staffing  ·  City of Industry, California  ·  info@proedcs.com  ·  +1-626-771-3704", MARGIN + 8, y - 12, {
     size: 7,
     color: WHITE,
   });

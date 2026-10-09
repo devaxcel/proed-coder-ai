@@ -12,7 +12,7 @@ const quicksand = Quicksand({
 });
 
 export const metadata: Metadata = {
-  title: "ProEdCS Coder AI",
+  title: "MedRecPros MD™",
   description:
     "AI-powered medical coding & policy assistant — for ProEd Consulting & Staffing · Built by AXCEL",
 };

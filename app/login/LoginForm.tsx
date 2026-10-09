@@ -58,7 +58,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
 
         <div className="relative z-10 space-y-4">
           <h1 className="text-2xl font-bold leading-snug">
-            ProEdCS Coder AI
+            MedRecPros MD™
           </h1>
           <p className="text-sm text-white/80 leading-relaxed">
             AI-powered medical coding, policy research, and compliant physician query drafting — built for ProEd&apos;s coding and CDI team.
@@ -76,7 +76,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         </div>
 
         <div className="relative z-10 text-xs text-white/50">
-          ProEd Consulting &amp; Staffing · West Covina, CA
+          ProEd Consulting &amp; Staffing · City of Industry, CA
         </div>
       </div>
 
@@ -88,7 +88,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
             <img src="/proed-logo.png" alt="ProEd Consulting" className="h-7 w-auto" />
           </div>
           <div>
-            <div className="font-semibold text-slate-900 text-sm">ProEdCS Coder AI</div>
+            <div className="font-semibold text-slate-900 text-sm">MedRecPros MD™</div>
             <div className="text-xs text-slate-500">ProEd Consulting &amp; Staffing</div>
           </div>
         </div>

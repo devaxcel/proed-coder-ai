@@ -102,9 +102,9 @@ export async function GET(
   flushBuffer();
 
   const docxDoc = new Document({
-    creator: "ProEd Coder AI",
+    creator: "MedRecPros MD™",
     title: doc.title,
-    description: `Policy document downloaded from ProEd Coder AI on ${downloadedAt}`,
+    description: `Policy document downloaded from MedRecPros MD™ on ${downloadedAt}`,
     sections: [
       {
         properties: {
@@ -248,7 +248,7 @@ export async function GET(
           new Paragraph({
             children: [
               new TextRun({
-                text: "ProEd Consulting & Staffing  ·  West Covina, California  ·  info@proedcs.com  ·  +1-626-771-3704",
+                text: "ProEd Consulting & Staffing  ·  City of Industry, California  ·  info@proedcs.com  ·  +1-626-771-3704",
                 font,
                 size: 14,
                 color: "FFFFFF",
@@ -261,7 +261,7 @@ export async function GET(
           new Paragraph({
             children: [
               new TextRun({
-                text: "Downloaded via ProEdCS Coder AI · Built by AXCEL · Retain per your organization's document retention policy.",
+                text: "Downloaded via MedRecPros MD™ · Built by AXCEL · Retain per your organization's document retention policy.",
                 font,
                 size: 13,
                 italics: true,

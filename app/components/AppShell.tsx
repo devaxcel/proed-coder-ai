@@ -41,9 +41,9 @@ export default function AppShell({
             <div>
               <span className="font-semibold text-white">ProEd Consulting &amp; Staffing</span>
               <span className="mx-2 opacity-40">·</span>
-              <span>West Covina, California</span>
+              <span>City of Industry, California</span>
             </div>
-            <div className="opacity-70">Coder AI v1.0 · Built by AXCEL</div>
+            <div className="opacity-70">MedRecPros MD™ v1.0 · Built by AXCEL</div>
           </div>
         </footer>
       </div>

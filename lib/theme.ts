@@ -1,5 +1,5 @@
 /**
- * ProEdCS Coder AI — centralized theme
+ * MedRecPros MD™ — centralized theme
  *
  * Colors extracted directly from the new "PROED Consulting — Compliance
  * & Privacy" logo (sampled from the actual logo file, not guessed):

@@ -1,5 +1,5 @@
 /**
- * ProEd Coder AI — Multi-provider embedding library.
+ * MedRecPros MD™ — Multi-provider embedding library.
  *
  * Providers (choose via EMBEDDING_PROVIDER env var):
  *
