@@ -1,5 +1,5 @@
 /**
- * MedRecPros MD™ — Multi-provider embedding library.
+ * ProEd Coder AI — Multi-provider embedding library.
  *
  * Providers (choose via EMBEDDING_PROVIDER env var):
  *
@@ -7,16 +7,28 @@
  *                     process) and local dev. NOT suitable for Vercel serverless
  *                     because model file (~130 MB) downloads on cold start.
  *
+ *   - "gemini"      — hosted API, Google's gemini-embedding-001 model, truncated
+ *                     to 384 dims via outputDimensionality. Free, no card required
+ *                     (Google AI Studio API key). THIS IS THE CURRENT PRODUCTION
+ *                     PROVIDER for Vercel — set EMBEDDING_PROVIDER=gemini and
+ *                     GEMINI_API_KEY there. Different embedding space than
+ *                     Xenova/HF, so any content embedded by Xenova/HF must be
+ *                     RE-SEEDED with EMBEDDING_PROVIDER=gemini before query-time
+ *                     Gemini vectors will match it (mixing spaces produces
+ *                     meaningless similarity scores).
+ *
  *   - "huggingface" — hosted API. Uses the SAME bge-small-en-v1.5 model as Xenova,
- *                     so vectors are 100% compatible with existing seeded data.
- *                     Free tier: ~1000 req/day. Perfect fit for Vercel Hobby.
+ *                     so vectors are 100% compatible with existing Xenova-seeded
+ *                     data. Kept for reference — HF's free tier is no longer
+ *                     usable (see lib/embeddings.ts history); gemini replaced it.
  *
  *   - "openai"      — text-embedding-3-small, truncated to 384 dims via `dimensions`
- *                     parameter. Different embedding space than Xenova/HF; using
- *                     openai at query time against xenova-seeded data will produce
- *                     nonsense results. Only use if you re-seed everything.
+ *                     parameter. Different embedding space than Xenova/HF/Gemini;
+ *                     only use if you re-seed everything. Not currently used —
+ *                     kept available, ruled out on cost grounds.
  *
- * All three produce 384-dim vectors so they slot into the same pgvector column.
+ * All providers produce 384-dim vectors so they slot into the same pgvector
+ * column without any schema change.
  */
 
 import type { FeatureExtractionPipeline } from "@huggingface/transformers";
@@ -132,6 +144,71 @@ async function embedBatchHuggingFace(texts: string[]): Promise<number[][]> {
 }
 
 // ------------------------------------------------------------------
+// Gemini (Google AI Studio) — gemini-embedding-001, truncated to 384 dims
+// ------------------------------------------------------------------
+
+const GEMINI_MODEL = "gemini-embedding-001";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:embedContent`;
+const GEMINI_BATCH_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:batchEmbedContents`;
+
+async function embedGemini(text: string): Promise<number[]> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY is required when EMBEDDING_PROVIDER=gemini");
+  const res = await fetch(GEMINI_URL, {
+    method: "POST",
+    headers: {
+      "x-goog-api-key": key,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: `models/${GEMINI_MODEL}`,
+      content: { parts: [{ text }] },
+      embedContentConfig: { outputDimensionality: 384 },
+    }),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Gemini API ${res.status}: ${body.slice(0, 300)}`);
+  }
+  const j = await res.json();
+  return j.embedding.values as number[];
+}
+
+async function embedBatchGemini(texts: string[]): Promise<number[][]> {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error("GEMINI_API_KEY is required when EMBEDDING_PROVIDER=gemini");
+  // Chunk to keep each batch request payload reasonable.
+  const CHUNK = 20;
+  const results: number[][] = [];
+  for (let i = 0; i < texts.length; i += CHUNK) {
+    const chunk = texts.slice(i, i + CHUNK);
+    const res = await fetch(GEMINI_BATCH_URL, {
+      method: "POST",
+      headers: {
+        "x-goog-api-key": key,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        requests: chunk.map((text) => ({
+          model: `models/${GEMINI_MODEL}`,
+          content: { parts: [{ text }] },
+          embedContentConfig: { outputDimensionality: 384 },
+        })),
+      }),
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Gemini API ${res.status}: ${body.slice(0, 300)}`);
+    }
+    const j = await res.json();
+    for (const e of j.embeddings as Array<{ values: number[] }>) {
+      results.push(e.values);
+    }
+  }
+  return results;
+}
+
+// ------------------------------------------------------------------
 // OpenAI (text-embedding-3-small, truncated to 384 dims)
 // ------------------------------------------------------------------
 
@@ -181,6 +258,8 @@ async function embedBatchOpenAI(texts: string[]): Promise<number[][]> {
 
 export async function embed(text: string): Promise<number[]> {
   switch (PROVIDER) {
+    case "gemini":
+      return embedGemini(text);
     case "huggingface":
       return embedHuggingFace(text);
     case "openai":
@@ -193,6 +272,8 @@ export async function embed(text: string): Promise<number[]> {
 
 export async function embedBatch(texts: string[]): Promise<number[][]> {
   switch (PROVIDER) {
+    case "gemini":
+      return embedBatchGemini(texts);
     case "huggingface":
       return embedBatchHuggingFace(texts);
     case "openai":
