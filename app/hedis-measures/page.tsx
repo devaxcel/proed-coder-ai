@@ -15,7 +15,7 @@ const CATEGORIES: Category[] = [
     rows: [
       { code: "G0438", desc: "Annual Wellness Visit, Initial", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
       { code: "G0439", desc: "Annual Wellness Visit, Subsequent", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
-      { code: "G0468", desc: "FQHC / RHC visit, IPPE or AWV", dx: "Z00.00", status: "IN OFFICE", note: "FQHC/RHC AWV/IPPE code; POS 11" },
+      { code: "G0468", desc: "FQHC visit, IPPE or AWV (FQHC only)", dx: "Z00.00", status: "IN OFFICE", note: "FQHC only (institutional claim): report with G0438 (initial, once per lifetime) or G0439 (subsequent, once per 12 months)" },
       { code: "G0402", desc: "Welcome to Medicare / IPPE", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
       { code: "G0136", desc: "Physical Activity and Nutrition Risk Assessment", dx: "—", status: "IN OFFICE", note: "Every 6 months with AWV or E/M; NOT standalone. Mod 33 same-day AWV waives cost-share" },
     ],

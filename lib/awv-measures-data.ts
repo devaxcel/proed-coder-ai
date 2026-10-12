@@ -41,13 +41,13 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
         items: [
           { code: "G0438", description: "Annual Wellness Visit, Initial", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
           { code: "G0439", description: "Annual Wellness Visit, Subsequent", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
-          { code: "G0468", description: "FQHC / RHC visit, IPPE or AWV", dx: "Z00.00", status: "IN OFFICE", note: "FQHC/RHC AWV/IPPE code; POS 11" },
           { code: "G0402", description: "Welcome to Medicare / IPPE", dx: "Z00.00", status: "IN OFFICE", note: "Performed in office; POS 11" },
         ],
       },
       {
         type: "checklist",
         items: [
+          { code: "G0468", description: "FQHC visit — IPPE or AWV (FQHC ONLY)", dx: "Z00.00", status: "IN OFFICE", note: "FQHCs only, institutional claim (UB-04/837I): report G0468 WITH G0438 (initial AWV — once per lifetime) or G0439 (subsequent — no more than once every 12 months after the initial). Not for private practices/CMS-1500. If a separate, medically necessary FQHC visit occurs the same day, modifier 59 is reported on that separate visit per FQHC rules — verify with your MAC before adding 59 to G0468 itself" },
           { code: "G0136", description: "Physical Activity and Nutrition Risk Assessment", status: "IN OFFICE", note: "Every 6 months with AWV or E/M; NOT standalone. Mod 33 same-day AWV waives cost-share" },
         ],
       },
