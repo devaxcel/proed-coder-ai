@@ -32,7 +32,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className={quicksand.variable}>
       <body className="font-sans bg-white text-slate-900 antialiased">
-        {session ? (
+        {session && !(session.user as { mfaPending?: boolean } | undefined)?.mfaPending ? (
           <AppShell
             userName={session.user?.name ?? session.user?.email ?? "Account"}
             userRole={(session.user as { role?: string } | undefined)?.role}

@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { resolveCapabilityKey } from "@/lib/permissions";
+import { isMfaEnforced } from "@/lib/mfa-config";
 
 export default auth((req) => {
   // If not signed in, redirect to /login with return URL
@@ -10,6 +11,30 @@ export default auth((req) => {
       req.nextUrl.origin
     );
     return Response.redirect(loginUrl);
+  }
+
+  // Two-factor authentication gate (only when MFA enforcement is switched on).
+  //  - Signed in with password but NOT yet enrolled  -> may only reach /mfa/setup + /api/mfa/*
+  //  - Session created before MFA was enforced (no mfaV flag) -> sent to sign in again
+  if (isMfaEnforced()) {
+    const p = req.nextUrl.pathname;
+    const u = req.auth.user as { mfaPending?: boolean; mfaV?: boolean } | undefined;
+    const isMfaPath = p === "/mfa/setup" || p.startsWith("/api/mfa/");
+    if (u?.mfaPending) {
+      if (!isMfaPath) {
+        if (p.startsWith("/api/")) {
+          return Response.json({ error: "Set up your authenticator app to continue." }, { status: 403 });
+        }
+        return Response.redirect(new URL("/mfa/setup", req.nextUrl.origin));
+      }
+      return; // pending users stop here: nothing else is reachable
+    }
+    if (!u?.mfaV && p !== "/api/mfa/relogin") {
+      if (p.startsWith("/api/")) {
+        return Response.json({ error: "Please sign in again." }, { status: 401 });
+      }
+      return Response.redirect(new URL("/api/mfa/relogin", req.nextUrl.origin));
+    }
   }
 
   // Configurable per-role tab/route access. Admin's allowedCapabilities

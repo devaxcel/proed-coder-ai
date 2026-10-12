@@ -12,7 +12,9 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
-import { verifyPassword } from "./password";
+import { checkPassword, verifySecondFactor } from "./login-flow";
+import { audit, clearFailures, registerFailure } from "./login-security";
+import { isMfaEnforced, SESSION_MAX_AGE_SECONDS } from "./mfa-config";
 import { ALL_CAPABILITY_KEYS } from "./permissions";
 
 async function getAllowedCapabilities(role: string): Promise<string[]> {
@@ -36,29 +38,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        code: { label: "Authenticator code", type: "text" },
       },
       async authorize(credentials) {
-        const email = typeof credentials?.email === "string" ? credentials.email.trim().toLowerCase() : null;
-        const password = typeof credentials?.password === "string" ? credentials.password : null;
-        if (!email || !password) return null;
+        const email = typeof credentials?.email === "string" ? credentials.email : "";
+        const password = typeof credentials?.password === "string" ? credentials.password : "";
+        const code = typeof credentials?.code === "string" ? credentials.code : "";
 
-        const user = await db.user.findUnique({ where: { email } });
-        if (!user || !user.passwordHash) return null;
-        if (user.isActive === false) return null;
+        // 1. Password (with lockout after repeated failures)
+        const check = await checkPassword(email, password);
+        if (check.state !== "ok") return null;
+        const user = check.user;
 
-        const valid = await verifyPassword(password, user.passwordHash);
-        if (!valid) return null;
+        // 2. Second factor — only when MFA enforcement is on
+        let mfaPending = false;
+        let mfaV = false;
+        if (isMfaEnforced()) {
+          if (user.mfaEnabled && user.mfaSecretEnc) {
+            const ok = await verifySecondFactor(user, code);
+            if (!ok) {
+              await registerFailure(user.id, "mfa_code");
+              return null;
+            }
+            mfaV = true;
+          } else {
+            // Not enrolled yet: signed in only far enough to reach /mfa/setup.
+            mfaPending = true;
+          }
+        }
+
+        await clearFailures(user.id);
+        await audit("login_success", user.id, { mfa: mfaV ? "verified" : mfaPending ? "enrollment_required" : "not_enforced" });
 
         return {
           id: user.id,
           name: user.name ?? user.email,
           email: user.email,
           role: user.role,
+          mfaPending,
+          mfaV,
         };
       },
     }),
   ],
-  session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 }, // 30 days
+  session: { strategy: "jwt", maxAge: SESSION_MAX_AGE_SECONDS }, // 8 h absolute; idle logoff is enforced in the UI (IdleLogout)
   pages: { signIn: "/login" },
   trustHost: true,
   callbacks: {
@@ -72,6 +95,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const role = (user as { role?: string }).role;
         token.role = role;
         token.uid = user.id;
+        token.mfaPending = (user as { mfaPending?: boolean }).mfaPending === true;
+        token.mfaV = (user as { mfaV?: boolean }).mfaV === true;
         token.allowedCapabilities = role ? await getAllowedCapabilities(role) : [];
       }
       return token;
@@ -80,6 +105,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         (session.user as { role?: string }).role = token.role as string | undefined;
         (session.user as { id?: string }).id = token.uid as string | undefined;
+        (session.user as { mfaPending?: boolean }).mfaPending = token.mfaPending === true;
+        (session.user as { mfaV?: boolean }).mfaV = token.mfaV === true;
         (session.user as { allowedCapabilities?: string[] }).allowedCapabilities = (token.allowedCapabilities as string[] | undefined) ?? [];
       }
       return session;

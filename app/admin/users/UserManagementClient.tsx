@@ -14,6 +14,7 @@ type UserRow = {
   role: string;
   isActive: boolean;
   createdAt: string | Date;
+  mfaEnabled?: boolean;
 };
 
 export default function UserManagementClient({
@@ -86,6 +87,18 @@ export default function UserManagementClient({
     }
     await refresh();
     return true;
+  }
+
+  async function onResetMfa(id: string, email: string) {
+    if (!window.confirm(`Reset two-factor sign-in for ${email}?\n\nTheir authenticator and backup codes are removed, any lockout is cleared, and they set up a new authenticator at their next sign-in.`)) return;
+    setErr(null);
+    const r = await fetch(`/api/admin/users/${id}/mfa-reset`, { method: "POST" });
+    const json = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      setErr(json.error ?? "MFA reset failed");
+      return;
+    }
+    await refresh();
   }
 
   async function onDeleteUser(id: string) {
@@ -229,6 +242,12 @@ export default function UserManagementClient({
                       Reset password
                     </button>
                   )}
+                  <div className="mt-1 text-[11px] text-slate-500">
+                    2FA: <b>{u.mfaEnabled ? "On" : "Not set up"}</b>{" · "}
+                    <button onClick={() => onResetMfa(u.id, u.email)} className="font-medium underline" style={{ color: TEAL }}>
+                      Reset 2FA / unlock
+                    </button>
+                  </div>
                 </td>
                 <td className="px-3 py-2">
                   {u.id === currentUserId ? (

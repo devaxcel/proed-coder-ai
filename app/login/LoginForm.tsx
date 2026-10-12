@@ -7,11 +7,13 @@ import { THEME } from "@/lib/theme";
 
 const BRAND = THEME.primary;
 
-export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
+export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string; notice?: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [needCode, setNeedCode] = useState(false); // step 2: authenticator code
+  const [code, setCode] = useState("");
   const router = useRouter();
 
   async function onSubmit(e: React.FormEvent) {
@@ -19,15 +21,44 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
     setLoading(true);
     setErr(null);
     try {
+      // Step 1 (only when no code is being asked for yet): check password and
+      // find out whether an authenticator code / enrollment is required.
+      let state = "mfa_required";
+      if (!needCode) {
+        const pre = await fetch("/api/auth/mfa-precheck", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        });
+        const j = await pre.json().catch(() => ({ state: "invalid" }));
+        state = j.state;
+        if (state === "invalid") {
+          setErr("Invalid email or password.");
+          return;
+        }
+        if (state === "locked") {
+          setErr(`Too many failed attempts. This account is locked for about ${j.minutes ?? 15} minutes.`);
+          return;
+        }
+        if (state === "mfa_required") {
+          setNeedCode(true);
+          return;
+        }
+      }
+
+      // Step 2: create the session (code included when required).
       const result = await signIn("credentials", {
         email,
         password,
+        code: needCode ? code : "",
         redirect: false,
       });
       if (result?.error) {
-        setErr("Invalid email or password.");
+        setErr(needCode ? "That code is invalid or expired. Check your authenticator app and try again." : "Invalid email or password.");
+        if (needCode) setCode("");
       } else if (result?.ok) {
-        router.push(callbackUrl);
+        // First-time users are sent to set up their authenticator by the middleware.
+        router.push(state === "enrollment_required" ? "/mfa/setup" : callbackUrl);
         router.refresh();
       } else {
         setErr("Login failed. Please try again.");
@@ -96,6 +127,10 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
         <h2 className="text-xl font-bold text-slate-900">Welcome back</h2>
         <p className="mt-1 text-sm text-slate-500">Sign in to your account to continue.</p>
 
+        {notice && (
+          <div className="mt-4 rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-800">{notice}</div>
+        )}
+
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <div>
             <label htmlFor="email" className="mb-1 block text-sm font-medium text-slate-800">
@@ -106,7 +141,8 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              autoFocus
+              readOnly={needCode}
+              autoFocus={!needCode}
               autoComplete="email"
               placeholder="you@proedcs.com"
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:outline-none focus:ring-2"
@@ -125,6 +161,7 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              readOnly={needCode}
               autoComplete="current-password"
               placeholder="••••••••"
               className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm shadow-sm transition focus:outline-none focus:ring-2"
@@ -134,6 +171,27 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
             />
           </div>
 
+          {needCode && (
+            <div>
+              <label htmlFor="code" className="mb-1 block text-sm font-medium text-slate-800">
+                Authenticator code
+              </label>
+              <input
+                id="code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                autoFocus
+                autoComplete="one-time-code"
+                inputMode="text"
+                placeholder="6-digit code (or a backup code)"
+                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm tracking-widest shadow-sm focus:outline-none focus:ring-2"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Open your authenticator app and enter the current code for MedRecPros MD. Lost your phone? Use a backup code, or ask an administrator to reset it.
+              </p>
+            </div>
+          )}
+
           {err && (
             <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {err}
@@ -142,11 +200,11 @@ export default function LoginForm({ callbackUrl }: { callbackUrl: string }) {
 
           <button
             type="submit"
-            disabled={loading || !email || !password}
+            disabled={loading || !email || !password || (needCode && !code.trim())}
             className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-90"
             style={{ backgroundColor: BRAND }}
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? "Signing in…" : needCode ? "Verify and sign in" : "Sign in"}
           </button>
         </form>
 

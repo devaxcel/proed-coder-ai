@@ -31,6 +31,7 @@ export async function GET() {
       role: true,
       isActive: true,
       createdAt: true,
+      mfaEnabled: true,
     },
     orderBy: { createdAt: "asc" },
   });

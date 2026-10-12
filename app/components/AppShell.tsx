@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Sidebar from "./Sidebar";
 import TopBar from "./TopBar";
+import IdleLogout from "./IdleLogout";
+import { IDLE_TIMEOUT_MINUTES } from "@/lib/mfa-config";
 
 export default function AppShell({
   userName,
@@ -21,6 +23,7 @@ export default function AppShell({
     <div className="flex min-h-screen">
       <Sidebar isOpen={mobileOpen} onClose={() => setMobileOpen(false)} userRole={userRole} />
 
+      <IdleLogout minutes={IDLE_TIMEOUT_MINUTES} onSignOut={onSignOut} />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar
           onMenuClick={() => setMobileOpen(true)}

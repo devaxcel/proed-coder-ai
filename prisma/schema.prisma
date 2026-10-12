@@ -34,6 +34,28 @@ model User {
   sessions  Session[]
   auditLogs AuditLog[]
   queryForms QueryForm[]
+
+  // ---- Two-factor authentication (authenticator app / TOTP) ----
+  // Secret is stored ENCRYPTED (AES-256-GCM, key = MFA_ENCRYPTION_KEY env var).
+  mfaEnabled       Boolean   @default(false)
+  mfaSecretEnc     String?
+  mfaEnrolledAt    DateTime?
+  mfaLastStep      Int?      // last accepted 30-second time step — blocks code replay
+  failedLoginCount Int       @default(0)
+  lockedUntil      DateTime? // temporary lockout after repeated failed sign-ins
+  mfaBackupCodes   MfaBackupCode[]
+}
+
+model MfaBackupCode {
+  id        String    @id @default(cuid())
+  userId    String
+  codeHash  String    // HMAC of the code — plaintext is shown once at enrollment
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // ---------- DYNAMIC ROLES (Admin-managed, replaces the old UserRole enum) ----------
