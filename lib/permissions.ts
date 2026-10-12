@@ -44,6 +44,7 @@ export const CAPABILITIES = [
   { key: "em-tool", label: "E/M Tool" },
   { key: "claim-validation", label: "Encounter Validation" },
   { key: "cms1500-validation", label: "Claim Validation" },
+  { key: "coder-tracker", label: "Coder Coding Tracker" },
   { key: "compliance", label: "Compliance" },
   { key: "legal", label: "Legal & Disclaimers" },
   { key: "anatomy-physiology", label: "Anatomy and Physiology" },
@@ -135,6 +136,8 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/api/cms-1500-validation", key: "cms1500-validation" },
   { prefix: "/cms-1500-validation", key: "cms1500-validation" },
   { prefix: "/claim-validation", key: "claim-validation" },
+
+  { prefix: "/coder-coding-tracker", key: "coder-tracker" }, // page + /frame document
 
   { prefix: "/api/compliance", key: "compliance" },
   { prefix: "/compliance", key: "compliance" },

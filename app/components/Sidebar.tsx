@@ -49,6 +49,8 @@ const NAV_GROUPS: NavGroup[] = [
       { href: "/claim-validation", label: "Encounter Validation", key: "claim-validation" },
       // CMS-1500 form-based claim check against payer rule profiles.
       { href: "/cms-1500-validation", label: "Claim Validation", key: "cms1500-validation" },
+      // Internal coder/auditor tool (Lupita) — not granted to the Client role by default.
+      { href: "/coder-coding-tracker", label: "Coder Coding Tracker", key: "coder-tracker" },
       { href: "/icd10-mappings", label: "ICD-10 CMS HCC Mappings", key: "icd10-mappings" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },
