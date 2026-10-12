@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { edgeAuth as auth } from "@/lib/auth.edge";
 import { resolveCapabilityKey } from "@/lib/permissions";
 import { isMfaEnforced } from "@/lib/mfa-config";
 

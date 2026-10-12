@@ -16,6 +16,7 @@ import { checkPassword, verifySecondFactor } from "./login-flow";
 import { audit, clearFailures, registerFailure } from "./login-security";
 import { isMfaEnforced, SESSION_MAX_AGE_SECONDS } from "./mfa-config";
 import { ALL_CAPABILITY_KEYS } from "./permissions";
+import { shapeSession } from "./auth-shared";
 
 async function getAllowedCapabilities(role: string): Promise<string[]> {
   // Admin always has full access, hardcoded — never governed by the
@@ -101,15 +102,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return token;
     },
-    async session({ session, token }) {
-      if (session.user) {
-        (session.user as { role?: string }).role = token.role as string | undefined;
-        (session.user as { id?: string }).id = token.uid as string | undefined;
-        (session.user as { mfaPending?: boolean }).mfaPending = token.mfaPending === true;
-        (session.user as { mfaV?: boolean }).mfaV = token.mfaV === true;
-        (session.user as { allowedCapabilities?: string[] }).allowedCapabilities = (token.allowedCapabilities as string[] | undefined) ?? [];
-      }
-      return session;
+    async session(params) {
+      return shapeSession(params as Parameters<typeof shapeSession>[0]);
     },
   },
 });
