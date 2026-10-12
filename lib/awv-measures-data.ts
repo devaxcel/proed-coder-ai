@@ -15,6 +15,10 @@ export type MeasureItem = {
   dx?: string;
   status: "IN OFFICE" | "DOC ONLY";
   note?: string;
+  /** Modifier the tool suggests alongside this code (shown as a chip). */
+  suggestedModifier?: string;
+  /** Short, always-visible guidance line under the chip (tooltip-only is easy to miss). */
+  companionNote?: string;
 };
 
 export type MeasureGroup =
@@ -47,7 +51,7 @@ export const AWV_MEASURE_SECTIONS: MeasureSection[] = [
       {
         type: "checklist",
         items: [
-          { code: "G0468", description: "FQHC visit — IPPE or AWV (FQHC ONLY)", dx: "Z00.00", status: "IN OFFICE", note: "FQHCs only, institutional claim (UB-04/837I): report G0468 WITH G0438 (initial AWV — once per lifetime) or G0439 (subsequent — no more than once every 12 months after the initial). Not for private practices/CMS-1500. If a separate, medically necessary FQHC visit occurs the same day, modifier 59 is reported on that separate visit per FQHC rules — verify with your MAC before adding 59 to G0468 itself" },
+          { code: "G0468", description: "FQHC visit — IPPE or AWV (FQHC ONLY)", dx: "Z00.00", status: "IN OFFICE", suggestedModifier: "59", companionNote: "Report WITH G0438 (initial AWV, once per lifetime) or G0439 (subsequent AWV, no more than once every 12 months). FQHC claims only.", note: "FQHCs only (institutional claim UB-04/837I). Use G0468 + G0438 for the initial AWV (once per lifetime, if eligibility/timing met); G0468 + G0439 for a subsequent AWV (not more than once every 12 months after the initial). Suggested modifier 59 with G0468 — confirm with your MAC/payer before submitting." },
           { code: "G0136", description: "Physical Activity and Nutrition Risk Assessment", status: "IN OFFICE", note: "Every 6 months with AWV or E/M; NOT standalone. Mod 33 same-day AWV waives cost-share" },
         ],
       },

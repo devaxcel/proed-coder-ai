@@ -446,18 +446,6 @@ export function validateClaim(
     seenLine.add(key);
   });
 
-  // ---- Annual Wellness Visit pairing rules -------------------------------------
-  const procs = claim.lines.map((l) => l.procedure.trim().toUpperCase());
-  const has = (c: string) => procs.includes(c);
-  if (has("G0438") && has("G0439"))
-    add("error", "24D", "AWV_INITIAL_AND_SUBSEQUENT", "G0438 (initial AWV) and G0439 (subsequent AWV) are on the same claim — only one applies.", "G0438 is once per lifetime; G0439 is for later AWVs, no more than once every 12 months.");
-  if (has("G0468"))
-    add("warning", "24D", "G0468_FQHC_ONLY", "G0468 is an FQHC-only code reported on the institutional claim (UB-04/837I), not a CMS-1500 professional claim.", "If this is not an FQHC, remove G0468 and bill G0438/G0439 alone.");
-  if (has("G0468") && !has("G0438") && !has("G0439") && !has("G0402"))
-    add("error", "24D", "G0468_NEEDS_AWV", "G0468 must be reported with G0438 (initial AWV), G0439 (subsequent AWV) or G0402 (IPPE).");
-  if (has("G0438") || has("G0439"))
-    add("info", "24D", "AWV_FREQUENCY", "AWV frequency: G0438 once per lifetime; G0439 no more than once every 12 months (verify eligibility — payer/CWF check — before billing).");
-
   // ---- Unreferenced dx -----------------------------------------------------
   const referenced = new Set(claim.lines.flatMap((l) => l.dxPointers.toUpperCase().split("")));
   dx.forEach((c, i) => {

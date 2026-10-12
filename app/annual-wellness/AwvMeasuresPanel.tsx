@@ -100,6 +100,17 @@ function CodeChip({
             MIPS
           </span>
         )}
+        {item.suggestedModifier && (
+          <span
+            className="rounded px-1 py-0.5 text-[9px] font-bold"
+            style={{
+              backgroundColor: selected ? "rgba(255,255,255,0.25)" : "#FEF3C7",
+              color: selected ? "white" : "#B45309",
+            }}
+          >
+            Suggest mod {item.suggestedModifier}
+          </span>
+        )}
         {item.dx && (
           <span className="text-[10px] opacity-80">{item.dx}</span>
         )}
@@ -107,6 +118,11 @@ function CodeChip({
       <div className={selected ? "text-white/90 mt-0.5" : "text-slate-600 mt-0.5"}>
         {item.description}
       </div>
+      {item.companionNote && (
+        <div className={selected ? "text-white/90 mt-1 text-[10px]" : "text-slate-600 mt-1 text-[10px]"}>
+          ℹ {item.companionNote}
+        </div>
+      )}
       {note && (
         <div className={selected ? "text-white/80 mt-1 text-[10px] italic" : "text-slate-500 mt-1 text-[10px] italic"}>
           ✓ {note}
