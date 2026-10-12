@@ -48,6 +48,9 @@ const bodySchema = z.object({
   overrides: z.object({ timelyFilingDays: z.number().int().min(1).max(1000).optional() }).optional(),
 });
 
+// The DB stores ICD-10-CM codes WITHOUT the decimal point (E1140, not E11.40).
+const undot = (c: string) => c.replace(/\./g, "").toUpperCase();
+
 export async function POST(req: NextRequest) {
   let parsed;
   try {
@@ -69,7 +72,7 @@ export async function POST(req: NextRequest) {
   try {
     const [dxRows, hcpcsRows, updates, mues] = await Promise.all([
       dxCodes.length
-        ? db.medicalCode.findMany({ where: { codeSystem: "ICD10CM", code: { in: dxCodes } }, select: { code: true, isBillable: true, description: true } })
+        ? db.medicalCode.findMany({ where: { codeSystem: "ICD10CM", code: { in: dxCodes.map(undot) } }, select: { code: true, isBillable: true, description: true } })
         : Promise.resolve([]),
       hcpcsCodes.length
         ? db.medicalCode.findMany({ where: { codeSystem: "HCPCS", code: { in: hcpcsCodes } }, select: { code: true, description: true } })
@@ -82,7 +85,7 @@ export async function POST(req: NextRequest) {
         : Promise.resolve([]),
     ]);
     for (const c of dxCodes) {
-      const r = dxRows.find((x) => x.code === c);
+      const r = dxRows.find((x) => x.code === undot(c));
       lookups.icd10![c] = { exists: !!r, billable: r?.isBillable ?? false, description: r?.description };
     }
     for (const c of hcpcsCodes) {
