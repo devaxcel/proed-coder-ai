@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Icd10Combo, { replaceLastFragment, type Icd10Pick } from "@/app/components/Icd10Combo";
 
 type ChecklistState = Record<string, boolean>;
 
@@ -114,6 +115,20 @@ export default function MeatHccPage() {
   const [exporting, setExporting] = useState<"docx" | "pdf" | "batch" | null>(null);
   const [savedPatients, setSavedPatients] = useState<SavedPatient[]>([]);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  // Picking from either box fills BOTH: the code is added to ICD-10 Code(s) and
+  // the description to Condition/Diagnosis, replacing the fragment being typed.
+  function applyIcdPick(p: Icd10Pick, from: "codes" | "condition") {
+    const codeList = (from === "codes" ? replaceLastFragment(icdCodes, ",", "") : icdCodes)
+      .split(/[,;]/).map((c) => c.trim()).filter(Boolean);
+    if (!codeList.some((c) => c.toUpperCase() === p.code.toUpperCase())) codeList.push(p.code);
+    setIcdCodes(codeList.join(", "));
+
+    const condParts = (from === "condition" ? replaceLastFragment(condition, ";", "") : condition)
+      .split(";").map((c) => c.trim()).filter(Boolean);
+    if (!condParts.some((c) => c.toLowerCase() === p.description.toLowerCase())) condParts.push(p.description);
+    setCondition(condParts.join("; "));
+  }
 
   function toggle(id: string) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -300,8 +315,24 @@ export default function MeatHccPage() {
         <Field label="Account Number" value={accountNumber} onChange={setAccountNumber} placeholder="MRN / Account #" teal={TEAL} />
         <Field label="Date of Service" value={dos} onChange={setDos} teal={TEAL} type="date" />
         <Field label="Provider NPI" value={npi} onChange={setNpi} teal={TEAL} />
-        <Field label="ICD-10 Code(s)" value={icdCodes} onChange={setIcdCodes} placeholder="e.g., E11.40, N18.4" teal={TEAL} />
-        <Field label="Condition/Diagnosis" value={condition} onChange={setCondition} placeholder="e.g., DM2 with CKD" teal={TEAL} />
+        <Icd10Combo
+          label="ICD-10 Code(s)"
+          labelColor={TEAL}
+          value={icdCodes}
+          onChange={setIcdCodes}
+          splitOn={/[,;]/}
+          placeholder="Type a code or term — e.g., E11.40, diabetes"
+          onPick={(p) => applyIcdPick(p, "codes")}
+        />
+        <Icd10Combo
+          label="Condition/Diagnosis"
+          labelColor={TEAL}
+          value={condition}
+          onChange={setCondition}
+          splitOn={/;/}
+          placeholder="Type a condition — e.g., DM2 with CKD"
+          onPick={(p) => applyIcdPick(p, "condition")}
+        />
       </div>
 
       {/* Progress */}

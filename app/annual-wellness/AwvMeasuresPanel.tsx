@@ -16,6 +16,16 @@ import {
   isAfterStudySection,
 } from "@/lib/awv-measures-data";
 import { THEME } from "@/lib/theme";
+import {
+  PatientDiagnoses,
+  SectionDiagnoses,
+  ProcedureLines,
+  newProcLine,
+  hasProcContent,
+  procLineToExportItem,
+  type Dx,
+  type ProcLine,
+} from "./AwvDiagnosisUi";
 
 const TEAL = THEME.primary;
 const TEAL_LIGHT = THEME.primaryLight;
@@ -191,8 +201,35 @@ export default function AwvMeasuresPanel() {
   const [colorectalTypes, setColorectalTypes] = useState<Record<string, boolean>>({});
   const [colorectalDate, setColorectalDate] = useState("");
 
-  // In-Office Procedures — free-text boxes for anything not already listed.
-  const [otherProcedures, setOtherProcedures] = useState<string[]>(["", "", "", "", ""]);
+  // In-Office Procedures & Labs — additional lines (code, modifiers, units,
+  // detail, linked diagnoses, medical necessity) for anything not already listed.
+  const [procLines, setProcLines] = useState<ProcLine[]>(() => [newProcLine(), newProcLine(), newProcLine()]);
+
+  // Patient diagnoses (from the ICD-10 code + index search) and which of
+  // them are linked to each measure section.
+  const [patientDx, setPatientDx] = useState<Dx[]>([]);
+  const [sectionDx, setSectionDx] = useState<Record<string, string[]>>({});
+  function addPatientDx(d: Dx) {
+    setPatientDx((prev) => (prev.some((x) => x.code === d.code) || prev.length >= 12 ? prev : [...prev, d]));
+  }
+  function removePatientDx(code: string) {
+    setPatientDx((prev) => prev.filter((x) => x.code !== code));
+    setSectionDx((prev) => Object.fromEntries(Object.entries(prev).map(([k, v]) => [k, v.filter((c) => c !== code)])));
+    setProcLines((prev) => prev.map((l) => ({ ...l, dxLinks: l.dxLinks.filter((c) => c !== code) })));
+  }
+  function toggleSectionDx(sectionKey: string, code: string) {
+    setSectionDx((prev) => {
+      const cur = prev[sectionKey] ?? [];
+      return { ...prev, [sectionKey]: cur.includes(code) ? cur.filter((c) => c !== code) : [...cur, code] };
+    });
+  }
+  function addSectionDx(sectionKey: string, d: Dx) {
+    addPatientDx(d);
+    setSectionDx((prev) => {
+      const cur = prev[sectionKey] ?? [];
+      return cur.includes(d.code) ? prev : { ...prev, [sectionKey]: [...cur, d.code] };
+    });
+  }
 
   // Multi-patient batch — mirrors the MEAT HCC / E&M tool save-case pattern.
   const [savedPatients, setSavedPatients] = useState<SavedAwvPatient[]>([]);
@@ -440,7 +477,9 @@ export default function AwvMeasuresPanel() {
             sectionTitle: section.title,
             code: item.code,
             description: note ? `${item.description} — ${note}` : item.description,
-            dx: item.dx ?? "",
+            // Diagnoses linked to this measure (from the patient's list) replace the
+            // generic default dx; with none linked the original default is kept.
+            dx: (sectionDx[section.key] ?? []).length > 0 ? (sectionDx[section.key] ?? []).join(", ") : item.dx ?? "",
           });
         }
       });
@@ -499,10 +538,8 @@ export default function AwvMeasuresPanel() {
         }
       }
       if (section.key === "in-office-procedures") {
-        otherProcedures.forEach((text) => {
-          if (text.trim()) {
-            items.push({ sectionTitle: section.title, code: "OTHER PROCEDURE", description: text.trim(), dx: "" });
-          }
+        procLines.filter(hasProcContent).forEach((l) => {
+          items.push(procLineToExportItem(l, section.title));
         });
       }
     }
@@ -518,7 +555,9 @@ export default function AwvMeasuresPanel() {
     setAfterStudyReports({});
     setColorectalTypes({});
     setColorectalDate("");
-    setOtherProcedures(["", "", "", "", ""]);
+    setProcLines([newProcLine(), newProcLine(), newProcLine()]);
+    setPatientDx([]);
+    setSectionDx({});
     setBmiInput("");
     setSystolicInput("");
     setDiastolicInput("");
@@ -678,6 +717,8 @@ export default function AwvMeasuresPanel() {
         </div>
       </div>
 
+      <PatientDiagnoses dx={patientDx} onAdd={addPatientDx} onRemove={removePatientDx} />
+
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -771,6 +812,15 @@ export default function AwvMeasuresPanel() {
                     <div className="rounded-md border border-amber-300 p-2 text-xs" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
                       {section.sectionNote}
                     </div>
+                  )}
+
+                  {section.key !== "in-office-procedures" && (
+                    <SectionDiagnoses
+                      dx={patientDx}
+                      linked={sectionDx[section.key] ?? []}
+                      onToggle={(c) => toggleSectionDx(section.key, c)}
+                      onAdd={(d) => addSectionDx(section.key, d)}
+                    />
                   )}
 
                   {/* After Study sections — date of report on file +
@@ -935,26 +985,11 @@ export default function AwvMeasuresPanel() {
                     </div>
                   )}
 
-                  {/* In-Office Procedures — free-text boxes for anything not
-                      already listed below. */}
+                  {/* In-Office Procedures & Labs — additional lines with the same
+                      fields as the E/M-style CPT/HCPCS line. */}
                   {section.key === "in-office-procedures" && (
-                    <div className="rounded-md border p-3 space-y-2" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
-                      <label className="block text-xs font-bold mb-1" style={{ color: TEAL_DARK }}>Other Procedures Not Listed Below</label>
-                      {otherProcedures.map((val, i) => (
-                        <input
-                          key={i}
-                          value={val}
-                          onChange={(e) =>
-                            setOtherProcedures((prev) => {
-                              const next = [...prev];
-                              next[i] = e.target.value;
-                              return next;
-                            })
-                          }
-                          placeholder={`Other procedure ${i + 1}…`}
-                          className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm"
-                        />
-                      ))}
+                    <div className="rounded-md border p-3" style={{ borderColor: TEAL, backgroundColor: TEAL_LIGHT }}>
+                      <ProcedureLines lines={procLines} setLines={setProcLines} dx={patientDx} onAddDx={addPatientDx} />
                     </div>
                   )}
 
