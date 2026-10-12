@@ -441,7 +441,7 @@ export default function ClaimValidationPage() {
     <div className="space-y-6">
       <section className="rounded-lg overflow-hidden">
         <div className="px-6 py-5" style={{ backgroundColor: BRAND }}>
-          <h1 className="text-xl font-bold text-white">Claim Validation</h1>
+          <h1 className="text-xl font-bold text-white">Encounter Validation</h1>
           <p className="mt-1 text-sm text-white/85">
             Enter claim lines below — DOS, patient demographics, procedure/supply, modifiers, and diagnosis codes.
           </p>

@@ -44,7 +44,11 @@ const NAV_GROUPS: NavGroup[] = [
     // removed, so re-adding the link here is the whole fix.
     label: "Documentation & Validation Tools",
     links: [
-      { href: "/claim-validation", label: "Claim Validation", key: "claim-validation" },
+      // "Encounter Validation" is the original coded-encounter reviewer (route
+      // and capability key unchanged so existing role grants keep working).
+      { href: "/claim-validation", label: "Encounter Validation", key: "claim-validation" },
+      // CMS-1500 form-based claim check against payer rule profiles.
+      { href: "/cms-1500-validation", label: "Claim Validation", key: "cms1500-validation" },
       { href: "/icd10-mappings", label: "ICD-10 CMS HCC Mappings", key: "icd10-mappings" },
       { href: "/em-tool", label: "E/M Tool", key: "em-tool" },
       { href: "/meat-hcc", label: "MEAT HCC", key: "meat-hcc" },

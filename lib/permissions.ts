@@ -10,12 +10,17 @@
  * in app/ and app/api/ at the time of writing, to make sure nothing is
  * left unprotected. If new tools/tabs are added later, add them here too.
  *
- * NOTE (per Lupita's App_Changes request): "covid-vaccine", "policies-qa",
- * "query-forms", "forms-bh", "history", and "claim-validation" were removed
- * from the Sidebar nav and are no longer reachable from the menu. Their
- * capabilities, routes, and data are deliberately left defined here —
- * nothing was deleted on the backend — so access can be restored by
- * re-adding the nav links if needed, without any data loss.
+ * NOTE: "covid-vaccine", "policies-qa", "query-forms", "forms-bh" and
+ * "history" were removed from the Sidebar nav (per Lupita's App_Changes
+ * request); their capabilities/routes/data are intentionally kept so nav
+ * links can be restored without data loss.
+ *
+ * NAMING (Oct 2026): capability key "claim-validation" now carries the label
+ * "Encounter Validation" (the original coded-encounter reviewer). The key is
+ * deliberately NOT renamed — changing a key would silently revoke every
+ * role's existing grant. The new CMS-1500 form tool uses key
+ * "cms1500-validation" with the label "Claim Validation"; an Admin must
+ * grant it to non-admin roles in Role Permissions.
  */
 
 export const CAPABILITIES = [
@@ -31,12 +36,14 @@ export const CAPABILITIES = [
   { key: "icd10-mappings", label: "ICD-10 CMS HCC Mappings" },
   { key: "icd10-index", label: "ICD10 Index Search" },
   { key: "hcpcs-updates", label: "HCPCS Code Search" },
+  { key: "hcpcs-quarterly", label: "HCPCS Quarterly Changes" },
   { key: "icd9-lookup", label: "ICD-9-CM Legacy Lookup" },
   { key: "covid-vaccine", label: "COVID-19 Vaccine Codes" },
   { key: "policy-generator", label: "Policy Generator" },
   { key: "hedis-measures", label: "HEDIS® Measures Codes" },
   { key: "em-tool", label: "E/M Tool" },
-  { key: "claim-validation", label: "Claim Validation" },
+  { key: "claim-validation", label: "Encounter Validation" },
+  { key: "cms1500-validation", label: "Claim Validation" },
   { key: "compliance", label: "Compliance" },
   { key: "legal", label: "Legal & Disclaimers" },
   { key: "anatomy-physiology", label: "Anatomy and Physiology" },
@@ -100,8 +107,10 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
   { prefix: "/api/icd10-index", key: "icd10-index" },
   { prefix: "/icd10-index", key: "icd10-index" },
 
-  { prefix: "/api/hcpcs-updates", key: "hcpcs-updates" },
-  { prefix: "/hcpcs-updates", key: "hcpcs-updates" },
+  { prefix: "/api/hcpcs-updates", key: "hcpcs-quarterly" },
+  { prefix: "/hcpcs-updates", key: "hcpcs-quarterly" },
+  { prefix: "/api/hcpcs-search", key: "hcpcs-updates" },
+  { prefix: "/hcpcs-search", key: "hcpcs-updates" },
 
   { prefix: "/api/icd9-lookup", key: "icd9-lookup" },
   { prefix: "/icd9-lookup", key: "icd9-lookup" },
@@ -118,10 +127,13 @@ const PATH_CAPABILITY_MAP: { prefix: string; key: string }[] = [
 
   { prefix: "/hedis-measures", key: "hedis-measures" },
 
+  { prefix: "/api/em-tool", key: "em-tool" },
   { prefix: "/em-tool", key: "em-tool" },
 
   { prefix: "/api/hcpcs-lookup", key: "claim-validation" },
   { prefix: "/api/claim-validation", key: "claim-validation" },
+  { prefix: "/api/cms-1500-validation", key: "cms1500-validation" },
+  { prefix: "/cms-1500-validation", key: "cms1500-validation" },
   { prefix: "/claim-validation", key: "claim-validation" },
 
   { prefix: "/api/compliance", key: "compliance" },
