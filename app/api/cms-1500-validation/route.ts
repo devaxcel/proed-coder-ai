@@ -68,6 +68,10 @@ export async function POST(req: NextRequest) {
     new Set(claim.lines.map((l) => l.procedure.trim().toUpperCase()).filter((p) => /^[A-V][0-9]{4}$/.test(p)))
   );
 
+  const cptCodes = Array.from(
+    new Set(claim.lines.map((l) => l.procedure.trim().toUpperCase()).filter((p) => /^[0-9]{4}[0-9FTU]$/.test(p)))
+  );
+
   const lookups: CodeLookups = { icd10: {}, hcpcs: {} };
   try {
     const [dxRows, hcpcsRows, updates, mues] = await Promise.all([
@@ -84,6 +88,29 @@ export async function POST(req: NextRequest) {
         ? db.dmeMueLimit.findMany({ where: { code: { in: hcpcsCodes } } })
         : Promise.resolve([]),
     ]);
+    // AMA CPT — separate try so a missing CPT table never breaks ICD-10/HCPCS checks
+    try {
+      const yearRows = await db.cptCode.groupBy({ by: ["year"] });
+      const years = yearRows.map((y) => y.year).sort();
+      if (years.length > 0 && cptCodes.length > 0) {
+        const [rows, dels] = await Promise.all([
+          db.cptCode.findMany({ where: { code: { in: cptCodes } }, select: { code: true, year: true, longDesc: true } }),
+          db.cptDeletedCode.findMany({ where: { code: { in: cptCodes } }, select: { code: true, yearDeleted: true } }),
+        ]);
+        const codes: NonNullable<CodeLookups["cpt"]>["codes"] = {};
+        for (const c of cptCodes) codes[c] = { byYear: {}, deletedYear: null };
+        for (const r of rows) codes[r.code].byYear[r.year] = r.longDesc;
+        for (const d of dels) {
+          const cur = codes[d.code].deletedYear;
+          if (cur == null || d.yearDeleted > cur) codes[d.code].deletedYear = d.yearDeleted;
+        }
+        lookups.cpt = { years, codes };
+      } else if (years.length > 0) {
+        lookups.cpt = { years, codes: {} };
+      }
+    } catch (e) {
+      console.error("[cms-1500-validation] CPT lookup unavailable", e);
+    }
     for (const c of dxCodes) {
       const r = dxRows.find((x) => x.code === undot(c));
       lookups.icd10![c] = { exists: !!r, billable: r?.isBillable ?? false, description: r?.description };
@@ -116,7 +143,9 @@ export async function POST(req: NextRequest) {
     ...result,
     payer: { id: result.payer.id, name: result.payer.name, timelyFilingNote: result.payer.timelyFilingNote },
     codeLookupAvailable: !!lookups.icd10,
-    cptNote: "CPT codes are format-checked only (AMA CPT license not loaded). HCPCS Level II and ICD-10-CM are checked against the app's code tables.",
+    cptNote: lookups.cpt
+      ? `CPT codes are checked against the AMA CPT code set for each line's date-of-service year (loaded: ${lookups.cpt.years.join(", ")}). HCPCS Level II and ICD-10-CM are checked against the app's code tables. CPT® is a registered trademark of the American Medical Association.`
+      : "CPT codes are format-checked only (CPT code tables are not loaded). HCPCS Level II and ICD-10-CM are checked against the app's code tables.",
     lookups: { icd10: lookups.icd10 ?? {}, hcpcs: lookups.hcpcs ?? {} },
   });
 }

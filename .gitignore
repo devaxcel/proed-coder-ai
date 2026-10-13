@@ -16,3 +16,6 @@ data/*.xml
 !data/.gitkeep
 !data/README.md
 .env
+
+# AMA CPT licensed data files - never commit
+data/cpt/

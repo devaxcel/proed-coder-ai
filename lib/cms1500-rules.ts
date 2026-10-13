@@ -115,6 +115,16 @@ export type CodeLookups = {
       mue?: number | null;
     }
   >;
+  /**
+   * AMA CPT® (licensed). `years` = code-set years loaded in the database;
+   * `codes[code].byYear[year]` = descriptor if the code is in that year's set;
+   * `deletedYear` = year the code was deleted from CPT (historically-deleted list).
+   * Undefined → CPT tables unavailable → format-only check.
+   */
+  cpt?: {
+    years: number[];
+    codes: Record<string, { byYear: Record<number, string>; deletedYear: number | null }>;
+  };
   /** ICD-10 "with" convention pairs found among the dx codes */
   withConventionFlags?: { title: string; guidance: string }[];
 };
@@ -389,7 +399,34 @@ export function validateClaim(
     // Procedure
     if (!proc) add("error", `24D (${L})`, "PROC_MISSING", "Procedure code is required.");
     else if (CPT_RE.test(proc)) {
-      // CPT — format only
+      // CPT — checked against the AMA code set for the line's date-of-service year
+      const cpt = lookups.cpt;
+      if (cpt && cpt.years.length > 0 && from) {
+        const y = from.getUTCFullYear();
+        const minY = Math.min(...cpt.years), maxY = Math.max(...cpt.years);
+        const entry = cpt.codes[proc];
+        const delY = entry?.deletedYear ?? null;
+        if (y >= minY) {
+          const setYear = cpt.years.includes(y) ? y : maxY;
+          if (!entry?.byYear[setYear]) {
+            if (delY != null && delY <= setYear)
+              add("error", `24D (${L})`, "CPT_DELETED", `CPT ${proc} was deleted from CPT in ${delY} and is not valid for a ${y} date of service.`, "Select the replacement code from the CPT code book.");
+            else
+              add("error", `24D (${L})`, "CPT_NOT_FOUND", `CPT ${proc} is not in the ${setYear} CPT code set.`, "Check for a typo, or a code that is new in a later year or was deleted earlier.");
+          } else if (setYear !== y) {
+            add("info", `24D (${L})`, "CPT_YEAR_FALLBACK", `The ${y} CPT set is not loaded; ${proc} was checked against the ${setYear} set.`);
+          }
+        } else if (entry?.byYear[minY]) {
+          add("info", `24D (${L})`, "CPT_HISTORICAL", `DOS year ${y} is earlier than the loaded CPT sets; ${proc} was checked against the ${minY} set.`);
+        } else if (delY != null && delY > y) {
+          // existed then, deleted later — fine
+        } else if (delY != null) {
+          add("error", `24D (${L})`, "CPT_DELETED", `CPT ${proc} was deleted from CPT in ${delY} and is not valid for a ${y} date of service.`);
+        } else {
+          add("warning", `24D (${L})`, "CPT_UNVERIFIED", `DOS year ${y} is earlier than the loaded CPT sets (${minY}+), and ${proc} is not in them. Verify the code for that year.`);
+        }
+      }
+      // else: CPT tables unavailable/empty → format check only
     } else if (HCPCS_RE.test(proc)) {
       const h = lookups.hcpcs?.[proc];
       if (h) {

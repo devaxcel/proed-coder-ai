@@ -587,3 +587,52 @@ model HcpcsLevelIIEntry {
 
   @@index([quarter])
 }
+
+// ---------- AMA CPT® (licensed to ProEd Consulting & Staffing, AMA contract 106655) ----------
+// Loaded by scripts/seed-cpt.ts from the AMA "CPT Standard" data files
+// (Current Format). One row per code PER YEAR so the validator can check a
+// claim against the code set in effect for its date of service.
+// The raw AMA files are NOT stored in git (data/cpt/ is git-ignored).
+
+model CptCode {
+  id             String   @id @default(cuid())
+  code           String
+  year           Int      // code-set year (2026, 2027)
+  category       String   // "I" | "II" | "III" | "PLA" | "MAAA"
+  longDesc       String   @db.Text
+  mediumDesc     String?
+  shortDesc      String?
+  consumerDesc   String?  @db.Text
+  descEffective  String?  // yyyymmdd — when the current descriptor took effect (NOT a code effective date)
+  testName       String?  // PLA codes
+  labName        String?
+  manufacturer   String?
+  releaseName    String?  // e.g. "2026 Standard Update 4"
+  createdAt      DateTime @default(now())
+
+  @@unique([code, year])
+  @@index([code])
+  @@index([year, category])
+}
+
+model CptDeletedCode {
+  id           String @id @default(cuid())
+  code         String
+  yearDeleted  Int
+  descriptor   String @db.Text
+
+  @@unique([code, yearDeleted])
+  @@index([code])
+}
+
+model CptModifier {
+  id           String  @id @default(cuid())
+  modifier     String
+  year         Int
+  level        String  // "I" (CPT) | "II" (HCPCS/national) | "II-Cat" etc. as supplied by AMA
+  name         String
+  description  String  @db.Text
+  section      String?
+
+  @@unique([modifier, year])
+}
