@@ -64,7 +64,7 @@ const YEAR_META: Record<Year, { title: string; sourceLine: string }> = {
 function Badge({ label, value }: { label: string; value: number | null | undefined }) {
   if (value === null || value === undefined) return null;
   return (
-    <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium mr-1 mb-1" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
+    <span className="inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium mr-1 mb-1" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
       {label} {value}
     </span>
   );
@@ -142,7 +142,7 @@ export default function Icd10MappingsPage() {
           </div>
           <div className="rounded-md bg-white/95 px-4 py-2 text-center shadow-sm">
             <div className="font-serif italic text-lg leading-none" style={{ color: TEAL_DARK }}>proed</div>
-            <div className="text-[9px] uppercase tracking-wide text-slate-500 mt-0.5">Consulting · Staffing · Scanning</div>
+            <div className="text-xs uppercase tracking-wide text-slate-500 mt-0.5">Consulting · Staffing · Scanning</div>
           </div>
         </div>
       </section>

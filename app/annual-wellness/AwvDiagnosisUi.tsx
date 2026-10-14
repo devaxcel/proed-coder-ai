@@ -74,7 +74,7 @@ export function DxChips({
           })}
         </div>
       ) : (
-        <p className="text-[11px] text-slate-500">No patient diagnoses yet — search below to add one.</p>
+        <p className="text-xs text-slate-500">No patient diagnoses yet — search below to add one.</p>
       )}
       <AddDx label={addLabel} onAdd={onAdd} />
     </div>
@@ -100,7 +100,7 @@ export function PatientDiagnoses({ dx, onAdd, onRemove }: { dx: Dx[]; onAdd: (d:
   return (
     <div className="rounded-lg border p-3 space-y-2" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
       <div className="text-xs font-bold" style={{ color: TEAL }}>Patient Diagnoses</div>
-      <p className="text-[11px] text-slate-600">
+      <p className="text-xs text-slate-600">
         Search the ICD-10 code table and Alphabetic Index. Diagnoses added here (or inside any measure below) become selectable chips for each measure and each additional procedure/lab.
       </p>
       <AddDx label="Add diagnosis (ICD-10 code or term)" onAdd={onAdd} />
@@ -123,7 +123,7 @@ export function PatientDiagnoses({ dx, onAdd, onRemove }: { dx: Dx[]; onAdd: (d:
 export function SectionDiagnoses({ dx, linked, onToggle, onAdd }: { dx: Dx[]; linked: string[]; onToggle: (c: string) => void; onAdd: (d: Dx) => void }) {
   return (
     <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
-      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">Diagnoses for this measure</div>
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Diagnoses for this measure</div>
       <DxChips dx={dx} linked={linked} onToggle={onToggle} onAdd={onAdd} addLabel="Add diagnosis" />
     </div>
   );
@@ -153,34 +153,34 @@ export function ProcedureLines({
           </div>
           <div className="grid grid-cols-2 gap-2 md:grid-cols-12">
             <div className="col-span-2 md:col-span-4">
-              <label className="mb-0.5 block text-[11px] text-slate-600">CPT / HCPCS (code or description)</label>
+              <label className="mb-0.5 block text-xs text-slate-600">CPT / HCPCS (code or description)</label>
               <input className={inputCls} value={l.procedure} onChange={(e) => patch(l.id, { procedure: e.target.value })} placeholder="e.g., 93000 or ECG with interpretation" />
             </div>
             <div className="md:col-span-2">
-              <label className="mb-0.5 block text-[11px] text-slate-600">Modifier 1</label>
+              <label className="mb-0.5 block text-xs text-slate-600">Modifier 1</label>
               <select className={inputCls} value={l.mod1} onChange={(e) => patch(l.id, { mod1: e.target.value })}>
                 <option value="">None</option>
                 {MODIFIERS.map((m) => <option key={m.code} value={m.code}>{m.code} — {m.description}</option>)}
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="mb-0.5 block text-[11px] text-slate-600">Modifier 2</label>
+              <label className="mb-0.5 block text-xs text-slate-600">Modifier 2</label>
               <select className={inputCls} value={l.mod2} onChange={(e) => patch(l.id, { mod2: e.target.value })}>
                 <option value="">None</option>
                 {MODIFIERS.map((m) => <option key={m.code} value={m.code}>{m.code} — {m.description}</option>)}
               </select>
             </div>
             <div className="md:col-span-1">
-              <label className="mb-0.5 block text-[11px] text-slate-600">Units</label>
+              <label className="mb-0.5 block text-xs text-slate-600">Units</label>
               <input type="number" min={1} className={inputCls} value={l.units} onChange={(e) => patch(l.id, { units: Math.max(1, parseInt(e.target.value, 10) || 1) })} />
             </div>
             <div className="col-span-2 md:col-span-3">
-              <label className="mb-0.5 block text-[11px] text-slate-600">Detail (optional)</label>
+              <label className="mb-0.5 block text-xs text-slate-600">Detail (optional)</label>
               <input className={inputCls} value={l.detail} onChange={(e) => patch(l.id, { detail: e.target.value })} placeholder="e.g., GAD-7, PHQ-9" />
             </div>
           </div>
           <div>
-            <div className="mb-1 text-[11px] text-slate-600">Linked diagnoses</div>
+            <div className="mb-1 text-xs text-slate-600">Linked diagnoses</div>
             <DxChips
               dx={dx}
               linked={l.dxLinks}

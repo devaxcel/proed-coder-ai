@@ -25,7 +25,7 @@ export function NavTabs() {
               active ? "text-ink" : "text-ink-faint hover:text-ink-soft"
             }`}
           >
-            <span className="font-mono text-[10px] text-ink-faint group-hover:text-brand-600">
+            <span className="font-mono text-xs text-ink-faint group-hover:text-brand-600">
               {tab.index}
             </span>
             <span className={active ? "font-medium" : ""}>{tab.label}</span>

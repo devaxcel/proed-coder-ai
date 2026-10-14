@@ -649,7 +649,7 @@ export default function ClaimValidationPage() {
               </div>
               <p>{rule.guidance}</p>
               <p className="mt-1"><b>Consider:</b> {rule.suggestedCodeRange}</p>
-              <p className="mt-1 italic text-[10px] opacity-75">{rule.citation} — verify the exact code against current documentation before use.</p>
+              <p className="mt-1 italic text-xs opacity-75">{rule.citation} — verify the exact code against current documentation before use.</p>
             </div>
           ))}
         </div>
@@ -734,7 +734,7 @@ export default function ClaimValidationPage() {
                       <td className="px-3 py-2">
                         {row.procedureSupply || "—"}
                         {lookup?.discontinued && (
-                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold bg-red-100 text-red-700" title={`Discontinued effective ${lookup.discontinued.termDate} (${lookup.discontinued.quarter} update)`}>
+                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-xs font-semibold bg-red-100 text-red-700" title={`Discontinued effective ${lookup.discontinued.termDate} (${lookup.discontinued.quarter} update)`}>
                             ⚠ Discontinued
                           </span>
                         )}
@@ -742,7 +742,7 @@ export default function ClaimValidationPage() {
                       <td className="px-3 py-2">
                         {row.units || "—"}
                         {lookup?.mue?.exceeded && (
-                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-[9px] font-semibold bg-amber-100 text-amber-800" title={`DME Supplier MUE limit for this code is ${lookup.mue.mueValue} unit(s) per date of service`}>
+                          <span className="ml-1 rounded-full px-1.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800" title={`DME Supplier MUE limit for this code is ${lookup.mue.mueValue} unit(s) per date of service`}>
                             ⚠ Exceeds MUE ({lookup.mue.mueValue})
                           </span>
                         )}
@@ -794,7 +794,7 @@ export default function ClaimValidationPage() {
                 return (
                   <div key={i} className="rounded-md border border-slate-200 p-3">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="rounded px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: style.bg, color: style.text }}>
+                      <span className="rounded px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: style.bg, color: style.text }}>
                         {style.label}
                       </span>
                       <span className="text-xs font-medium text-slate-700">{f.area}</span>

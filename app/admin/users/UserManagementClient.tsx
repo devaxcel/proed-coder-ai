@@ -244,7 +244,7 @@ export default function UserManagementClient({
                       Reset password
                     </button>
                   )}
-                  <div className="mt-1 text-[11px] text-slate-500">
+                  <div className="mt-1 text-xs text-slate-500">
                     2FA: <b>{mfaMethod === "EMAIL" ? "Email code" : u.mfaEnabled ? "Authenticator on" : "Not set up"}</b>{" · "}
                     <button onClick={() => onResetMfa(u.id, u.email)} className="font-medium underline" style={{ color: TEAL }}>
                       Reset 2FA / unlock
@@ -253,7 +253,7 @@ export default function UserManagementClient({
                 </td>
                 <td className="px-3 py-2">
                   {u.id === currentUserId ? (
-                    <span className="text-xs text-slate-300">â€”</span>
+                    <span className="text-xs text-slate-500">â€”</span>
                   ) : deleteTargetId === u.id ? (
                     <div className="flex items-center gap-2">
                       <span className="text-xs text-red-700">Delete {u.email}?</span>

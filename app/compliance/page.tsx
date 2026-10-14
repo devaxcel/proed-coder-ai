@@ -203,7 +203,7 @@ export default function CompliancePage() {
                 </button>
                 <div className="flex items-center gap-2">
                   <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                    className="rounded-full px-2 py-0.5 text-xs font-semibold"
                     style={{
                       backgroundColor: d.visibility === "CLIENT_VISIBLE" ? "#DCFCE7" : CARD,
                       color: d.visibility === "CLIENT_VISIBLE" ? "#166534" : BRAND,
@@ -277,7 +277,7 @@ export default function CompliancePage() {
                 </div>
               )}
 
-              <p className="mt-1 text-[11px] text-slate-400">
+              <p className="mt-1 text-xs text-slate-400">
                 {d.createdBy ? `Added by ${d.createdBy} · ` : ""}
                 {new Date(d.updatedAt).toLocaleDateString()}
               </p>

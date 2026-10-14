@@ -134,7 +134,7 @@ export default function Sidebar({
     return `flex items-center rounded-md pl-5 pr-3 py-2 text-sm transition border-l-2 ${
       active
         ? "text-white font-semibold"
-        : "text-white/70 hover:bg-white/10 hover:text-white border-transparent"
+        : "text-white/80 hover:bg-white/10 hover:text-white border-transparent"
     }`;
   };
   const linkStyle = (href: string): CSSProperties => {
@@ -165,7 +165,7 @@ export default function Sidebar({
                 onClick={() => toggleGroup(group.label)}
                 className="w-full flex items-center justify-between rounded-md px-3 py-2 text-xs font-bold uppercase tracking-wide transition text-left border"
                 style={{
-                  color: isOpen ? THEME.secondary : "rgba(255,255,255,0.55)",
+                  color: isOpen ? THEME.secondary : "rgba(255,255,255,0.8)",
                   borderColor: isOpen ? THEME.secondary : "rgba(212, 194, 152, 0.3)",
                 }}
               >
@@ -187,7 +187,7 @@ export default function Sidebar({
 
         {isAdmin && (
           <div className="pt-3 mt-3 border-t" style={{ borderColor: "rgba(212, 175, 55, 0.25)" }}>
-            <div className="px-3 pb-1 text-xs font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.55)" }}>Admin</div>
+            <div className="px-3 pb-1 text-xs font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.8)" }}>Admin</div>
             <Link href="/admin/users" onClick={onClose} className={linkClass("/admin/users")} style={linkStyle("/admin/users")}>
               User Management
             </Link>

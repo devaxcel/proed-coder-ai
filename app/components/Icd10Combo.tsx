@@ -112,8 +112,8 @@ export default function Icd10Combo({
               style={{ background: i === active ? THEME.primaryLight : undefined }}
             >
               <span className="font-bold" style={{ color: THEME.primary }}>{s.code}</span>
-              {!s.billable && <span className="ml-1 rounded bg-amber-100 px-1 text-[10px] text-amber-800">header</span>}
-              {s.via === "index" && <span className="ml-1 rounded bg-slate-100 px-1 text-[10px] text-slate-600">index</span>}
+              {!s.billable && <span className="ml-1 rounded bg-amber-100 px-1 text-xs text-amber-800">header</span>}
+              {s.via === "index" && <span className="ml-1 rounded bg-slate-100 px-1 text-xs text-slate-600">index</span>}
               <div className="text-xs text-slate-600">{s.description}</div>
             </li>
           ))}

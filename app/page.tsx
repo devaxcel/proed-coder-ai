@@ -67,7 +67,7 @@ export default function Page() {
           <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
             Ask anything about medical codes, HEDIS, HCC, or policy forms.
           </h1>
-          <p className="mt-3 text-sm text-white/70">
+          <p className="mt-3 text-sm text-white/80">
             Sources: CMS.gov · NCQA · HHS · Medicaid · ICD10Data · AAPC · AMA · eClinicalWorks
           </p>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { THEME } from "@/lib/theme";
 
 const BRAND = THEME.primary;
@@ -31,14 +31,18 @@ export default function SecurityClient() {
   const [g, setG] = useState({ user: "", pass: "", from: "", host: "", port: "" });
   const [rs, setRs] = useState({ apiKey: "", from: "" });
   const [showAdv, setShowAdv] = useState(false);
+  const initialised = useRef(false); // only the FIRST load sets the radio choices — later reloads must not undo what the Admin picked
 
   async function load() {
     const r = await fetch("/api/admin/security");
     const j = await r.json();
     if (r.ok) {
       setS(j);
-      setChoice(j.method);
-      setProvider(j.mailProvider ?? (j.providers?.smtp && !j.providers?.resend ? "smtp" : "resend"));
+      if (!initialised.current) {
+        initialised.current = true;
+        setChoice(j.method);
+        setProvider(j.mailProvider ?? (j.providers?.smtp && !j.providers?.resend ? "smtp" : "resend"));
+      }
     } else setMsg({ kind: "err", text: j.error ?? "Could not load settings." });
   }
   useEffect(() => { load(); }, []);
@@ -90,7 +94,7 @@ export default function SecurityClient() {
     <label className="flex cursor-pointer gap-3 rounded-lg border bg-white p-4" style={{ borderColor: choice === value ? BRAND : "#CBD5E1", boxShadow: choice === value ? `0 0 0 1px ${BRAND}` : undefined }}>
       <input type="radio" name="method" className="mt-1" checked={choice === value} onChange={() => { setChoice(value); setMsg(null); }} style={{ accentColor: BRAND }} />
       <span>
-        <span className="block font-semibold text-slate-900">{title}{s.method === value && <span className="ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ background: BRAND }}>Current</span>}</span>
+        <span className="block font-semibold text-slate-900">{title}{s.method === value && <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ background: BRAND }}>Current</span>}</span>
         <span className="mt-1 block text-sm text-slate-600">{body}</span>
       </span>
     </label>

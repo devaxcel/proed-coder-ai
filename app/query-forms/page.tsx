@@ -208,7 +208,7 @@ export default function QueryFormsPage() {
           <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
             Draft a compliant physician query.
           </h1>
-          <p className="mt-3 text-sm text-white/70">
+          <p className="mt-3 text-sm text-white/80">
             Describe the documentation gap in your own words. The tool extracts structured Form A fields grounded in ACDIS/AHIMA 2026 guidelines, then generates a print-ready DOCX matching the ProEdCS Query Forms Packet.
           </p>
 
@@ -224,7 +224,7 @@ export default function QueryFormsPage() {
               className="w-full rounded-md border-0 bg-white px-5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-yellow resize-none"
             />
             <div className="mt-2 flex flex-wrap justify-center gap-2 text-xs">
-              <span className="text-white/60">Try:</span>
+              <span className="text-white/80">Try:</span>
               {examples.map((ex, i) => (
                 <button
                   key={i}
@@ -459,7 +459,7 @@ function SectionTitle({ n, title }: { n: string; title: string }) {
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md border border-slate-200 bg-slate-50 p-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">{label}</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</div>
       <div className="mt-0.5 text-sm">{value}</div>
     </div>
   );

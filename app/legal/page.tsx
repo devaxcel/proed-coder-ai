@@ -113,7 +113,7 @@ export default function LegalPage() {
                 <h2 className="text-base font-bold" style={{ color: BRAND }}>{s.title}</h2>
                 <div className="flex items-center gap-2 shrink-0">
                   {s.status === "PENDING_LICENSE" && (
-                    <span className="rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
+                    <span className="rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: AMBER_LIGHT, color: AMBER }}>
                       Pending AMA License
                     </span>
                   )}
@@ -168,7 +168,7 @@ export default function LegalPage() {
               )}
 
               {s.updatedBy && editingId !== s.id && (
-                <p className="mt-2 text-[11px] text-slate-400">
+                <p className="mt-2 text-xs text-slate-400">
                   Last edited by {s.updatedBy} · {new Date(s.updatedAt).toLocaleDateString()}
                 </p>
               )}

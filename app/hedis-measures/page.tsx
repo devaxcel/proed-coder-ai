@@ -373,7 +373,7 @@ export default function HedisMeasuresPage() {
         {filtered.map((cat) => (
           <div key={cat.name} className="rounded-lg border overflow-hidden" style={{ borderColor: BRAND }}>
             <div className="px-4 py-2 text-white font-semibold text-sm" style={{ backgroundColor: BRAND }}>
-              {cat.name} <span className="font-normal text-white/70">({cat.rows.length})</span>
+              {cat.name} <span className="font-normal text-white/80">({cat.rows.length})</span>
             </div>
             <table className="w-full text-xs">
               <thead>

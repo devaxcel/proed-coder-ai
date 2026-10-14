@@ -104,7 +104,7 @@ export default function QueryFormHistoryPage() {
                       >
                         {it.status}
                       </span>
-                      <span className="font-mono text-[11px] text-ink-faint">
+                      <span className="font-mono text-xs text-ink-faint">
                         {shortDate(it.createdAt)}
                       </span>
                     </div>

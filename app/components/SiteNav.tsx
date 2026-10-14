@@ -56,7 +56,7 @@ export default function SiteNav({
         {userName && (
           <div className="text-right leading-tight">
             <div className="text-xs font-medium text-slate-700 truncate max-w-[140px]">{userName}</div>
-            {userRole && <div className="text-[10px] uppercase tracking-wide text-slate-400">{userRole}</div>}
+            {userRole && <div className="text-xs uppercase tracking-wide text-slate-400">{userRole}</div>}
           </div>
         )}
         <form action={onSignOut}>
@@ -98,7 +98,7 @@ export default function SiteNav({
           {userName && (
             <div className="px-3 py-2.5 border-b border-slate-100 bg-slate-50">
               <div className="text-sm font-medium text-slate-800 truncate">{userName}</div>
-              {userRole && <div className="text-[10px] uppercase tracking-wide text-slate-400">{userRole}</div>}
+              {userRole && <div className="text-xs uppercase tracking-wide text-slate-400">{userRole}</div>}
             </div>
           )}
           <nav className="flex flex-col p-2 max-h-[70vh] overflow-y-auto">

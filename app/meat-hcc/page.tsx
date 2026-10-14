@@ -79,7 +79,7 @@ function Section({
       <div className="px-4 py-2 text-white font-semibold text-sm flex items-center justify-between" style={{ backgroundColor: TEAL }}>
         <span>{letter} &nbsp; {title}</span>
         {isMet && (
-          <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold">✓ Met</span>
+          <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold">✓ Met</span>
         )}
       </div>
       <div className="p-4 space-y-3 bg-white">
@@ -287,7 +287,7 @@ export default function MeatHccPage() {
                   <span className="font-medium text-slate-900">{sp.patientName || "(unnamed patient)"}</span>
                   {sp.accountNumber && <span className="text-slate-500"> · Acct {sp.accountNumber}</span>}
                   {sp.condition && <span className="text-slate-500"> · {sp.condition}</span>}
-                  <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: "#059669" }}>
+                  <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: "#059669" }}>
                     {sp.quadrantsMetCount} of 4 met
                   </span>
                 </div>

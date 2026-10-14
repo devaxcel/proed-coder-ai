@@ -88,7 +88,7 @@ export default function Icd9LookupPage() {
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-lg font-bold" style={{ color: TEAL_DARK }}>{row.code}</span>
               <span
-                className="rounded px-1.5 py-0.5 text-[10px] font-medium"
+                className="rounded px-1.5 py-0.5 text-xs font-medium"
                 style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}
               >
                 {row.codeType === "DX" ? "Diagnosis" : "Procedure"}

@@ -13,8 +13,14 @@ html {
 }
 
 body {
-  @apply bg-white text-slate-900 antialiased;
+  @apply bg-white text-slate-900 antialiased font-medium;
   font-family: var(--font-quicksand), var(--font-quicksand-fallback);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
 }
 
 h1,

@@ -132,7 +132,7 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
             {["Code Search", "Policies Q&A", "Query Forms A–H", "HCC Risk", "HEDIS"].map((tag) => (
               <span
                 key={tag}
-                className="text-[11px] font-medium rounded-full px-3 py-1 bg-white/10 border border-white/20"
+                className="text-xs font-medium rounded-full px-3 py-1 bg-white/10 border border-white/20"
               >
                 {tag}
               </span>
@@ -140,7 +140,7 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
           </div>
         </div>
 
-        <div className="relative z-10 text-xs text-white/50">
+        <div className="relative z-10 text-xs text-white/75">
           ProEd Consulting &amp; Staffing · City of Industry, CA
         </div>
       </div>

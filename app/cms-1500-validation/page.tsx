@@ -116,7 +116,7 @@ export default function Cms1500ValidationPage() {
 
   const Box = ({ n, title, children, span = "" }: { n: string; title: string; children: React.ReactNode; span?: string }) => (
     <div className={`border border-red-200 bg-white p-2 ${span}`}>
-      <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: "#B91C1C" }}>
+      <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "#B91C1C" }}>
         <span className="mr-1 rounded bg-red-50 px-1">{n}</span>{title}
       </div>
       {children}
@@ -259,7 +259,7 @@ export default function Cms1500ValidationPage() {
           <div className="overflow-x-auto">
             <table className="min-w-[980px] w-full text-sm">
               <thead>
-                <tr className="text-left text-[11px] uppercase text-gray-500">
+                <tr className="text-left text-xs uppercase text-gray-500">
                   <th>#</th><th>24A From</th><th>To</th><th>24B POS</th><th>24C EMG</th><th>24D CPT/HCPCS</th><th>Modifiers (≤4)</th><th>24E Dx ptr</th><th>24F $ Charges</th><th>24G Units</th><th>24J Rendering NPI</th><th />
                 </tr>
               </thead>
@@ -344,7 +344,7 @@ export default function Cms1500ValidationPage() {
               const s = SEV[i.severity];
               return (
                 <li key={k} className="rounded border-l-4 p-2 text-sm" style={{ background: s.bg, borderColor: s.fg, color: "#111827" }}>
-                  <span className="mr-2 rounded px-1.5 py-0.5 text-[11px] font-bold" style={{ background: s.fg, color: "#fff" }}>{s.label}</span>
+                  <span className="mr-2 rounded px-1.5 py-0.5 text-xs font-bold" style={{ background: s.fg, color: "#fff" }}>{s.label}</span>
                   <span className="mr-2 font-mono text-xs font-bold">Box {i.box}</span>
                   {i.message}
                   {i.fix && <div className="mt-1 text-xs text-gray-700"><b>Fix:</b> {i.fix}</div>}

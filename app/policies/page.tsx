@@ -110,7 +110,7 @@ export default function PoliciesPage() {
           <h1 className="text-2xl md:text-3xl font-semibold text-white leading-snug">
             Ask a compliance question.
           </h1>
-          <p className="mt-3 text-sm text-white/70">
+          <p className="mt-3 text-sm text-white/80">
             Grounded in AHIMA, ACDIS, CMS-HCC V28, NCQA HEDIS, and Medicare Advantage RADV audit standards. Answers cite the source paragraph — no hallucination.
           </p>
 
@@ -123,7 +123,7 @@ export default function PoliciesPage() {
               className="w-full rounded-md border-0 bg-white px-5 py-3.5 text-sm text-slate-900 placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-accent-yellow resize-none"
             />
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <span className="text-xs text-white/60">Try:</span>
+              <span className="text-xs text-white/80">Try:</span>
               {exampleQuestions.map((q, i) => (
                 <button
                   type="button"

@@ -37,7 +37,7 @@ export default function AppShell({
         </main>
 
         <footer className="bg-navy text-white/80">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6 py-2 text-center text-[10px] opacity-60 border-b border-white/10">
+          <div className="mx-auto max-w-6xl px-4 sm:px-6 py-2 text-center text-xs opacity-60 border-b border-white/10">
             Educational use only — not a substitute for independent professional coding judgment. AI-generated content may contain errors; verify against current CMS/payer guidance before use.
           </div>
           <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex flex-wrap items-center justify-between gap-2 text-xs">

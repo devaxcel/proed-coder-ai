@@ -91,7 +91,7 @@ function CodeChip({
       <div className="flex items-baseline gap-2 flex-wrap">
         <span className="font-bold">{item.code}</span>
         <span
-          className="rounded px-1 py-0.5 text-[9px] font-medium"
+          className="rounded px-1 py-0.5 text-xs font-medium"
           style={{
             backgroundColor: selected ? "rgba(255,255,255,0.2)" : TEAL_LIGHT,
             color: selected ? "white" : TEAL_DARK,
@@ -101,7 +101,7 @@ function CodeChip({
         </span>
         {isMips && (
           <span
-            className="rounded px-1 py-0.5 text-[9px] font-bold"
+            className="rounded px-1 py-0.5 text-xs font-bold"
             style={{
               backgroundColor: selected ? "rgba(255,255,255,0.25)" : "#D4AF37",
               color: selected ? "white" : "#3A2F0B",
@@ -112,7 +112,7 @@ function CodeChip({
         )}
         {item.suggestedModifier && (
           <span
-            className="rounded px-1 py-0.5 text-[9px] font-bold"
+            className="rounded px-1 py-0.5 text-xs font-bold"
             style={{
               backgroundColor: selected ? "rgba(255,255,255,0.25)" : "#FEF3C7",
               color: selected ? "white" : "#B45309",
@@ -122,19 +122,19 @@ function CodeChip({
           </span>
         )}
         {item.dx && (
-          <span className="text-[10px] opacity-80">{item.dx}</span>
+          <span className="text-xs opacity-80">{item.dx}</span>
         )}
       </div>
       <div className={selected ? "text-white/90 mt-0.5" : "text-slate-600 mt-0.5"}>
         {item.description}
       </div>
       {item.companionNote && (
-        <div className={selected ? "text-white/90 mt-1 text-[10px]" : "text-slate-600 mt-1 text-[10px]"}>
+        <div className={selected ? "text-white/90 mt-1 text-xs" : "text-slate-600 mt-1 text-xs"}>
           ℹ {item.companionNote}
         </div>
       )}
       {note && (
-        <div className={selected ? "text-white/80 mt-1 text-[10px] italic" : "text-slate-500 mt-1 text-[10px] italic"}>
+        <div className={selected ? "text-white/80 mt-1 text-xs italic" : "text-slate-500 mt-1 text-xs italic"}>
           ✓ {note}
         </div>
       )}
@@ -704,15 +704,15 @@ export default function AwvMeasuresPanel() {
       {/* Patient context for the export — same pattern as MEAT HCC */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 rounded-lg border p-3" style={{ borderColor: TEAL_LIGHT, backgroundColor: TEAL_LIGHT }}>
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">Patient Name</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Patient Name</label>
           <input value={patientName} onChange={(e) => setPatientName(e.target.value)} placeholder="Last, First" className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">Account Number</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Account Number</label>
           <input value={accountNumber} onChange={(e) => setAccountNumber(e.target.value)} placeholder="MRN / Account #" className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
         <div>
-          <label className="block text-[11px] font-medium text-slate-600 mb-1">Date of Service</label>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Date of Service</label>
           <input type="date" value={dos} onChange={(e) => setDos(e.target.value)} className="w-full rounded-md border border-slate-300 px-2 py-1.5 text-sm" />
         </div>
       </div>
@@ -796,11 +796,11 @@ export default function AwvMeasuresPanel() {
               >
                 <div>
                   <div className="text-sm font-semibold text-white">{section.title}</div>
-                  {section.populationNote && <div className="text-[11px] text-white/75 mt-0.5">{section.populationNote}</div>}
+                  {section.populationNote && <div className="text-xs text-white/75 mt-0.5">{section.populationNote}</div>}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {sectionSelectedCount > 0 && (
-                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-[10px] font-semibold text-white">{sectionSelectedCount}</span>
+                    <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-semibold text-white">{sectionSelectedCount}</span>
                   )}
                   <span className={`text-white transition-transform ${isOpen ? "rotate-90" : ""}`}>›</span>
                 </div>
@@ -866,20 +866,20 @@ export default function AwvMeasuresPanel() {
                       {bmiDxResult && (
                         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="rounded-md border border-slate-200 bg-white p-2">
-                            <div className="text-[10px] font-semibold text-slate-500">BMI diagnosis code (Z68.x)</div>
+                            <div className="text-xs font-semibold text-slate-500">BMI diagnosis code (Z68.x)</div>
                             {bmiDxResult.z ? (
                               <div className="text-sm"><b style={{ color: TEAL_DARK }}>{bmiDxResult.z.code}</b> — {bmiDxResult.z.category} ({bmiDxResult.z.label})</div>
                             ) : <div className="text-xs text-slate-400">Out of table range</div>}
                           </div>
                           <div className="rounded-md border border-slate-200 bg-white p-2">
-                            <div className="text-[10px] font-semibold text-slate-500">Companion obesity code (E66.x), if clinically documented</div>
+                            <div className="text-xs font-semibold text-slate-500">Companion obesity code (E66.x), if clinically documented</div>
                             {bmiDxResult.e ? (
                               <div className="text-sm"><b>{bmiDxResult.e.code}</b> — {bmiDxResult.e.label}</div>
                             ) : <div className="text-xs text-slate-400">Not applicable at this BMI</div>}
                           </div>
                         </div>
                       )}
-                      <p className="mt-2 text-[10px] text-slate-500">
+                      <p className="mt-2 text-xs text-slate-500">
                         Pair a Z-code with an E66.x code only when obesity is clinically documented by the provider — never assign E66.x from the BMI value alone.
                       </p>
                     </div>
@@ -1000,7 +1000,7 @@ export default function AwvMeasuresPanel() {
                           className={
                             section.key === "blood-pressure"
                               ? "text-xs font-bold uppercase tracking-wide mb-1.5"
-                              : "text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5"
+                              : "text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5"
                           }
                           style={section.key === "blood-pressure" ? { color: TEAL_DARK } : undefined}
                         >
@@ -1008,7 +1008,7 @@ export default function AwvMeasuresPanel() {
                         </div>
                       )}
                       {group.type === "checklist" && group.label && (
-                        <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">
                           {group.label}
                         </div>
                       )}

@@ -12,7 +12,18 @@ const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Readability: slightly larger small text sizes (default xs=12px, sm=14px)
+      fontSize: {
+        xs: ["0.8125rem", { lineHeight: "1.25rem" }],
+        sm: ["0.9375rem", { lineHeight: "1.4rem" }],
+      },
       colors: {
+        // Readability: darker mid-greys so secondary text passes WCAG AA (4.5:1)
+        slate: {
+          400: "#64748b",
+          500: "#475569",
+          600: "#334155",
+        },
         brand: {
           50:  "#f0f2f4",
           100: "#dfe2e7",

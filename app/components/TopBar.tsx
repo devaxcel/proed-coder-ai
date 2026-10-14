@@ -41,7 +41,7 @@ export default function TopBar({
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
           {userRole && (
             <span
-              className="hidden sm:inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white"
+              className="hidden sm:inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-white"
               style={{ backgroundColor: BRAND }}
             >
               {userRole}

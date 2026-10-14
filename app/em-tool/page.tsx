@@ -160,7 +160,7 @@ function CriteriaGroup({
       <div className="space-y-3">
         {criteria.map((group) => (
           <div key={group.level} className="rounded-md border border-slate-200 p-3">
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{group.label}</div>
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1.5">{group.label}</div>
             {group.pending && (
               <div className="text-xs italic text-amber-600">
                 Pending — this row wasn&apos;t visible in the reference chart provided; add it once you have the full Level 5 wording.
@@ -445,7 +445,7 @@ export default function EMToolPage() {
                     {c.accountNumber && <span className="text-slate-500"> · Acct {c.accountNumber}</span>}
                     <span className="text-slate-500"> · {code ?? "—"}</span>
                     {c.wasDowncoded && (
-                      <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold text-white" style={{ backgroundColor: AMBER }}>
+                      <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ backgroundColor: AMBER }}>
                         Downcoded
                       </span>
                     )}

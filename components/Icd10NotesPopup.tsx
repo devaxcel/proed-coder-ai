@@ -202,7 +202,7 @@ export function Icd10CodeNotesButton({
                   </div>
                 )}
 
-                <div className="pt-1 text-right text-[11px] text-slate-400">
+                <div className="pt-1 text-right text-xs text-slate-400">
                   Source: CMS ICD-10-CM Tabular List, FY{data.sourceYear}
                 </div>
               </div>

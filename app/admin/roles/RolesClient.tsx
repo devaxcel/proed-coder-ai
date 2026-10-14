@@ -129,7 +129,7 @@ export default function RolesClient() {
                     <span className="font-medium text-slate-800">{role.label}</span>
                   )}
                   {role.isSystem && (
-                    <span className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: CARD, color: BRAND }}>
+                    <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold" style={{ backgroundColor: CARD, color: BRAND }}>
                       Protected
                     </span>
                   )}

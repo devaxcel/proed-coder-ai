@@ -92,7 +92,7 @@ export default function Icd10IndexPage() {
     return (
       <span className="text-xs text-slate-500">
         {parts.slice(0, -1).map((p, i) => (
-          <span key={i}>{p}<span className="mx-1 text-slate-300">›</span></span>
+          <span key={i}>{p}<span className="mx-1 text-slate-500">›</span></span>
         ))}
       </span>
     );
@@ -110,7 +110,7 @@ export default function Icd10IndexPage() {
           </div>
           <div className="rounded-md bg-white/95 px-4 py-2 text-center shadow-sm">
             <div className="font-serif italic text-lg leading-none" style={{ color: TEAL_DARK }}>proed</div>
-            <div className="text-[9px] uppercase tracking-wide text-slate-500 mt-0.5">Consulting · Staffing · Scanning</div>
+            <div className="text-xs uppercase tracking-wide text-slate-500 mt-0.5">Consulting · Staffing · Scanning</div>
           </div>
         </div>
       </section>

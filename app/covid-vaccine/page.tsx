@@ -69,7 +69,7 @@ export default function CovidVaccinePage() {
             <div className="flex items-baseline gap-3 flex-wrap">
               <span className="text-base font-bold" style={{ color: TEAL_DARK }}>{row.manufacturer}</span>
               <span className="text-sm text-slate-700">{row.productLabel}</span>
-              <span className="rounded px-1.5 py-0.5 text-[10px] font-medium" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
+              <span className="rounded px-1.5 py-0.5 text-xs font-medium" style={{ backgroundColor: TEAL_LIGHT, color: TEAL_DARK }}>
                 CVX {row.cvxCode}
               </span>
             </div>
