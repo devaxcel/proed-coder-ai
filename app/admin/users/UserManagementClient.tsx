@@ -20,9 +20,11 @@ type UserRow = {
 export default function UserManagementClient({
   initialUsers,
   currentUserId,
+  mfaMethod = "AUTHENTICATOR",
 }: {
   initialUsers: UserRow[];
   currentUserId: string;
+  mfaMethod?: "AUTHENTICATOR" | "EMAIL";
 }) {
   const [users, setUsers] = useState<UserRow[]>(initialUsers);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -243,7 +245,7 @@ export default function UserManagementClient({
                     </button>
                   )}
                   <div className="mt-1 text-[11px] text-slate-500">
-                    2FA: <b>{u.mfaEnabled ? "On" : "Not set up"}</b>{" · "}
+                    2FA: <b>{mfaMethod === "EMAIL" ? "Email code" : u.mfaEnabled ? "Authenticator on" : "Not set up"}</b>{" · "}
                     <button onClick={() => onResetMfa(u.id, u.email)} className="font-medium underline" style={{ color: TEAL }}>
                       Reset 2FA / unlock
                     </button>

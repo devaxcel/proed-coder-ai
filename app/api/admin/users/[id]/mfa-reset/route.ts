@@ -25,7 +25,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     db.mfaBackupCode.deleteMany({ where: { userId: id } }),
     db.user.update({
       where: { id },
-      data: { mfaEnabled: false, mfaSecretEnc: null, mfaEnrolledAt: null, mfaLastStep: null, failedLoginCount: 0, lockedUntil: null },
+      data: { mfaEnabled: false, mfaSecretEnc: null, mfaEnrolledAt: null, mfaLastStep: null, failedLoginCount: 0, lockedUntil: null, emailOtpHash: null, emailOtpExpires: null, emailOtpAttempts: 0, emailOtpSentAt: null },
     }),
   ]);
   await audit("mfa_reset", adminId, { target: target.email, targetId: id });

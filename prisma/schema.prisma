@@ -44,6 +44,20 @@ model User {
   failedLoginCount Int       @default(0)
   lockedUntil      DateTime? // temporary lockout after repeated failed sign-ins
   mfaBackupCodes   MfaBackupCode[]
+
+  // ---- Two-factor via emailed one-time code (when Admin selects the "Email code" method) ----
+  emailOtpHash     String?   // HMAC of the 6-digit code — plaintext is only ever in the email
+  emailOtpExpires  DateTime?
+  emailOtpAttempts Int       @default(0)
+  emailOtpSentAt   DateTime?
+}
+
+// Small key/value store for Admin-managed app settings (e.g. "mfaMethod").
+model AppSetting {
+  key        String   @id
+  value      String
+  updatedAt  DateTime @updatedAt
+  updatedBy  String?
 }
 
 model MfaBackupCode {

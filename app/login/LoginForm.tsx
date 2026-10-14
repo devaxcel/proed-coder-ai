@@ -12,7 +12,10 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
   const [password, setPassword] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [needCode, setNeedCode] = useState(false); // step 2: authenticator code
+  const [needCode, setNeedCode] = useState(false); // step 2: second-factor code
+  const [codeMode, setCodeMode] = useState<"totp" | "email">("totp");
+  const [sentTo, setSentTo] = useState("");
+  const [resendInfo, setResendInfo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const router = useRouter();
 
@@ -40,7 +43,13 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
           setErr(`Too many failed attempts. This account is locked for about ${j.minutes ?? 15} minutes.`);
           return;
         }
-        if (state === "mfa_required") {
+        if (state === "email_failed") {
+          setErr("We couldn't send your sign-in code by email. Please try again in a moment, or contact your administrator.");
+          return;
+        }
+        if (state === "mfa_required" || state === "email_code_sent") {
+          setCodeMode(state === "email_code_sent" ? "email" : "totp");
+          setSentTo(j.to ?? "");
           setNeedCode(true);
           return;
         }
@@ -54,7 +63,7 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
         redirect: false,
       });
       if (result?.error) {
-        setErr(needCode ? "That code is invalid or expired. Check your authenticator app and try again." : "Invalid email or password.");
+        setErr(needCode ? (codeMode === "email" ? "That code is invalid or expired. Check your email, or use \"Send a new code\"." : "That code is invalid or expired. Check your authenticator app and try again.") : "Invalid email or password.");
         if (needCode) setCode("");
       } else if (result?.ok) {
         // First-time users are sent to set up their authenticator by the middleware.
@@ -65,6 +74,31 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
       }
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function resendCode() {
+    setLoading(true);
+    setErr(null);
+    setResendInfo(null);
+    try {
+      const pre = await fetch("/api/auth/mfa-precheck", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const j = await pre.json().catch(() => ({ state: "invalid" }));
+      if (j.state === "email_code_sent") {
+        setSentTo(j.to ?? sentTo);
+        setResendInfo(j.resent ? "A new code was sent." : "A code was just sent — please wait about 30 seconds before asking for another.");
+        setCode("");
+      } else if (j.state === "locked") {
+        setErr(`Too many failed attempts. This account is locked for about ${j.minutes ?? 15} minutes.`);
+      } else {
+        setErr("We couldn't send a new code. Please try again in a moment.");
+      }
     } finally {
       setLoading(false);
     }
@@ -174,7 +208,7 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
           {needCode && (
             <div>
               <label htmlFor="code" className="mb-1 block text-sm font-medium text-slate-800">
-                Authenticator code
+                {codeMode === "email" ? "Email code" : "Authenticator code"}
               </label>
               <input
                 id="code"
@@ -182,13 +216,23 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
                 onChange={(e) => setCode(e.target.value)}
                 autoFocus
                 autoComplete="one-time-code"
-                inputMode="text"
-                placeholder="6-digit code (or a backup code)"
+                inputMode={codeMode === "email" ? "numeric" : "text"}
+                placeholder={codeMode === "email" ? "6-digit code from your email" : "6-digit code (or a backup code)"}
                 className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm tracking-widest shadow-sm focus:outline-none focus:ring-2"
               />
-              <p className="mt-1 text-xs text-slate-500">
-                Open your authenticator app and enter the current code for MedRecPros MD. Lost your phone? Use a backup code, or ask an administrator to reset it.
-              </p>
+              {codeMode === "email" ? (
+                <p className="mt-1 text-xs text-slate-500">
+                  We emailed a 6-digit code to <b>{sentTo || "your email address"}</b>. It expires in 10 minutes. Check your spam folder if it doesn&apos;t arrive.{" "}
+                  <button type="button" onClick={resendCode} disabled={loading} className="font-semibold underline disabled:opacity-50" style={{ color: BRAND }}>
+                    Send a new code
+                  </button>
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-slate-500">
+                  Open your authenticator app and enter the current code for MedRecPros MD. Lost your phone? Use a backup code, or ask an administrator to reset it.
+                </p>
+              )}
+              {resendInfo && <p className="mt-1 text-xs text-green-700">{resendInfo}</p>}
             </div>
           )}
 

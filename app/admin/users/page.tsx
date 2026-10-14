@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import UserManagementClient from "./UserManagementClient";
+import { getMfaMethod } from "@/lib/mfa-method";
 
 export default async function AdminUsersPage() {
   const session = await auth();
@@ -27,5 +28,7 @@ export default async function AdminUsersPage() {
 
   const currentUserId = (session.user as { id?: string } | undefined)?.id ?? "";
 
-  return <UserManagementClient initialUsers={users} currentUserId={currentUserId} />;
+  const mfaMethod = await getMfaMethod();
+
+  return <UserManagementClient initialUsers={users} currentUserId={currentUserId} mfaMethod={mfaMethod} />;
 }

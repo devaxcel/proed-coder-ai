@@ -13,6 +13,8 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
 import { checkPassword, verifySecondFactor } from "./login-flow";
+import { getMfaMethod } from "./mfa-method";
+import { verifyEmailCode } from "./email-otp";
 import { audit, clearFailures, registerFailure } from "./login-security";
 import { isMfaEnforced, SESSION_MAX_AGE_SECONDS } from "./mfa-config";
 import { ALL_CAPABILITY_KEYS } from "./permissions";
@@ -39,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        code: { label: "Authenticator code", type: "text" },
+        code: { label: "Verification code", type: "text" },
       },
       async authorize(credentials) {
         const email = typeof credentials?.email === "string" ? credentials.email : "";
@@ -54,8 +56,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // 2. Second factor — only when MFA enforcement is on
         let mfaPending = false;
         let mfaV = false;
+        let method: string | undefined;
         if (isMfaEnforced()) {
-          if (user.mfaEnabled && user.mfaSecretEnc) {
+          method = await getMfaMethod();
+          if (method === "EMAIL") {
+            // Emailed code: no enrollment needed — the account's email address is the second factor.
+            const ok = await verifyEmailCode(user, code);
+            if (!ok) {
+              await registerFailure(user.id, "email_code");
+              return null;
+            }
+            mfaV = true;
+          } else if (user.mfaEnabled && user.mfaSecretEnc) {
             const ok = await verifySecondFactor(user, code);
             if (!ok) {
               await registerFailure(user.id, "mfa_code");
@@ -69,7 +81,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         await clearFailures(user.id);
-        await audit("login_success", user.id, { mfa: mfaV ? "verified" : mfaPending ? "enrollment_required" : "not_enforced" });
+        await audit("login_success", user.id, { mfa: mfaV ? "verified" : mfaPending ? "enrollment_required" : "not_enforced", ...(mfaV ? { method } : {}) });
 
         return {
           id: user.id,
