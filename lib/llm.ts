@@ -1,34 +1,18 @@
 /**
  * Provider-agnostic LLM interface.
  *
- * Switch providers with the LLM_PROVIDER env var:
- *   LLM_PROVIDER="groq"       → free tier, default for MVP
- *   LLM_PROVIDER="anthropic"  → paid, use for production once revenue justifies it
+ * The provider, API keys and model names are set by an Admin in Admin > AI Model (stored encrypted in the database).
+ * Environment variables (LLM_PROVIDER, GROQ_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, GROQ_MODEL, CLAUDE_MODEL,
+ * OPENAI_MODEL) are still honoured as the fallback — see lib/llm-config.ts.
  *
- * Both providers implement the same public functions:
- *   - classifyIntent(query)   → route Track A vs Track B
- *   - (Phase 4) generateQueryForm(scenario, policyContext)
+ * Public functions (unchanged): classifyIntent(query), chat({system,user,maxTokens,temperature}).
  */
 
 import Groq from "groq-sdk";
 import Anthropic from "@anthropic-ai/sdk";
+import { resolveLlm, PROVIDER_LABEL, type LlmProvider } from "./llm-config";
 
 export type Intent = "codes" | "query_form" | "policy";
-
-const provider = (process.env.LLM_PROVIDER ?? "groq").toLowerCase();
-
-const groq =
-  provider === "groq"
-    ? new Groq({ apiKey: process.env.GROQ_API_KEY })
-    : null;
-
-const anthropic =
-  provider === "anthropic"
-    ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-    : null;
-
-const GROQ_MODEL = process.env.GROQ_MODEL ?? "openai/gpt-oss-120b";
-const CLAUDE_MODEL = process.env.CLAUDE_MODEL ?? "claude-sonnet-4-5-20250929";
 
 const CLASSIFIER_SYSTEM =
   "You are a router for a medical coding assistant. Classify the user query into exactly ONE label:\n" +
@@ -37,83 +21,80 @@ const CLASSIFIER_SYSTEM =
   "- `policy`: they want a policy document, guideline, or measure specification\n\n" +
   "Respond with only the label, nothing else.";
 
-/**
- * Classify a coder's natural-language query into a track.
- */
-export async function classifyIntent(query: string): Promise<Intent> {
-  let raw = "codes";
+type Call = { system: string; user: string; maxTokens: number; temperature: number };
 
-  if (provider === "groq" && groq) {
+/** One completion with an explicit provider/key/model — used by chat() and by the Admin "Test" button. */
+export async function callProvider(provider: LlmProvider, apiKey: string, model: string, c: Call): Promise<string> {
+  if (provider === "groq") {
+    const groq = new Groq({ apiKey });
     const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: "system", content: CLASSIFIER_SYSTEM },
-        { role: "user", content: query },
-      ],
-      max_tokens: 16,
-      temperature: 0,
+      model,
+      messages: [{ role: "system", content: c.system }, { role: "user", content: c.user }],
+      max_tokens: c.maxTokens,
+      temperature: c.temperature,
     });
-    raw = res.choices[0]?.message?.content?.trim().toLowerCase() ?? "codes";
-  } else if (provider === "anthropic" && anthropic) {
-    const res = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: 16,
-      system: CLASSIFIER_SYSTEM,
-      messages: [{ role: "user", content: query }],
-    });
-    raw =
-      res.content.find((c) => c.type === "text")?.text?.trim().toLowerCase() ??
-      "codes";
-  } else {
-    throw new Error(
-      `LLM provider "${provider}" not configured. Set LLM_PROVIDER + corresponding API key.`
-    );
+    return res.choices[0]?.message?.content ?? "";
   }
+  if (provider === "anthropic") {
+    const anthropic = new Anthropic({ apiKey });
+    const res = await anthropic.messages.create({
+      model,
+      max_tokens: c.maxTokens,
+      temperature: c.temperature,
+      system: c.system,
+      messages: [{ role: "user", content: c.user }],
+    });
+    return res.content.find((x) => x.type === "text")?.text ?? "";
+  }
+  // OpenAI — plain HTTPS call, no extra package. Newer reasoning models (gpt-5*, o*) reject a custom temperature.
+  const fixedTemp = /^(gpt-5|o\d)/i.test(model);
+  const r = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: "system", content: c.system }, { role: "user", content: c.user }],
+      max_completion_tokens: c.maxTokens,
+      ...(fixedTemp ? {} : { temperature: c.temperature }),
+    }),
+  });
+  const j = (await r.json().catch(() => ({}))) as { choices?: { message?: { content?: string } }[]; error?: { message?: string } };
+  if (!r.ok) throw new Error(j.error?.message ?? `OpenAI error ${r.status}`);
+  return j.choices?.[0]?.message?.content ?? "";
+}
 
+async function active() {
+  const cfg = await resolveLlm();
+  const key = cfg.keys[cfg.provider];
+  if (!key) {
+    throw new Error(`AI model "${PROVIDER_LABEL[cfg.provider]}" has no API key. An Admin can add it in Admin > AI Model.`);
+  }
+  return { provider: cfg.provider, key, model: cfg.models[cfg.provider] };
+}
+
+/** Classify a coder's natural-language query into a track. */
+export async function classifyIntent(query: string): Promise<Intent> {
+  const a = await active();
+  const raw = (await callProvider(a.provider, a.key, a.model, { system: CLASSIFIER_SYSTEM, user: query, maxTokens: 16, temperature: 0 }))
+    .trim()
+    .toLowerCase() || "codes";
   if (raw.startsWith("query")) return "query_form";
   if (raw.startsWith("policy")) return "policy";
   return "codes";
 }
 
-/**
- * Low-level chat completion — used by Phase 4 query form generator.
- * Same signature across providers.
- */
+/** Low-level chat completion — same signature across providers. */
 export async function chat(opts: {
   system: string;
   user: string;
   maxTokens?: number;
   temperature?: number;
 }): Promise<string> {
-  const maxTokens = opts.maxTokens ?? 1024;
-  const temperature = opts.temperature ?? 0.2;
-
-  if (provider === "groq" && groq) {
-    const res = await groq.chat.completions.create({
-      model: GROQ_MODEL,
-      messages: [
-        { role: "system", content: opts.system },
-        { role: "user", content: opts.user },
-      ],
-      max_tokens: maxTokens,
-      temperature,
-    });
-    return res.choices[0]?.message?.content ?? "";
-  }
-
-  if (provider === "anthropic" && anthropic) {
-    const res = await anthropic.messages.create({
-      model: CLAUDE_MODEL,
-      max_tokens: maxTokens,
-      temperature,
-      system: opts.system,
-      messages: [{ role: "user", content: opts.user }],
-    });
-    return res.content.find((c) => c.type === "text")?.text ?? "";
-  }
-
-  throw new Error(`LLM provider "${provider}" not configured.`);
+  const a = await active();
+  return callProvider(a.provider, a.key, a.model, {
+    system: opts.system,
+    user: opts.user,
+    maxTokens: opts.maxTokens ?? 1024,
+    temperature: opts.temperature ?? 0.2,
+  });
 }
-
-export const CURRENT_PROVIDER = provider;
-export const CURRENT_MODEL = provider === "groq" ? GROQ_MODEL : CLAUDE_MODEL;

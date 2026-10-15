@@ -200,6 +200,9 @@ export default function Sidebar({
             <Link href="/admin/security" onClick={onClose} className={linkClass("/admin/security")} style={linkStyle("/admin/security")}>
               Sign-in Security
             </Link>
+            <Link href="/admin/ai-model" onClick={onClose} className={linkClass("/admin/ai-model")} style={linkStyle("/admin/ai-model")}>
+              AI Model
+            </Link>
           </div>
         )}
       </nav>
