@@ -7,8 +7,8 @@ const BRAND = THEME.primary;
 const CARD = THEME.primaryLight;
 
 type State = {
-  method: "AUTHENTICATOR" | "EMAIL";
   enforced: boolean;
+  bypass: { active: false } | { active: true; mode: "24h" | "permanent"; until: string | null; since: string | null; by: string | null };
   mailConfigured: boolean;
   mailProvider: "resend" | "smtp" | null;
   providers: { resend: boolean; smtp: boolean };
@@ -23,7 +23,6 @@ type State = {
 
 export default function SecurityClient() {
   const [s, setS] = useState<State | null>(null);
-  const [choice, setChoice] = useState<"AUTHENTICATOR" | "EMAIL">("AUTHENTICATOR");
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [provider, setProvider] = useState<"resend" | "smtp">("resend");
@@ -31,7 +30,7 @@ export default function SecurityClient() {
   const [g, setG] = useState({ user: "", pass: "", from: "", host: "", port: "" });
   const [rs, setRs] = useState({ apiKey: "", from: "" });
   const [showAdv, setShowAdv] = useState(false);
-  const initialised = useRef(false); // only the FIRST load sets the radio choices — later reloads must not undo what the Admin picked
+  const initialised = useRef(false);
 
   async function load() {
     const r = await fetch("/api/admin/security");
@@ -40,7 +39,6 @@ export default function SecurityClient() {
       setS(j);
       if (!initialised.current) {
         initialised.current = true;
-        setChoice(j.method);
         setProvider(j.mailProvider ?? (j.providers?.smtp && !j.providers?.resend ? "smtp" : "resend"));
       }
     } else setMsg({ kind: "err", text: j.error ?? "Could not load settings." });
@@ -74,58 +72,89 @@ export default function SecurityClient() {
     setBusy(true); setMsg(null);
     const r = await fetch("/api/admin/security", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider }) });
     const j = await r.json().catch(() => ({}));
-    setMsg(r.ok ? { kind: "ok", text: `Test email sent to ${j.sentTo}. Check your inbox (and spam), then click Save.` } : { kind: "err", text: j.error ?? "Test failed." });
+    setMsg(r.ok ? { kind: "ok", text: `Test email sent to ${j.sentTo}. Check your inbox (and spam) to confirm it arrived.` } : { kind: "err", text: j.error ?? "Test failed." });
     setBusy(false);
     load();
   }
 
-  async function save() {
+  async function setBypass(action: "off24" | "offPermanent" | "on") {
+    if (action === "off24" && !confirm("Turn OFF two-factor sign-in for EVERYONE for 24 hours? It switches back on automatically.")) return;
+    if (action === "offPermanent" && !confirm("Turn OFF two-factor sign-in for EVERYONE until you turn it back on yourself?\n\nThis lowers protection of patient information. Only do this if you have to.")) return;
     setBusy(true); setMsg(null);
-    const r = await fetch("/api/admin/security", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ method: choice }) });
+    const r = await fetch("/api/admin/security", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action }) });
     const j = await r.json().catch(() => ({}));
-    setMsg(r.ok ? { kind: "ok", text: "Saved. The new method applies at each person's next sign-in." } : { kind: "err", text: j.error ?? "Save failed." });
+    setMsg(r.ok
+      ? { kind: "ok", text: action === "on" ? "Two-factor sign-in is ON." : action === "off24" ? "Two-factor sign-in is OFF for 24 hours, then it turns back on by itself." : "Two-factor sign-in is OFF until you turn it back on." }
+      : { kind: "err", text: j.error ?? "Could not change the setting." });
     setBusy(false);
     load();
   }
 
   if (!s) return <p className="text-sm text-slate-500">{msg?.text ?? "Loading…"}</p>;
 
-  const Option = ({ value, title, body }: { value: "AUTHENTICATOR" | "EMAIL"; title: string; body: string }) => (
-    <label className="flex cursor-pointer gap-3 rounded-lg border bg-white p-4" style={{ borderColor: choice === value ? BRAND : "#CBD5E1", boxShadow: choice === value ? `0 0 0 1px ${BRAND}` : undefined }}>
-      <input type="radio" name="method" className="mt-1" checked={choice === value} onChange={() => { setChoice(value); setMsg(null); }} style={{ accentColor: BRAND }} />
-      <span>
-        <span className="block font-semibold text-slate-900">{title}{s.method === value && <span className="ml-2 rounded-full px-2 py-0.5 text-xs font-semibold text-white" style={{ background: BRAND }}>Current</span>}</span>
-        <span className="mt-1 block text-sm text-slate-600">{body}</span>
-      </span>
-    </label>
-  );
-
-  const needsTest = choice === "EMAIL" && s.method !== "EMAIL" && !s.testOkRecently;
+  const fmt = (iso: string | null) => (iso ? new Date(iso).toLocaleString([], { dateStyle: "medium", timeStyle: "short" }) : "");
+  const off = s.bypass.active;
 
   return (
     <div className="space-y-6">
       <section className="rounded-lg overflow-hidden">
         <div className="px-6 py-5" style={{ backgroundColor: BRAND }}>
           <h1 className="text-xl font-bold text-white">Sign-in Security</h1>
-          <p className="mt-1 text-sm text-white/85">Choose how everyone proves it&apos;s really them after entering their password.</p>
+          <p className="mt-1 text-sm text-white/85">Everyone proves it&apos;s really them after entering their password — with an authenticator app, or an emailed code.</p>
         </div>
       </section>
 
       {!s.enforced && (
         <div className="rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-          Two-factor sign-in is currently <b>switched off</b> for the whole app (server setting <code>MFA_ENFORCEMENT</code>). The choice below is saved but only takes effect once it is turned on.
+          Two-factor sign-in is switched <b>off at the server level</b> (setting <code>MFA_ENFORCEMENT</code> in Vercel is not <code>on</code>). Nothing below takes effect until it is turned on.
         </div>
       )}
 
-      <div className="space-y-3">
-        <Option value="AUTHENTICATOR" title="Authenticator app" body="Users scan a QR code once with Google Authenticator, Microsoft Authenticator, Authy or 1Password, then enter the 6-digit code from the app at each sign-in. Includes one-time backup codes." />
-        <Option value="EMAIL" title="Email code" body="At each sign-in a 6-digit code is emailed to the user's account address (valid 10 minutes, single use). Nothing to install. Security depends on the user's mailbox, so make sure mailboxes are protected." />
+      {/* ---------------- Status + on/off ---------------- */}
+      <div className="rounded-lg border-2 p-4" style={{ borderColor: off ? "#DC2626" : "#16A34A", backgroundColor: off ? "#FEF2F2" : "#F0FDF4" }}>
+        <div className="text-lg font-bold" style={{ color: off ? "#B91C1C" : "#15803D" }}>
+          {off ? "Two-factor sign-in is OFF" : "Two-factor sign-in is ON"}
+        </div>
+        <p className="mt-1 text-sm text-slate-700">
+          {s.bypass.active
+            ? s.bypass.mode === "24h"
+              ? <>Everyone can sign in with a password only. It switches back <b>on automatically at {fmt(s.bypass.until)}</b>.</>
+              : <>Everyone can sign in with a password only, <b>until an Admin turns it back on</b>. Turned off {fmt(s.bypass.since)}.</>
+            : <>Everyone needs a second check after their password: the <b>authenticator app</b> if they have set it up (email code is their backup), otherwise an <b>emailed code</b>.</>}
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {off ? (
+            <button type="button" onClick={() => setBypass("on")} disabled={busy} className="rounded px-4 py-2 text-sm font-semibold text-white disabled:opacity-50" style={{ background: "#15803D" }}>Turn 2FA back on now</button>
+          ) : (
+            <>
+              <button type="button" onClick={() => setBypass("off24")} disabled={busy} className="rounded border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 disabled:opacity-50">Turn off for 24 hours</button>
+              <button type="button" onClick={() => setBypass("offPermanent")} disabled={busy} className="rounded border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-700 disabled:opacity-50">Turn off until I turn it on</button>
+            </>
+          )}
+        </div>
+        <p className="mt-2 text-xs text-slate-600">
+          Sessions started while 2FA is off end when the off-period ends (or after 8 hours at most). Every change is recorded in the audit log.
+        </p>
       </div>
 
-      {choice === "EMAIL" && (
-        <div className="rounded-lg border p-4 text-sm" style={{ borderColor: BRAND, backgroundColor: CARD }}>
-          <div className="font-semibold text-slate-900">Email delivery — how should the codes be sent?</div>
-          <p className="mt-1 text-xs text-slate-600">Enter the details here — they are stored encrypted and are never shown again after saving.</p>
+      {/* ---------------- Who uses what ---------------- */}
+      <div className="rounded-lg border bg-white p-4 text-sm text-slate-700" style={{ borderColor: "#CBD5E1" }}>
+        <div className="font-semibold text-slate-900">How each person signs in</div>
+        <ul className="mt-2 list-disc space-y-1 pl-5">
+          <li><b>Has an authenticator app:</b> enters the app code. If they can&apos;t use it, “Email me a code” on the login screen sends a backup code. One-time backup codes are the last resort.</li>
+          <li><b>No authenticator app:</b> a 6-digit code is emailed to their account address at each sign-in. They can add the app any time from “My sign-in security”.</li>
+        </ul>
+      </div>
+
+      {/* ---------------- Email delivery ---------------- */}
+      <div className="rounded-lg border p-4 text-sm" style={{ borderColor: BRAND, backgroundColor: CARD }}>
+        <div className="font-semibold text-slate-900">Email delivery — how are sign-in codes sent?</div>
+        {!s.mailConfigured && (
+          <p className="mt-2 rounded border border-red-300 bg-red-50 p-2 text-xs text-red-700">
+            Email is <b>not set up</b>. People without an authenticator app can&apos;t sign in until it is — set it up below and send a test email.
+          </p>
+        )}
+        <p className="mt-1 text-xs text-slate-600">Enter the details here — they are stored encrypted and are never shown again after saving.</p>
 
           <div className="mt-3 space-y-3">
             {/* ---------------- Google ---------------- */}
@@ -190,30 +219,22 @@ export default function SecurityClient() {
             </div>
           </div>
 
-          {s.mailProvider && <p className="mt-3 text-xs text-slate-600">Currently sending via <b>{s.mailProvider === "resend" ? "Resend" : "Google"}</b> from <b>{s.mailFrom}</b>.</p>}
-          <button type="button" onClick={sendTest} disabled={busy || !s.providers[provider]} className="mt-3 rounded border bg-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50" style={{ borderColor: BRAND, color: BRAND }}>
-            Send a test email to {s.adminEmail ?? "me"} using {provider === "resend" ? "Resend" : "Google"}
-          </button>
-          {s.testOkRecently && <span className="ml-3 text-xs text-green-700">✓ Test email delivered recently</span>}
-          <p className="mt-2 text-xs text-slate-500">A successful test also makes that provider the one used for sign-in codes. Saving new credentials requires a fresh test.</p>
-        </div>
-      )}
+
+        {s.mailProvider && <p className="mt-3 text-xs text-slate-600">Currently sending via <b>{s.mailProvider === "resend" ? "Resend" : "Google"}</b> from <b>{s.mailFrom}</b>.</p>}
+        <button type="button" onClick={sendTest} disabled={busy || !s.providers[provider]} className="mt-3 rounded border bg-white px-3 py-1.5 text-sm font-semibold disabled:opacity-50" style={{ borderColor: BRAND, color: BRAND }}>
+          Send a test email to {s.adminEmail ?? "me"} using {provider === "resend" ? "Resend" : "Google"}
+        </button>
+        {s.testOkRecently && <span className="ml-3 text-xs text-green-700">✓ Test email delivered recently</span>}
+        <p className="mt-2 text-xs text-slate-500">A successful test also makes that provider the one used for sign-in codes.</p>
+      </div>
 
       {msg && (
         <div className={`rounded-md border p-3 text-sm ${msg.kind === "ok" ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-700"}`}>{msg.text}</div>
       )}
 
-      <div className="flex items-center gap-3">
-        <button type="button" onClick={save} disabled={busy || choice === s.method || needsTest} className="rounded px-5 py-2 font-semibold text-white disabled:opacity-50" style={{ background: BRAND }}>
-          {busy ? "Working…" : "Save"}
-        </button>
-        {needsTest && <span className="text-xs text-slate-500">Send the test email first — this prevents locking everyone out if email isn&apos;t working.</span>}
-      </div>
-
       <div className="rounded-md border border-slate-200 bg-white p-4 text-xs text-slate-600 space-y-1">
-        <div><b>Switching later is safe:</b> anyone with an authenticator app already set up keeps that setup stored, so switching back needs no re-enrollment.</div>
-        <div><b>Switching to Authenticator app:</b> anyone not yet enrolled is asked to scan a QR code at their next sign-in.</div>
-        <div><b>Emergency:</b> if sign-in ever breaks, run <code>npx tsx scripts/set-mfa-method.ts AUTHENTICATOR</code> on a computer that has the project&apos;s <code>.env</code>.</div>
+        <div><b>Locked out?</b> If email stops working and people can&apos;t get in, an Admin who is still signed in can turn 2FA off here for 24 hours. If no Admin can sign in, run <code>npx tsx scripts/set-2fa-bypass.ts 24h</code> on a computer that has the project&apos;s <code>.env</code>.</div>
+        <div><b>Lost phone:</b> Admin &gt; User Management &gt; “Reset 2FA / unlock” — that person falls back to the emailed code and can add a new app afterwards.</div>
       </div>
     </div>
   );

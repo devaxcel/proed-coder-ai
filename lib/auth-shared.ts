@@ -12,6 +12,7 @@ export function shapeSession({ session, token }: { session: Session; token: JWT 
     (session.user as { id?: string }).id = token.uid as string | undefined;
     (session.user as { mfaPending?: boolean }).mfaPending = token.mfaPending === true;
     (session.user as { mfaV?: boolean }).mfaV = token.mfaV === true;
+    (session.user as { mfaOffUntil?: number }).mfaOffUntil = typeof token.mfaOffUntil === "number" ? token.mfaOffUntil : undefined;
     (session.user as { allowedCapabilities?: string[] }).allowedCapabilities =
       (token.allowedCapabilities as string[] | undefined) ?? [];
   }

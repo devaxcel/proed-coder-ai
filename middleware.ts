@@ -14,22 +14,14 @@ export default auth((req) => {
   }
 
   // Two-factor authentication gate (only when MFA enforcement is switched on).
-  //  - Signed in with password but NOT yet enrolled  -> may only reach /mfa/setup + /api/mfa/*
-  //  - Session created before MFA was enforced (no mfaV flag) -> sent to sign in again
+  //  - Fully verified sessions carry mfaV.
+  //  - Sessions started while an Admin had 2FA switched off carry mfaOffUntil (epoch seconds) and are honoured until then.
+  //  - Anything else (older sessions, expired "2FA off" sessions) is sent to sign in again.
   if (isMfaEnforced()) {
     const p = req.nextUrl.pathname;
-    const u = req.auth.user as { mfaPending?: boolean; mfaV?: boolean } | undefined;
-    const isMfaPath = p === "/mfa/setup" || p.startsWith("/api/mfa/");
-    if (u?.mfaPending) {
-      if (!isMfaPath) {
-        if (p.startsWith("/api/")) {
-          return Response.json({ error: "Set up your authenticator app to continue." }, { status: 403 });
-        }
-        return Response.redirect(new URL("/mfa/setup", req.nextUrl.origin));
-      }
-      return; // pending users stop here: nothing else is reachable
-    }
-    if (!u?.mfaV && p !== "/api/mfa/relogin") {
+    const u = req.auth.user as { mfaV?: boolean; mfaOffUntil?: number } | undefined;
+    const offOk = typeof u?.mfaOffUntil === "number" && u.mfaOffUntil * 1000 > Date.now();
+    if (!u?.mfaV && !offOk && p !== "/api/mfa/relogin") {
       if (p.startsWith("/api/")) {
         return Response.json({ error: "Please sign in again." }, { status: 401 });
       }

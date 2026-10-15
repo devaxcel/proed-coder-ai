@@ -13,7 +13,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { db } from "./db";
 import { checkPassword, verifySecondFactor } from "./login-flow";
-import { getMfaMethod } from "./mfa-method";
+import { getBypass, offSessionUntil } from "./mfa-bypass";
 import { verifyEmailCode } from "./email-otp";
 import { audit, clearFailures, registerFailure } from "./login-security";
 import { isMfaEnforced, SESSION_MAX_AGE_SECONDS } from "./mfa-config";
@@ -53,43 +53,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (check.state !== "ok") return null;
         const user = check.user;
 
-        // 2. Second factor — only when MFA enforcement is on
-        let mfaPending = false;
+        // 2. Second factor — only when MFA enforcement is on.
+        //    Authenticator app set up  → app code (or backup code), or the emailed code as the backup.
+        //    No authenticator app      → emailed code.
+        //    Admin has switched 2FA off (24 h / until turned back on) → skipped; the session carries a bounded expiry.
         let mfaV = false;
+        let mfaOffUntil: number | undefined;
         let method: string | undefined;
         if (isMfaEnforced()) {
-          method = await getMfaMethod();
-          if (method === "EMAIL") {
-            // Emailed code: no enrollment needed — the account's email address is the second factor.
-            const ok = await verifyEmailCode(user, code);
-            if (!ok) {
-              await registerFailure(user.id, "email_code");
-              return null;
-            }
-            mfaV = true;
-          } else if (user.mfaEnabled && user.mfaSecretEnc) {
-            const ok = await verifySecondFactor(user, code);
-            if (!ok) {
-              await registerFailure(user.id, "mfa_code");
-              return null;
-            }
-            mfaV = true;
+          const bypass = await getBypass();
+          if (bypass.active) {
+            mfaOffUntil = offSessionUntil(bypass);
+            method = "bypassed";
           } else {
-            // Not enrolled yet: signed in only far enough to reach /mfa/setup.
-            mfaPending = true;
+            const enrolled = user.mfaEnabled && !!user.mfaSecretEnc;
+            let ok = false;
+            if (enrolled) {
+              ok = await verifySecondFactor(user, code);
+              method = "authenticator";
+              if (!ok && /^\d{6}$/.test(code.replace(/\s/g, ""))) {
+                ok = await verifyEmailCode(user, code); // email backup for people who have the app
+                if (ok) method = "email_backup";
+              }
+            } else {
+              ok = await verifyEmailCode(user, code);
+              method = "email";
+            }
+            if (!ok) {
+              await registerFailure(user.id, enrolled ? "mfa_code" : "email_code");
+              return null;
+            }
+            mfaV = true;
           }
         }
 
         await clearFailures(user.id);
-        await audit("login_success", user.id, { mfa: mfaV ? "verified" : mfaPending ? "enrollment_required" : "not_enforced", ...(mfaV ? { method } : {}) });
+        await audit("login_success", user.id, { mfa: mfaV ? "verified" : mfaOffUntil ? "bypassed" : "not_enforced", ...(method ? { method } : {}) });
 
         return {
           id: user.id,
           name: user.name ?? user.email,
           email: user.email,
           role: user.role,
-          mfaPending,
           mfaV,
+          mfaOffUntil,
         };
       },
     }),
@@ -108,7 +115,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const role = (user as { role?: string }).role;
         token.role = role;
         token.uid = user.id;
-        token.mfaPending = (user as { mfaPending?: boolean }).mfaPending === true;
+        token.mfaPending = false;
+        token.mfaOffUntil = (user as { mfaOffUntil?: number }).mfaOffUntil;
         token.mfaV = (user as { mfaV?: boolean }).mfaV === true;
         token.allowedCapabilities = role ? await getAllowedCapabilities(role) : [];
       }

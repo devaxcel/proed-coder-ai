@@ -15,6 +15,8 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
   const [needCode, setNeedCode] = useState(false); // step 2: second-factor code
   const [codeMode, setCodeMode] = useState<"totp" | "email">("totp");
   const [sentTo, setSentTo] = useState("");
+  const [hasApp, setHasApp] = useState(false); // user has an authenticator app (email is then the backup)
+  const [emailBackup, setEmailBackup] = useState(false); // "email me a code" is available
   const [resendInfo, setResendInfo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const router = useRouter();
@@ -49,6 +51,8 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
         }
         if (state === "mfa_required" || state === "email_code_sent") {
           setCodeMode(state === "email_code_sent" ? "email" : "totp");
+          setHasApp(state === "mfa_required" || j.hasApp === true);
+          setEmailBackup(j.emailBackup === true);
           setSentTo(j.to ?? "");
           setNeedCode(true);
           return;
@@ -87,17 +91,18 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
       const pre = await fetch("/api/auth/mfa-precheck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, sendEmail: true }),
       });
       const j = await pre.json().catch(() => ({ state: "invalid" }));
       if (j.state === "email_code_sent") {
+        setCodeMode("email");
         setSentTo(j.to ?? sentTo);
         setResendInfo(j.resent ? "A new code was sent." : "A code was just sent — please wait about 30 seconds before asking for another.");
         setCode("");
       } else if (j.state === "locked") {
         setErr(`Too many failed attempts. This account is locked for about ${j.minutes ?? 15} minutes.`);
       } else {
-        setErr("We couldn't send a new code. Please try again in a moment.");
+        setErr("We couldn't send a code by email. Please try again in a moment, or use your authenticator app / ask your administrator.");
       }
     } finally {
       setLoading(false);
@@ -226,10 +231,26 @@ export default function LoginForm({ callbackUrl, notice }: { callbackUrl: string
                   <button type="button" onClick={resendCode} disabled={loading} className="font-semibold underline disabled:opacity-50" style={{ color: BRAND }}>
                     Send a new code
                   </button>
+                  {hasApp && (
+                    <>
+                      {" · "}
+                      <button type="button" onClick={() => { setCodeMode("totp"); setCode(""); setResendInfo(null); setErr(null); }} className="font-semibold underline" style={{ color: BRAND }}>
+                        Use my authenticator app instead
+                      </button>
+                    </>
+                  )}
                 </p>
               ) : (
                 <p className="mt-1 text-xs text-slate-500">
                   Open your authenticator app and enter the current code for MedRecPros MD. Lost your phone? Use a backup code, or ask an administrator to reset it.
+                  {emailBackup && (
+                    <>
+                      {" "}
+                      <button type="button" onClick={resendCode} disabled={loading} className="font-semibold underline disabled:opacity-50" style={{ color: BRAND }}>
+                        Can&apos;t use your app? Email me a code
+                      </button>
+                    </>
+                  )}
                 </p>
               )}
               {resendInfo && <p className="mt-1 text-xs text-green-700">{resendInfo}</p>}

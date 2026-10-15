@@ -185,6 +185,12 @@ export default function Sidebar({
           );
         })}
 
+        <div className="pt-2">
+          <Link href="/mfa/setup" onClick={onClose} className={linkClass("/mfa/setup")} style={linkStyle("/mfa/setup")}>
+            My sign-in security
+          </Link>
+        </div>
+
         {isAdmin && (
           <div className="pt-3 mt-3 border-t" style={{ borderColor: "rgba(212, 175, 55, 0.25)" }}>
             <div className="px-3 pb-1 text-xs font-bold uppercase tracking-wide" style={{ color: "rgba(255,255,255,0.8)" }}>Admin</div>

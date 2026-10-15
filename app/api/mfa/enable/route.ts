@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { audit, registerFailure } from "@/lib/login-security";
 import { isMfaEnforced } from "@/lib/mfa-config";
-import { getMfaMethod } from "@/lib/mfa-method";
 import { decryptSecret, generateBackupCodes, hashBackupCode, verifyTotp } from "@/lib/mfa";
 
 export const runtime = "nodejs";
@@ -14,7 +13,6 @@ export async function POST(req: NextRequest) {
   const uid = (session?.user as { id?: string } | undefined)?.id;
   if (!session || !uid) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
   if (!isMfaEnforced()) return NextResponse.json({ error: "Two-factor sign-in is not enabled on this server." }, { status: 400 });
-  if ((await getMfaMethod()) === "EMAIL") return NextResponse.json({ error: "Authenticator setup is not needed — sign-in codes are sent by email." }, { status: 400 });
 
   const { code } = (await req.json().catch(() => ({}))) as { code?: string };
   const user = await db.user.findUnique({ where: { id: uid } });

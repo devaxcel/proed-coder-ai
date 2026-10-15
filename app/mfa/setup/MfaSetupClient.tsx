@@ -1,6 +1,5 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { THEME } from "@/lib/theme";
 
@@ -71,9 +70,9 @@ export default function MfaSetupClient({ email }: { email: string }) {
     <div className="flex w-full justify-center">
       {!backupCodes ? (
         <div className={card}>
-          <h1 className="text-xl font-bold" style={{ color: THEME.primary }}>Set up two-factor sign-in</h1>
+          <h1 className="text-xl font-bold" style={{ color: THEME.primary }}>Add an authenticator app</h1>
           <p className="mt-1 text-sm text-slate-600">
-            To protect patient information, MedRecPros MD requires a code from an authenticator app each time you sign in.
+            Today you sign in with a code we email you. With an authenticator app, the app code becomes your main check (faster, works offline) and the email code stays as your backup.
           </p>
 
           <ol className="mt-4 space-y-4 text-sm text-slate-800">
@@ -117,8 +116,8 @@ export default function MfaSetupClient({ email }: { email: string }) {
 
           {err && <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
-          <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="mt-6 text-xs text-slate-500 underline">
-            Cancel and sign out
+          <button type="button" onClick={() => { window.location.href = "/"; }} className="mt-6 text-xs text-slate-500 underline">
+            Not now
           </button>
         </div>
       ) : (
@@ -141,11 +140,11 @@ export default function MfaSetupClient({ email }: { email: string }) {
           <button
             type="button"
             disabled={!saved}
-            onClick={() => signOut({ callbackUrl: "/login?mfa=enabled" })}
+            onClick={() => { window.location.href = "/"; }}
             className="mt-4 w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
             style={{ backgroundColor: THEME.primary }}
           >
-            Finish — sign in again with my code
+            Finish
           </button>
         </div>
       )}

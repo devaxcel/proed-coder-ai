@@ -3,8 +3,8 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/login-security";
 import { isMfaEnforced } from "@/lib/mfa-config";
-import { getMfaMethod, setMfaMethod, type MfaMethod } from "@/lib/mfa-method";
-import { availableProviders, getMailProvider, isMailConfigured, mailFrom, mailStatus, MAIL_PROVIDER_KEY, saveStoredMail, sendMail, type MailProvider } from "@/lib/mailer";
+import { getBypass, setBypass } from "@/lib/mfa-bypass";
+import { availableProviders, getMailProvider, mailFrom, mailStatus, MAIL_PROVIDER_KEY, saveStoredMail, sendMail, type MailProvider } from "@/lib/mailer";
 
 export const runtime = "nodejs";
 
@@ -30,9 +30,10 @@ export async function GET() {
   if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
   const t = await lastTestOk();
   const provider = await getMailProvider();
+  const b = await getBypass();
   return NextResponse.json({
-    method: await getMfaMethod(),
     enforced: isMfaEnforced(),
+    bypass: b.active ? { active: true, mode: b.mode, until: b.until ? b.until.toISOString() : null, since: b.since, by: b.by } : { active: false },
     mailConfigured: provider !== null,
     mailProvider: provider,
     providers: await availableProviders(),
@@ -43,31 +44,25 @@ export async function GET() {
   });
 }
 
-/** Choose the second-factor method for everyone. */
+/**
+ * Turn 2FA off / back on.
+ *   { action: "off24" }        2FA skipped for 24 hours, then back on by itself
+ *   { action: "offPermanent" } 2FA skipped until an Admin turns it back on
+ *   { action: "on" }           2FA back on now
+ */
 export async function PUT(req: NextRequest) {
   const admin = await requireAdmin();
   if (!admin) return NextResponse.json({ error: "Admin access required" }, { status: 403 });
-  const body = (await req.json().catch(() => ({}))) as { method?: string };
-  if (body.method !== "AUTHENTICATOR" && body.method !== "EMAIL") {
-    return NextResponse.json({ error: "Invalid method." }, { status: 400 });
+  const { action } = (await req.json().catch(() => ({}))) as { action?: string };
+  if (action !== "off24" && action !== "offPermanent" && action !== "on") {
+    return NextResponse.json({ error: "Invalid action." }, { status: 400 });
   }
-  const method = body.method as MfaMethod;
-
-  if (method === "EMAIL") {
-    // Safety: never switch to email codes unless email demonstrably works, or nobody could sign in.
-    if (!(await isMailConfigured())) {
-      return NextResponse.json({ error: "Email is not configured on the server yet (enter the Google or Resend details on this page and save)." }, { status: 400 });
-    }
-    const t = await lastTestOk();
-    if (!t || Date.now() - t.getTime() > TEST_VALID_MINUTES * 60_000) {
-      return NextResponse.json({ error: "Send a test email to yourself first and confirm it arrives, then save." }, { status: 400 });
-    }
-  }
-
-  const before = await getMfaMethod();
-  await setMfaMethod(method, admin.id ?? null);
-  await audit("mfa_method_changed", admin.id ?? null, { from: before, to: method });
-  return NextResponse.json({ ok: true, method });
+  const before = await getBypass();
+  const mode = action === "off24" ? "24h" : action === "offPermanent" ? "permanent" : null;
+  await setBypass(mode, admin.id ?? null);
+  await audit("mfa_bypass_changed", admin.id ?? null, { from: before.active ? before.mode : "on", to: mode ?? "on" });
+  const after = await getBypass();
+  return NextResponse.json({ ok: true, bypass: after.active ? { active: true, mode: after.mode, until: after.until ? after.until.toISOString() : null } : { active: false } });
 }
 
 /**
